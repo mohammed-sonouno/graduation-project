@@ -45,14 +45,10 @@ const getMajorImage = (slug) => `/majors/${slug || 'placeholder'}.jpg`;
 function Majors() {
   const [search, setSearch] = useState('');
   const [collegeIds, setCollegeIds] = useState([]);
-  const [degreeTypes, setDegreeTypes] = useState([]);
   const [showMore, setShowMore] = useState(false);
 
   const toggleCollege = (id) => {
     setCollegeIds((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
-  };
-  const toggleDegree = (id) => {
-    setDegreeTypes((prev) => (prev.includes(id) ? prev.filter((x) => x !== id) : [...prev, id]));
   };
 
   const filteredMajors = useMemo(() => {
@@ -64,11 +60,10 @@ function Majors() {
           .filter(Boolean)
           .some((s) => String(s).toLowerCase().includes(query));
       const matchCollege = collegeIds.length === 0 || collegeIds.includes(m.collegeId);
-      const matchDegree = degreeTypes.length === 0 || degreeTypes.includes(m.degreeType);
-      return matchSearch && matchCollege && matchDegree;
+      return matchSearch && matchCollege;
     });
     return list;
-  }, [search, collegeIds, degreeTypes]);
+  }, [search, collegeIds]);
 
   const visibleMajors = showMore ? filteredMajors : filteredMajors.slice(0, INITIAL_VISIBLE);
   const hasMore = filteredMajors.length > INITIAL_VISIBLE;
@@ -110,11 +105,11 @@ function Majors() {
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar filters */}
           <aside className="lg:w-56 flex-shrink-0">
-            <div className="bg-white border border-slate-100 rounded-lg shadow-sm p-5 sticky top-24">
+            <div className="bg-white rounded-lg shadow-sm p-5 sticky top-24">
               <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">
                 Filter by College
               </h3>
-              <ul className="space-y-2 mb-6 pb-6 border-b border-slate-100">
+              <ul className="space-y-2">
                 {COLLEGE_FILTERS.map((c) => (
                   <li key={c.id} className="flex items-center gap-2">
                     <input
@@ -126,25 +121,6 @@ function Majors() {
                     />
                     <label htmlFor={`college-${c.id}`} className="text-sm text-slate-700 cursor-pointer">
                       {c.label}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">
-                Degree Type
-              </h3>
-              <ul className="space-y-2">
-                {DEGREE_FILTERS.map((d) => (
-                  <li key={d.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={`degree-${d.id}`}
-                      checked={degreeTypes.includes(d.id)}
-                      onChange={() => toggleDegree(d.id)}
-                      className="w-4 h-4 rounded border-slate-300 text-[#00356b] focus:ring-[#00356b]/30"
-                    />
-                    <label htmlFor={`degree-${d.id}`} className="text-sm text-slate-700 cursor-pointer">
-                      {d.label}
                     </label>
                   </li>
                 ))}
@@ -164,7 +140,7 @@ function Majors() {
                   key={major.id}
                   to={`/majors/${major.id}`}
                   state={{ from: 'majors' }}
-                  className="group bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex"
+                  className="group bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex"
                 >
                   <div className="relative w-24 h-24 flex-shrink-0 bg-slate-100">
                     <img
@@ -209,7 +185,7 @@ function Majors() {
                 <button
                   type="button"
                   onClick={() => setShowMore((v) => !v)}
-                  className="px-6 py-2.5 text-sm font-semibold text-slate-700 border border-slate-200 rounded-lg bg-white hover:bg-slate-50 transition-colors"
+                  className="text-sm font-semibold text-[#00356b] hover:underline"
                 >
                   {showMore ? 'Show less' : 'Show more'}
                 </button>

@@ -11,6 +11,8 @@ export const EVENTS = [
     image: '/event1.jpg',
     status: 'upcoming',
     featured: true,
+    price: 25,
+    priceMember: 15,
   },
   {
     id: 'future-projects',
@@ -77,10 +79,28 @@ export const EVENTS = [
     status: 'past',
     featured: false,
   },
+  {
+    id: 'careers-networking',
+    title: 'Alumni Networking Night',
+    category: 'Career Development',
+    date: 'July 20, 2024',
+    time: '6:00 PM',
+    location: 'Graduate Lounge',
+    description:
+      'Meet alumni across industries, learn about career paths, and expand your professional network.',
+    image: '/event2.jpg',
+    status: 'past',
+    featured: false,
+  },
 ];
 
 export const EVENT_CATEGORIES = [
   'All Categories',
   ...Array.from(new Set(EVENTS.map((e) => e.category))).sort(),
+];
+
+export const EVENT_ORGANIZERS = [
+  'All Organizers',
+  ...Array.from(new Set(EVENTS.map((e) => e.organizer).filter(Boolean))).sort(),
 ];
 

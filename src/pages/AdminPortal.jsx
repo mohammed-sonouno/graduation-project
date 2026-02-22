@@ -59,6 +59,13 @@ function AdminPortal() {
 
         <div className="grid gap-4 sm:grid-cols-2">
           <Link
+            to="/manage-events"
+            className="block p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow transition"
+          >
+            <h3 className="font-semibold text-gray-900">Manage Events</h3>
+            <p className="text-sm text-gray-500 mt-1">Create, edit, and submit events for approval.</p>
+          </Link>
+          <Link
             to="/event-approval"
             className="block p-4 bg-white rounded-xl border border-gray-200 shadow-sm hover:border-blue-300 hover:shadow transition"
           >

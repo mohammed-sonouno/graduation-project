@@ -14,6 +14,7 @@ import Profile from './pages/Profile';
 import Login from './pages/Login';
 import Register from './pages/Register';
 import AdminPortal from './pages/AdminPortal';
+import ManageEvents from './pages/ManageEvents';
 
 function App() {
   return (
@@ -31,6 +32,7 @@ function App() {
           <Route path="dashboard" element={<Dashboard />} />
           <Route path="event-approval" element={<EventApproval />} />
           <Route path="admin" element={<AdminPortal />} />
+          <Route path="manage-events" element={<ManageEvents />} />
           <Route path="profile" element={<Profile />} />
           <Route path="login" element={<Login />} />
           <Route path="register" element={<Register />} />

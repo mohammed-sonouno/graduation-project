@@ -1,8 +1,11 @@
-import { useMemo, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { EVENTS, EVENT_CATEGORIES } from '../data/events';
+import { EVENTS, EVENT_CATEGORIES, EVENT_ORGANIZERS } from '../data/events';
+import { getApprovedManagedEvents } from '../data/managedEvents';
 
 const HERO_BG = '/events-hero.png';
+/** Max events shown before "Show more" */
+const INITIAL_EVENTS_COUNT = 6;
 
 function IconCalendar(props) {
   return (
@@ -96,17 +99,28 @@ function EventCard({ event }) {
 }
 
 function Events() {
-  const featured = EVENTS.find((e) => e.featured) || EVENTS[0];
+  const allEvents = useMemo(() => [...EVENTS, ...getApprovedManagedEvents()], []);
+  const featured = allEvents.find((e) => e.featured) || allEvents[0];
   const [tab, setTab] = useState('all'); // all | upcoming | past
   const [category, setCategory] = useState('All Categories');
+  const [organizer, setOrganizer] = useState('All Organizers');
+  const [showMore, setShowMore] = useState(false);
 
   const filtered = useMemo(() => {
-    return EVENTS.filter((e) => {
+    return allEvents.filter((e) => {
       const matchTab = tab === 'all' ? true : e.status === tab;
-      const matchCategory = category === 'All Categories' ? true : e.category === category;
-      return matchTab && matchCategory;
+      const matchCategory = category === 'All Categories' ? true : (e.category || '') === category;
+      const matchOrganizer = organizer === 'All Organizers' ? true : (e.organizer || '') === organizer;
+      return matchTab && matchCategory && matchOrganizer;
     });
-  }, [tab, category]);
+  }, [tab, category, organizer]);
+
+  const visibleEvents = showMore ? filtered : filtered.slice(0, INITIAL_EVENTS_COUNT);
+  const hasMore = filtered.length > INITIAL_EVENTS_COUNT;
+
+  useEffect(() => {
+    setShowMore(false);
+  }, [tab, category, organizer]);
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
@@ -177,7 +191,7 @@ function Events() {
         </div>
       </section>
 
-      {/* Controls + Grid */}
+      {/* Filter + Grid */}
       <section className="max-w-7xl mx-auto px-6 lg:px-10 py-10">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div className="flex items-center gap-2">
@@ -206,16 +220,16 @@ function Events() {
                 tab === 'past' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-600 hover:text-slate-900'
               }`}
             >
-              Past Symposia
+              Past Events
             </button>
           </div>
 
-          <div className="flex items-center gap-3">
-            <label className="text-sm text-slate-600" htmlFor="category">
-              Filter by Category
+          <div className="flex flex-wrap items-center gap-3">
+            <label className="text-sm text-slate-600" htmlFor="event-category">
+              Category
             </label>
             <select
-              id="category"
+              id="event-category"
               value={category}
               onChange={(e) => setCategory(e.target.value)}
               className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00356b]/20"
@@ -226,14 +240,41 @@ function Events() {
                 </option>
               ))}
             </select>
+            <label className="text-sm text-slate-600" htmlFor="event-organizer">
+              Organizer
+            </label>
+            <select
+              id="event-organizer"
+              value={organizer}
+              onChange={(e) => setOrganizer(e.target.value)}
+              className="rounded-full border border-slate-200 bg-white px-4 py-2 text-sm text-slate-800 shadow-sm focus:outline-none focus:ring-2 focus:ring-[#00356b]/20"
+            >
+              {EVENT_ORGANIZERS.map((o) => (
+                <option key={o} value={o}>
+                  {o}
+                </option>
+              ))}
+            </select>
           </div>
         </div>
 
         <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filtered.map((event) => (
+          {visibleEvents.map((event) => (
             <EventCard key={event.id} event={event} />
           ))}
         </div>
+
+        {hasMore && (
+          <div className="flex justify-center mt-10">
+            <button
+              type="button"
+              onClick={() => setShowMore((v) => !v)}
+              className="text-sm font-semibold text-[#00356b] hover:underline"
+            >
+              {showMore ? 'Show less' : 'Show more'}
+            </button>
+          </div>
+        )}
 
         {filtered.length === 0 && (
           <div className="mt-16 text-center text-slate-600">

@@ -6,6 +6,7 @@ const centerLinks = [
   { to: "/colleges", label: "Colleges" },
   { to: "/majors", label: "Majors" },
   { to: "/events", label: "Events" },
+  { to: "/manage-events", label: "Manage Events" },
 ];
 
 function LogoPlaceholder({ className = "" }) {
