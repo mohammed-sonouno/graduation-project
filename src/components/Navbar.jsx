@@ -162,7 +162,7 @@ function Navbar() {
                   src="/najah-logo.png"
                   alt="An-Najah National University"
                   style={{
-                    height: scrolled ? '45px' : '55px',
+                    height: scrolled ? '50px' : '60px',
                     width: 'auto',
                     objectFit: 'contain',
                     transition: 'height 0.3s ease',
