@@ -50,7 +50,7 @@ function formatDisplayTime(timeStr) {
   return timeStr;
 }
 
-function EventCard({ ev, selectedId, setSelectedId, setShowForm, persist, events }) {
+function EventCard({ ev, selectedId, setSelectedId, setShowForm, persist, events, onShowFeedback }) {
   return (
     <div
       className={`rounded-2xl border overflow-hidden bg-white shadow-sm transition-all duration-200 min-w-0 ${
@@ -88,7 +88,13 @@ function EventCard({ ev, selectedId, setSelectedId, setShowForm, persist, events
                 Fix now
               </button>
               {ev.feedback && (
-                <span className="text-xs text-slate-500 self-center">View feedback (1)</span>
+                <button
+                  type="button"
+                  onClick={() => onShowFeedback && onShowFeedback(ev)}
+                  className="text-xs text-slate-500 self-center underline-offset-2 hover:underline"
+                >
+                  View feedback (1)
+                </button>
               )}
             </>
           )}
@@ -139,8 +145,10 @@ function ManageEvents() {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
+  const [feedbackEvent, setFeedbackEvent] = useState(null);
   const [form, setForm] = useState({
     title: '',
+    clubName: '',
     description: '',
     image: '',
     startDate: '',
@@ -182,6 +190,7 @@ function ManageEvents() {
     if (ev) {
       setForm({
         title: ev.title || '',
+        clubName: ev.clubName || '',
         description: ev.description || '',
         image: ev.image || '',
         startDate: ev.startDate || '',
@@ -197,6 +206,7 @@ function ManageEvents() {
     } else {
       setForm({
         title: '',
+        clubName: '',
         description: '',
         image: '',
         startDate: '',
@@ -264,6 +274,7 @@ function ManageEvents() {
     const payload = {
       id: selectedEvent?.id || `ev-${Date.now()}`,
       title: form.title.trim(),
+      clubName: form.clubName.trim() || 'University',
       description: form.description.trim(),
       startDate: form.startDate.trim(),
       startTime: form.startTime.trim(),
@@ -282,7 +293,6 @@ function ManageEvents() {
       feedback: selectedEvent?.status === 'needs_changes' ? undefined : selectedEvent?.feedback,
       image: (form.image || '').trim() || '/event1.jpg',
       category: selectedEvent?.category || 'Event',
-      clubName: selectedEvent?.clubName || 'University',
     };
     const next = selectedEvent
       ? events.map((ev) => (ev.id === selectedEvent.id ? payload : ev))
@@ -300,6 +310,7 @@ function ManageEvents() {
     setSelectedId(null);
     setForm({
       title: '',
+      clubName: '',
       description: '',
       image: '',
       startDate: '',
@@ -437,21 +448,39 @@ function ManageEvents() {
                       <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.title}</p>
                     )}
                   </div>
-                  <div>
-                    <label htmlFor="me-desc" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Description
-                    </label>
-                    <textarea
-                      id="me-desc"
-                      rows={3}
-                      value={form.description}
-                      onChange={(e) => setFormField('description', e.target.value)}
-                      placeholder="Describe the Event"
-                      className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${formErrors.description ? 'border-red-500' : 'border-slate-200'}`}
-                    />
-                    {formErrors.description && (
-                      <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.description}</p>
-                    )}
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                      <label htmlFor="me-desc" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Description
+                      </label>
+                      <textarea
+                        id="me-desc"
+                        rows={3}
+                        value={form.description}
+                        onChange={(e) => setFormField('description', e.target.value)}
+                        placeholder="Describe the event"
+                        className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${formErrors.description ? 'border-red-500' : 'border-slate-200'}`}
+                      />
+                      {formErrors.description && (
+                        <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.description}</p>
+                      )}
+                    </div>
+                    <div>
+                      <label htmlFor="me-club" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                        Club / Association name
+                      </label>
+                      <input
+                        id="me-club"
+                        type="text"
+                        value={form.clubName}
+                        onChange={(e) => setFormField('clubName', e.target.value)}
+                        placeholder="e.g., IEEE Student Branch"
+                        className="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">
+                        Leave empty for a general university event.
+                      </p>
+                    </div>
                   </div>
                   <div>
                     <label className="block text-sm font-semibold text-slate-700 mb-1.5">Event photo</label>
@@ -599,12 +628,55 @@ function ManageEvents() {
                     setShowForm={setShowForm}
                     persist={persist}
                     events={events}
+                    onShowFeedback={setFeedbackEvent}
                   />
                 ))}
               </div>
             )}
 
       </section>
+
+      {feedbackEvent && (
+        <div className="fixed inset-0 z-[60] flex items-center justify-center bg-slate-900/40 px-4">
+          <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white shadow-xl overflow-hidden">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
+              <h2 className="text-sm font-semibold text-slate-900">
+                Admin feedback
+              </h2>
+              <button
+                type="button"
+                onClick={() => setFeedbackEvent(null)}
+                className="text-slate-400 hover:text-slate-600"
+                aria-label="Close feedback"
+              >
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+            <div className="px-5 py-4">
+              <p className="text-xs font-medium uppercase tracking-wider text-slate-500 mb-1">
+                For event
+              </p>
+              <p className="text-sm font-semibold text-slate-900 mb-3">
+                {feedbackEvent.title || 'Untitled event'}
+              </p>
+              <p className="text-sm text-slate-700 whitespace-pre-wrap">
+                {feedbackEvent.feedback || 'No feedback message provided.'}
+              </p>
+            </div>
+            <div className="px-5 pb-4 pt-2 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setFeedbackEvent(null)}
+                className="rounded-full bg-[#00356b] px-4 py-2 text-xs font-semibold text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,6 +1,7 @@
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { getManagedEvents } from "../data/managedEvents";
+import { COLLEGES as SHARED_COLLEGES } from "../data/collegesAndMajors";
 
 // Mock analytics for dashboard (in a real app this would come from an API)
 const MOCK_KPIS = {
@@ -39,6 +40,25 @@ const MOCK_REVIEWS = [
 
 const REVIEWS_PER_PAGE = 3;
 
+// Colleges list reused from shared data (Majors / registration)
+const COLLEGE_FILTERS = SHARED_COLLEGES.map((c) => ({
+  id: c.id,
+  label: c.name,
+}));
+
+const COLLEGE_CLUBS = {
+  // Engineering & IT
+  "1": ["IEEE", "EWB"],
+  // Arts & Sciences
+  "3": ["Drama Club", "Photography Club"],
+  // Business School
+  "4": ["Entrepreneurship Club", "Marketing Club"],
+  // Medicine & Health
+  "2": ["Medical Students Society"],
+  // Law & Policy
+  "5": ["Law Society", "Human Rights Club"],
+};
+
 function StarRating({ value, max = 5 }) {
   return (
     <div className="flex gap-0.5" aria-label={`Rating: ${value} out of ${max}`}>
@@ -56,6 +76,9 @@ function Dashboard() {
   const [user, setUser] = useState(null);
   const [events, setEvents] = useState([]);
   const [selectedEventId, setSelectedEventId] = useState(null);
+  const [selectedCollegeId, setSelectedCollegeId] = useState("");
+  const [search, setSearch] = useState("");
+  const [associationFilters, setAssociationFilters] = useState([]);
   const [reviewsShown, setReviewsShown] = useState(REVIEWS_PER_PAGE);
 
   useEffect(() => {
@@ -74,13 +97,57 @@ function Dashboard() {
 
   useEffect(() => {
     const list = getManagedEvents();
-    setEvents(list.filter((e) => e.status === "approved"));
-    if (list.filter((e) => e.status === "approved").length > 0 && !selectedEventId) {
-      setSelectedEventId(list.filter((e) => e.status === "approved")[0]?.id ?? null);
+    const approved = list.filter((e) => e.status === "approved");
+    setEvents(approved);
+    if (approved.length > 0 && !selectedEventId) {
+      setSelectedEventId(approved[0]?.id ?? null);
     }
   }, []);
 
-  const selectedEvent = events.find((e) => e.id === selectedEventId) || events[0];
+  const associationOptions = useMemo(() => {
+    if (!selectedCollegeId) return [];
+    const knownClubs = COLLEGE_CLUBS[selectedCollegeId] || [];
+    return [...knownClubs].sort((a, b) => a.localeCompare(b));
+  }, [selectedCollegeId]);
+
+  const filteredEvents = useMemo(() => {
+    const query = search.trim().toLowerCase();
+    return (events || []).filter((ev) => {
+      const association = (ev.clubName && ev.clubName.trim()) || "";
+      const inCollege =
+        !selectedCollegeId ||
+        (COLLEGE_CLUBS[selectedCollegeId] || []).includes(association);
+      if (!inCollege) return false;
+      const matchSearch =
+        !query ||
+        [ev.title, ev.description, ev.category, association]
+          .filter(Boolean)
+          .some((s) => String(s).toLowerCase().includes(query));
+      const matchAssociation =
+        associationFilters.length === 0 ||
+        (association && associationFilters.includes(association));
+      return matchSearch && matchAssociation;
+    });
+  }, [events, search, associationFilters, selectedCollegeId]);
+
+  const selectedEvent =
+    filteredEvents.find((e) => e.id === selectedEventId) ||
+    filteredEvents[0] ||
+    null;
+
+  const totalApproved = events.length;
+  const filteredCount = filteredEvents.length;
+
+  const toggleCollege = (id) => {
+    setSelectedCollegeId((prev) => (prev === id ? "" : id));
+    setAssociationFilters([]);
+  };
+
+  const toggleAssociation = (name) => {
+    setAssociationFilters((prev) =>
+      prev.includes(name) ? prev.filter((n) => n !== name) : [...prev, name]
+    );
+  };
 
   const formatEventDate = (dateStr) => {
     if (!dateStr) return "—";
@@ -124,6 +191,69 @@ function Dashboard() {
             <p className="text-slate-600 leading-relaxed">
               Analytical insights based on student feedback.
             </p>
+            <div className="mt-4 flex flex-wrap justify-center gap-2">
+              {COLLEGE_FILTERS.map((c) => {
+                const active = selectedCollegeId === c.id;
+                return (
+                  <button
+                    key={c.id}
+                    type="button"
+                    onClick={() => toggleCollege(c.id)}
+                    className={`inline-flex items-center rounded-full px-3 py-1.5 text-xs font-semibold border transition-colors ${
+                      active
+                        ? "bg-[#00356b] text-white border-[#00356b]"
+                        : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                    }`}
+                  >
+                    {c.label}
+                  </button>
+                );
+              })}
+            </div>
+            <form
+              className="max-w-xl mx-auto mt-6 relative"
+              onSubmit={(e) => e.preventDefault()}
+              role="search"
+            >
+              <span className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                </svg>
+              </span>
+              <input
+                type="search"
+                placeholder="Search by event name, association, or keyword..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="w-full pl-12 pr-4 py-3 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                aria-label="Search events"
+                autoComplete="off"
+              />
+            </form>
+            {selectedCollegeId && associationOptions.length > 0 && (
+              <div className="mt-4 flex flex-wrap justify-center gap-2">
+                {associationOptions.map((name) => {
+                  const active = associationFilters.includes(name);
+                  return (
+                    <button
+                      key={name}
+                      type="button"
+                      onClick={() => toggleAssociation(name)}
+                      className={`inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold border transition-colors ${
+                        active
+                          ? "bg-[#00356b] text-white border-[#00356b]"
+                          : "bg-white text-slate-700 border-slate-200 hover:bg-slate-50"
+                      }`}
+                    >
+                      {name}
+                    </button>
+                  );
+                })}
+              </div>
+            )}
+            <p className="mt-3 text-xs text-slate-500">
+              Showing {filteredCount} of {totalApproved} approved events
+            </p>
           </div>
           {selectedEvent && (
             <div className="flex justify-center">
@@ -134,13 +264,13 @@ function Dashboard() {
                 <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400 mb-1">Event name</p>
                 <p className="font-semibold text-slate-800 pr-20">{selectedEvent.title}</p>
                 <p className="mt-1 text-sm text-slate-500">Date: {formatEventDate(selectedEvent.startDate)}</p>
-                {events.length > 1 && (
+                {filteredEvents.length > 1 && (
                   <select
                     value={selectedEventId || ""}
                     onChange={(e) => setSelectedEventId(e.target.value || null)}
                     className="mt-3 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
                   >
-                    {events.map((ev) => (
+                    {filteredEvents.map((ev) => (
                       <option key={ev.id} value={ev.id}>{ev.title}</option>
                     ))}
                   </select>
