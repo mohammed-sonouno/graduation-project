@@ -1,0 +1,17 @@
+---
+description: User works only on backend; avoid frontend changes
+alwaysApply: true
+---
+
+# Backend-only work for this project
+
+- The user is **only working on the backend** of this project.
+- **Do not create, edit, or delete any frontend/UI files**, including but not limited to:
+  - `src/components/**`
+  - `src/pages/**`
+  - `index.html`
+  - any React, CSS, or asset changes under `src/` or `public/`
+- When implementing features or fixes:
+  - Prefer changes to `server/**`, `db/**`, and backend config files like `config/**`.
+  - If a task appears to require frontend edits, explain what would be needed but **do not modify frontend code**.
+  - Keep API contracts backward compatible when possible; if a breaking change is necessary, clearly describe the impact.
