@@ -38,6 +38,8 @@ const migrations = [
   '022_event_registrations_status.sql',
   '023_event_audience_colleges_majors.sql',
   '024_event_registrations_payment.sql',
+  '025_event_reviews.sql',
+  '026_event_reviews_integrity.sql',
 ];
 
 async function run() {

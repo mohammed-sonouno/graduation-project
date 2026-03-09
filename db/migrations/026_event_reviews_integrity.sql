@@ -74,7 +74,7 @@ DROP TRIGGER IF EXISTS trg_event_reviews_updated_at ON event_reviews;
 CREATE TRIGGER trg_event_reviews_updated_at
 BEFORE UPDATE ON event_reviews
 FOR EACH ROW
-EXECUTE FUNCTION set_event_reviews_updated_at();
+EXECUTE PROCEDURE set_event_reviews_updated_at();
 
 CREATE OR REPLACE FUNCTION validate_event_review_links()
 RETURNS TRIGGER AS $$
@@ -115,7 +115,7 @@ DROP TRIGGER IF EXISTS trg_event_reviews_validate_links ON event_reviews;
 CREATE TRIGGER trg_event_reviews_validate_links
 BEFORE INSERT OR UPDATE ON event_reviews
 FOR EACH ROW
-EXECUTE FUNCTION validate_event_review_links();
+EXECUTE PROCEDURE validate_event_review_links();
 
 CREATE OR REPLACE VIEW event_analytics_summary AS
 SELECT

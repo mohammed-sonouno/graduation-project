@@ -5,6 +5,7 @@ import pg from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswordRules, isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole, EVENT_REQUIRED_FIELDS } from '../config/rules.js';
+import analyticsRouter from './routes/analytics.js';
 
 const { Pool } = pg;
 const app = express();
@@ -238,6 +239,9 @@ function withPermissions(user) {
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'Backend running' });
 });
+
+// ========== Analytics (event reviews — dashboard data analysis) ==========
+app.use('/api/analytics', analyticsRouter(pool));
 
 // ========== Auth: all accounts and login are stored/verified in DB (app_users) ==========
 // Session tokens are never issued without the required steps:

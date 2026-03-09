@@ -18,6 +18,7 @@ This document describes all backend API endpoints so the frontend can integrate 
 7. [Student profile](#student-profile)
 8. [Notifications](#notifications)
 9. [Admin](#admin)
+10. [Analytics](#analytics)
 
 ---
 
@@ -573,6 +574,50 @@ Assigns a **supervisor** or **community_leader** to a community (one leader per 
 **Errors:**  
 - `400` — communityId required; or user must have role supervisor or community leader  
 - `404` — User not found
+
+---
+
+## Analytics
+
+Event performance and feedback. All data from DB (`event_reviews`, `events`, `event_analytics_summary`). Frontend: `getAnalyticsForEvent`, `getAnalyticsTrend`, `getAnalyticsTopics`, `createEventReview`, `getExportReviewsCsvUrl`, `getExportAlertsCsvUrl`, `downloadEventReviewsCsv`, `downloadEventAlertsCsv` in `src/api.js`.
+
+### GET /api/analytics/event/:eventId
+
+**Auth:** Required (session/cookie).
+
+**Response:** `200` — Full analytics: `totalReviews`, `averageRating`, `overallPerformance`, `ratingDistribution`, `sentiment`, `sentimentPercentages`, `topPhrase`, `kpi`, `registrationsCount`, `identifiedReviewsCount`, `responseRate`, `riskAlerts`, `benchmarks`, `aspects`, `suggestions`, `recentReviews`.
+
+### GET /api/analytics/event/:eventId/trend
+
+**Query:** `days` (optional, 7–180, default 30).
+
+**Response:** `200` — `{ days, trend }`. `trend` is an array of `{ date, count, sumRating, pos, neu, neg }` per day.
+
+### GET /api/analytics/topics
+
+**Query:** `eventId` (required).
+
+**Response:** `200` — `{ eventId, topics }`. `topics` is an array of `{ key, label, count }`.
+
+### POST /api/analytics/event/:eventId/reviews
+
+**Body:** `{ rating: number (1–5), comment?: string }`.
+
+**Response:** `201` — Created review object.
+
+**Errors:** `400` — Invalid eventId or rating; `404` — Event not found.
+
+### GET /api/analytics/export/reviews.csv
+
+**Query:** `eventId` (optional; if omitted, all events).
+
+**Response:** `200` — CSV file (attachment). Use `getExportReviewsCsvUrl(eventId)` or `downloadEventReviewsCsv(eventId)`.
+
+### GET /api/analytics/export/alerts.csv
+
+**Query:** `eventId` (required).
+
+**Response:** `200` — CSV file (attachment). Use `getExportAlertsCsvUrl(eventId)` or `downloadEventAlertsCsv(eventId)`.
 
 ---
 

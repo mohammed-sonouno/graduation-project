@@ -201,3 +201,71 @@ export async function createWelcomeNotification() {
     body: JSON.stringify({ title: 'Welcome', message: 'You are logged in to An-Najah National University.' }),
   });
 }
+
+// ---------- Analytics (event reviews — dashboard, from DB) ----------
+/** Full analytics for one event: KPIs, sentiment, benchmarks, aspects, suggestions, recentReviews. */
+export async function getAnalyticsForEvent(eventId) {
+  return apiRequest(`/api/analytics/event/${encodeURIComponent(eventId)}`);
+}
+
+/** Sentiment trend over time. days: 7–180. */
+export async function getAnalyticsTrend(eventId, days = 30) {
+  return apiRequest(`/api/analytics/event/${encodeURIComponent(eventId)}/trend?days=${days}`);
+}
+
+/** Topic counts from comments. */
+export async function getAnalyticsTopics(eventId) {
+  return apiRequest(`/api/analytics/topics?eventId=${encodeURIComponent(eventId)}`);
+}
+
+/** Create a review for an event. Body: { rating: 1–5, comment?: string }. */
+export async function createEventReview(eventId, body) {
+  return apiRequest(`/api/analytics/event/${encodeURIComponent(eventId)}/reviews`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** URL for exporting event reviews as CSV (use in <a href> or window.open). */
+export function getExportReviewsCsvUrl(eventId) {
+  return apiUrl(`/api/analytics/export/reviews.csv?eventId=${encodeURIComponent(eventId)}`);
+}
+
+/** URL for exporting event risk alerts as CSV (use in <a href> or window.open). */
+export function getExportAlertsCsvUrl(eventId) {
+  return apiUrl(`/api/analytics/export/alerts.csv?eventId=${encodeURIComponent(eventId)}`);
+}
+
+/** Fetch reviews CSV with credentials and trigger browser download. */
+export async function downloadEventReviewsCsv(eventId) {
+  const res = await fetch(getExportReviewsCsvUrl(eventId), { credentials: 'include' });
+  if (!res.ok) {
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+    throw new Error(data?.error || res.statusText || 'Export failed');
+  }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `reviews-event-${eventId}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/** Fetch risk alerts CSV with credentials and trigger browser download. */
+export async function downloadEventAlertsCsv(eventId) {
+  const res = await fetch(getExportAlertsCsvUrl(eventId), { credentials: 'include' });
+  if (!res.ok) {
+    const text = await res.text();
+    let data;
+    try { data = text ? JSON.parse(text) : null; } catch { /* ignore */ }
+    throw new Error(data?.error || res.statusText || 'Export failed');
+  }
+  const blob = await res.blob();
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = `risk-alerts-event-${eventId}.csv`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
