@@ -18,10 +18,13 @@ This document lists every table and column the application expects. All are crea
 | 8 | 006_student_profiles.sql | Create `student_profiles` |
 | 9 | 007_notifications.sql | Create `notifications` |
 | 10 | 008_seed_events.sql | Seed `events` |
-| 11 | 009_chatbot.sql | Create `chat_conversations`, `chat_messages` (optional feature) |
-| 12 | 010_module_data.sql | Create `app_module_data` (optional feature) |
-| 13 | 011_communities_and_role_assignments.sql | Create `communities`, add `college_id`/`community_id` to `app_users` |
-| 14 | 012_ensure_app_users_full_schema.sql | Ensure all `app_users` columns exist (idempotent) |
+| 11 | 010_module_data.sql | Create `app_module_data` (optional feature) |
+| 12 | 011_communities_and_role_assignments.sql | Create `communities`, add `college_id`/`community_id` to `app_users` |
+| 13 | 012_ensure_app_users_full_schema.sql | Ensure all `app_users` columns exist (idempotent) |
+| 14 | 013_events_community_college.sql | Add `community_id` to `events` |
+| 15 | 014_backfill_event_community.sql | Backfill events with community |
+| 16 | 016_db_checkup_improvements.sql | PII comments, indexes |
+| 17 | 017_drop_chatbot.sql | Drop chatbot views and tables (if present) |
 
 ---
 
@@ -186,11 +189,9 @@ This document lists every table and column the application expects. All are crea
 
 | Table | Migration | Purpose |
 |-------|-----------|---------|
-| chat_conversations | 009_chatbot.sql | Future chatbot |
-| chat_messages | 009_chatbot.sql | Future chatbot |
 | app_module_data | 010_module_data.sql | Generic module key-value store |
 
-These do not need to exist for auth, events, communities, or profile to work. Migrations create them with `CREATE TABLE IF NOT EXISTS`.
+This table does not need to exist for auth, events, communities, or profile to work. Migration creates it with `CREATE TABLE IF NOT EXISTS`.
 
 ---
 
@@ -233,8 +234,6 @@ Current migration order satisfies all dependencies.
 | event_registrations | Yes | 005_event_registrations |
 | student_profiles | Yes | 006_student_profiles |
 | notifications | Yes | 007_notifications |
-| chat_conversations | No | 009_chatbot |
-| chat_messages | No | 009_chatbot |
 | app_module_data | No | 010_module_data |
 
 All required tables and columns are provided by the migrations in the order defined in `server/run-migrations.js`.

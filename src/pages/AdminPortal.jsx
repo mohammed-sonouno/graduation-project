@@ -164,6 +164,25 @@ function AdminPortal() {
           </Link>
 
           <Link
+            to="/event-registrations"
+            className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
+          >
+            <div className="flex items-start gap-4">
+              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+              </div>
+              <div>
+                <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                  Event registrations
+                </h3>
+                <p className="mt-1 text-sm text-slate-500">Mark payments and approve student registrations (first paid, first approved).</p>
+              </div>
+            </div>
+          </Link>
+
+          <Link
             to="/dashboard"
             className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
           >

@@ -6,25 +6,20 @@ import { validatePassword, getPasswordRules } from "../../config/rules.js";
 
 function ChangePassword() {
   const navigate = useNavigate();
-  const { user, setUserAndToken } = useAuth();
+  const { user, loading, setUserAndToken } = useAuth();
   const [oldPassword, setOldPassword] = useState("");
   const [newPassword, setNewPassword] = useState("");
   const [confirm, setConfirm] = useState("");
   const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
-    if (user === null && !localStorage.getItem("token")) {
+    if (!loading && user === null) {
       navigate("/login", { replace: true });
     }
-  }, [user, navigate]);
+  }, [user, loading, navigate]);
 
-  const token = typeof localStorage !== "undefined" ? localStorage.getItem("token") : null;
-  let storedUser = null;
-  try {
-    storedUser = typeof localStorage !== "undefined" && localStorage.getItem("user") ? JSON.parse(localStorage.getItem("user")) : null;
-  } catch (_) {}
-  const currentUser = user ?? storedUser;
+  const currentUser = user;
 
   if (currentUser == null) {
     return (
@@ -41,21 +36,18 @@ function ChangePassword() {
     if (newPassword !== confirm) { setError("New passwords do not match."); return; }
     const pwdCheck = validatePassword(newPassword);
     if (!pwdCheck.valid) { setError(`New password: ${pwdCheck.errors.join(", ")}.`); return; }
-    setLoading(true);
+    setSubmitting(true);
     try {
       const res = await fetch(apiUrl("/api/auth/change-password"), {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          ...(token ? { Authorization: `Bearer ${token}` } : {}),
-        },
+        headers: { "Content-Type": "application/json" },
         credentials: "include",
         body: JSON.stringify({ oldPassword, newPassword }),
       });
       const data = await res.json();
       if (!res.ok) { setError(data.error || "Failed to change password."); return; }
       const updated = data.user ? { ...currentUser, ...data.user } : { ...currentUser, must_change_password: false };
-      setUserAndToken(updated, token || null);
+      setUserAndToken(updated);
       if (updated.must_complete_profile) {
         navigate("/complete-profile", { replace: true });
       } else if (updated.role === "admin") {
@@ -64,7 +56,7 @@ function ChangePassword() {
         navigate("/dashboard", { replace: true });
       }
     } catch { setError("Failed to change password."); }
-    finally { setLoading(false); }
+    finally { setSubmitting(false); }
   };
 
   return (
@@ -107,8 +99,8 @@ function ChangePassword() {
               <label className="block text-sm font-medium text-gray-700 mb-1">Confirm New Password</label>
               <input type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} placeholder="Re-enter new password" className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500" />
             </div>
-            <button type="submit" disabled={loading} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-60">
-              {loading ? "Changing…" : "Set New Password"}
+            <button type="submit" disabled={submitting} className="w-full py-3 bg-blue-600 text-white font-semibold rounded-lg hover:bg-blue-700 disabled:opacity-60">
+              {submitting ? "Changing…" : "Set New Password"}
             </button>
           </form>
         </div>

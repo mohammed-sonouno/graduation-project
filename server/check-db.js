@@ -18,6 +18,7 @@ const REQUIRED_TABLES = [
   'event_registrations',
   'student_profiles',
   'notifications',
+  'login_codes',
 ];
 
 const REQUIRED_COLUMNS = {
@@ -44,6 +45,7 @@ const REQUIRED_COLUMNS = {
     'created_at', 'updated_at',
   ],
   notifications: ['id', 'user_id', 'title', 'message', 'read', 'created_at'],
+  login_codes: ['id', 'email', 'code', 'expires_at', 'created_at'],
 };
 
 async function getExistingTables(client) {

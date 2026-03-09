@@ -114,7 +114,7 @@ function Profile() {
   const displayName = user.name || user.email || "User";
   const initial = (displayName[0] || "?").toUpperCase();
   const pictureUrl = studentProfile.picture || user.picture || null;
-  const studentId = user.studentId ?? user.id;
+  const studentUniNumber = user.student_number ?? (user.email ? user.email.split("@")[0] : null) ?? "—";
   const college = studentProfile.college || user.college || "—";
   const major = studentProfile.major || user.major || "—";
   return (
@@ -225,6 +225,12 @@ function Profile() {
                 <span className="inline-flex mt-2 rounded-md bg-[#2d5a87]/10 px-2.5 py-1 text-xs font-medium text-[#2d5a87]">
                   {COMMUNITY_LEADER_DISPLAY_NAME}
                 </span>
+                <Link
+                  to="/event-registrations"
+                  className="mt-4 inline-flex items-center gap-2 rounded-lg bg-[#00356b] px-4 py-2 text-sm font-medium text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30"
+                >
+                  Manage event registrations
+                </Link>
               </div>
             </div>
           </div>
@@ -277,7 +283,7 @@ function Profile() {
                     </span>
                     <div className="min-w-0">
                       <p className="text-[10px] font-semibold uppercase tracking-wider text-slate-400">Student ID</p>
-                      <p className="text-sm font-medium text-slate-900">#{String(studentId)}</p>
+                      <p className="text-sm font-medium text-slate-900">{studentUniNumber}</p>
                     </div>
                   </div>
                   <div className="flex gap-3">
@@ -363,6 +369,13 @@ function Profile() {
                               <span className={`absolute top-2 right-2 rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-white ${completed ? "bg-slate-500" : "bg-[#00356b]"}`}>
                                 {completed ? "Completed" : "Upcoming"}
                               </span>
+                              {reg.status === 'pending_payment' || reg.status === 'pending' ? (
+                                <span className="absolute bottom-2 left-2 rounded-md px-2 py-0.5 text-[10px] font-semibold bg-amber-500 text-white">Pending payment</span>
+                              ) : reg.status === 'paid' ? (
+                                <span className="absolute bottom-2 left-2 rounded-md px-2 py-0.5 text-[10px] font-semibold bg-blue-500 text-white">Paid — awaiting approval</span>
+                              ) : reg.status === 'rejected' ? (
+                                <span className="absolute bottom-2 left-2 rounded-md px-2 py-0.5 text-[10px] font-semibold bg-red-500 text-white">Rejected</span>
+                              ) : null}
                             </div>
                             <div className="p-4">
                               <h4 className="font-semibold text-slate-900 line-clamp-2">{reg.title}</h4>
@@ -431,6 +444,11 @@ function Profile() {
                               <span className={`inline-block mt-0.5 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase ${completed ? "bg-slate-400 text-white" : "bg-[#00356b] text-white"}`}>
                                 {completed ? "Completed" : "Upcoming"}
                               </span>
+                              {(reg.status === 'pending_payment' || reg.status === 'paid') && (
+                                <span className={`inline-block mt-1 rounded px-1.5 py-0.5 text-[10px] font-semibold ${reg.status === 'paid' ? "bg-blue-100 text-blue-800" : "bg-amber-100 text-amber-800"}`}>
+                                  {reg.status === 'paid' ? "Paid — awaiting approval" : "Pending payment"}
+                                </span>
+                              )}
                               <p className="mt-1 text-xs text-slate-500 flex items-center gap-1.5">
                                 <IconCalendar className="w-3.5 h-3.5" />
                                 {reg.date}

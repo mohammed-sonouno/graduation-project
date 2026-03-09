@@ -1,7 +1,7 @@
 /**
  * One-off script: delete all users with role 'student' from app_users.
- * Related rows (event_registrations, student_profiles, notifications, etc.) are removed by DB CASCADE.
- * Run from project root: node server/delete-all-students.js
+ * DESTRUCTIVE: Related rows (event_registrations, student_profiles, notifications, etc.) are removed by DB CASCADE.
+ * Use only in dev/test. Run from project root: node server/delete-all-students.js
  */
 import 'dotenv/config';
 import pg from 'pg';

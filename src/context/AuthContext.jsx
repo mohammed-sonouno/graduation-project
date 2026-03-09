@@ -3,71 +3,39 @@ import { apiUrl } from '../api';
 
 const AuthContext = createContext(null);
 
-const USER_KEY = 'user';
-const TOKEN_KEY = 'token';
-
 export function AuthProvider({ children }) {
   const [user, setUser] = useState(null);
-  const [token, setTokenState] = useState(() => localStorage.getItem(TOKEN_KEY));
   const [loading, setLoading] = useState(true);
 
-  const setUserAndToken = useCallback((newUser, newToken) => {
-    setUser(newUser);
-    setTokenState(newToken || null);
-    if (newUser) localStorage.setItem(USER_KEY, JSON.stringify(newUser));
-    else localStorage.removeItem(USER_KEY);
-    if (newToken) localStorage.setItem(TOKEN_KEY, newToken);
-    else localStorage.removeItem(TOKEN_KEY);
+  const setUserAndToken = useCallback((newUser) => {
+    setUser(newUser || null);
   }, []);
 
-  const logout = useCallback(() => {
-    setUser(null);
-    setTokenState(null);
-    localStorage.removeItem(USER_KEY);
-    localStorage.removeItem(TOKEN_KEY);
-  }, []);
-
-  // On mount: if we have a token, fetch current user from DB; otherwise use stored user or null
-  useEffect(() => {
-    const t = localStorage.getItem(TOKEN_KEY);
-    if (!t) {
-      try {
-        const stored = localStorage.getItem(USER_KEY);
-        setUser(stored ? JSON.parse(stored) : null);
-      } catch {
-        setUser(null);
-      }
-      setLoading(false);
-      return;
+  const logout = useCallback(async () => {
+    try {
+      await fetch(apiUrl('/api/auth/logout'), { method: 'POST', credentials: 'include' });
+    } catch {
+      // ignore
     }
+    setUser(null);
+  }, []);
+
+  // On mount: get user from API (auth via httpOnly cookie; nothing in localStorage)
+  useEffect(() => {
     let cancelled = false;
     (async () => {
       try {
-        const res = await fetch(apiUrl('/api/auth/me'), {
-          headers: { Authorization: `Bearer ${t}` },
-        });
+        const res = await fetch(apiUrl('/api/auth/me'), { credentials: 'include' });
         if (cancelled) return;
         if (res.ok) {
           const data = await res.json();
-          if (data.user) {
-            setUser(data.user);
-            localStorage.setItem(USER_KEY, JSON.stringify(data.user));
-          } else {
-            setUser(null);
-            localStorage.removeItem(TOKEN_KEY);
-            localStorage.removeItem(USER_KEY);
-          }
+          if (data.user) setUser(data.user);
+          else setUser(null);
         } else {
           setUser(null);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
         }
       } catch {
-        if (!cancelled) {
-          setUser(null);
-          localStorage.removeItem(TOKEN_KEY);
-          localStorage.removeItem(USER_KEY);
-        }
+        if (!cancelled) setUser(null);
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -76,7 +44,7 @@ export function AuthProvider({ children }) {
   }, []);
 
   return (
-    <AuthContext.Provider value={{ user, token, loading, setUserAndToken, logout }}>
+    <AuthContext.Provider value={{ user, loading, setUserAndToken, logout }}>
       {children}
     </AuthContext.Provider>
   );

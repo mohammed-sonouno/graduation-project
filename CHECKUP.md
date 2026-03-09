@@ -21,10 +21,13 @@
 | 8 | `006_student_profiles.sql` | Table: student_profiles (user_id PK, college, major, gpa, credits_*, picture) |
 | 9 | `007_notifications.sql` | Table: notifications (user_id, title, message, read) |
 | 10 | `008_seed_events.sql` | Seed events (optional) |
-| 11 | `009_chatbot.sql` | Chatbot-related tables (if used) |
-| 12 | `010_module_data.sql` | Module data (if used) |
-| 13 | `011_communities_and_role_assignments.sql` | communities table; app_users: college_id, community_id; UNIQUE(community_id), UNIQUE(college_id) WHERE role='dean' |
-| 14 | `012_ensure_app_users_full_schema.sql` | Ensures all app_users columns exist (idempotent) |
+| 11 | `010_module_data.sql` | Module data (optional) |
+| 12 | `011_communities_and_role_assignments.sql` | communities table; app_users: college_id, community_id; UNIQUE(community_id), UNIQUE(college_id) WHERE role='dean' |
+| 13 | `012_ensure_app_users_full_schema.sql` | Ensures all app_users columns exist (idempotent) |
+| 14 | `013_events_community_college.sql` | events.community_id |
+| 15 | `014_backfill_event_community.sql` | Backfill events with community |
+| 16 | `016_db_checkup_improvements.sql` | PII comments, indexes |
+| 17 | `017_drop_chatbot.sql` | Drop chatbot tables/views if present |
 
 **Note:** `001_admin_role.sql` is for PostgreSQL cluster role "admin", not app users; it is **not** in the run list. App admin is created at runtime by `ensureAdminUser()` in `server/index.js`.
 

@@ -11,6 +11,7 @@ const centerLinks = [
   { to: "/events", label: "Events" },
   { to: "/admin", label: "Admin Portal", adminOnly: true },
   { to: "/manage-events", label: "Manage Events", leaderOrAdmin: true },
+  { to: "/event-approval", label: "Event Approval", approvalFlow: true },
 ];
 
 function LogoPlaceholder({ className = "" }) {
@@ -107,7 +108,8 @@ function Navbar() {
     (link) =>
       !(link.adminOnly && !admin) &&
       !(link.deanOrAdmin && !admin && !dean && !communityLeader) &&
-      !(link.leaderOrAdmin && !admin && !communityLeader)
+      !(link.leaderOrAdmin && !admin && !communityLeader) &&
+      !(link.approvalFlow && !admin && !dean && !supervisor && !communityLeader)
   );
 
   const centerLinkClass = ({ isActive }) =>

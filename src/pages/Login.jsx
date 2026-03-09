@@ -1,7 +1,7 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import { apiUrl } from "../api";
+import { apiUrl, requestLoginCode, verifyLoginCode, verifyGoogleNewCode } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { isEmailAllowed, getEmailRuleMessage, getAllowedDomains } from "../../config/rules.js";
 import { isAdmin, isDean, isSupervisor, isCommunityLeader, isStudent } from "../utils/permissions";
@@ -54,14 +54,19 @@ function Login() {
   const { setUserAndToken, logout } = useAuth();
   const rawClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
   const hasGoogleClientId = Boolean(rawClientId && rawClientId !== 'your-google-client-id.apps.googleusercontent.com');
-  const [showPassword, setShowPassword] = useState(false);
+  const [step, setStep] = useState("email");
   const [email, setEmail] = useState("");
-  const [password, setPassword] = useState("");
+  const [code, setCode] = useState("");
+  const [rememberMe, setRememberMe] = useState(false);
   const [emailError, setEmailError] = useState("");
   const [loginError, setLoginError] = useState("");
   const [googleError, setGoogleError] = useState("");
   const [googleLoading, setGoogleLoading] = useState(false);
   const [formLoading, setFormLoading] = useState(false);
+  const [devCode, setDevCode] = useState("");
+  // After Google: new user flow stores tempToken until code is verified, then go to Complete Profile
+  const [googleTempToken, setGoogleTempToken] = useState("");
+  const [googleNewUser, setGoogleNewUser] = useState(false);
 
   const handleEmailBlur = () => {
     if (!email.trim()) {
@@ -71,7 +76,7 @@ function Login() {
     setEmailError(isEmailAllowed(email) ? "" : getEmailRuleMessage());
   };
 
-  const handleSubmit = async (e) => {
+  const handleRequestCode = async (e) => {
     e.preventDefault();
     setLoginError("");
     if (!isEmailAllowed(email)) {
@@ -79,30 +84,47 @@ function Login() {
       return;
     }
     setEmailError("");
-    if (!password.trim()) {
-      setLoginError("Please enter your password.");
+    setFormLoading(true);
+    const emailNorm = email.trim().toLowerCase();
+    try {
+      const data = await requestLoginCode(emailNorm);
+      setStep("code");
+      setCode("");
+      if (data.devCode) setDevCode(data.devCode);
+    } catch (err) {
+      setLoginError(err.message || "Could not send code. Please try again.");
+    } finally {
+      setFormLoading(false);
+    }
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setLoginError("");
+    const codeDigits = code.replace(/\D/g, "").slice(0, 6);
+    if (codeDigits.length !== 6) {
+      setLoginError("Please enter the 6-digit code from your email.");
       return;
     }
     setFormLoading(true);
     const emailNorm = email.trim().toLowerCase();
-    const passwordTrimmed = password.trim();
-
     try {
-      const res = await fetch(apiUrl("/api/auth/login"), {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        credentials: "include",
-        body: JSON.stringify({ email: emailNorm, password: passwordTrimmed }),
-      });
-      const data = await res.json().catch(() => ({}));
-      if (!res.ok) {
-        setLoginError(data.error || "Sign-in failed. Please try again.");
+      if (googleNewUser && googleTempToken) {
+        const data = await verifyGoogleNewCode(emailNorm, codeDigits, googleTempToken);
+        if (data.verified && data.sessionId) {
+          logout();
+          setGoogleNewUser(false);
+          setGoogleTempToken("");
+          navigate(`/complete-profile?sessionId=${encodeURIComponent(data.sessionId)}`, { replace: true, state: { pendingRegistration: true } });
+        } else {
+          setLoginError("Invalid response. Please try again.");
+        }
         return;
       }
+      const data = await verifyLoginCode(emailNorm, codeDigits, rememberMe);
       const user = data.user;
-      const token = data.token;
-      if (user && token) {
-        setUserAndToken(user, token);
+      if (user) {
+        setUserAndToken(user);
         const loginState = { replace: true, state: { fromLogin: true } };
         setTimeout(() => {
           if (user.must_complete_profile) {
@@ -118,14 +140,10 @@ function Login() {
           }
         }, 0);
       } else {
-        setLoginError(data.error || "Invalid response from server. Please try again.");
+        setLoginError("Invalid response. Please try again.");
       }
     } catch (err) {
-      setLoginError(
-        err.message === "Failed to fetch"
-          ? "Cannot connect to server. Start the backend with: npm run server"
-          : "Sign-in failed. Please try again."
-      );
+      setLoginError(err.message || "Invalid or expired code. Request a new code.");
     } finally {
       setFormLoading(false);
     }
@@ -147,6 +165,7 @@ function Login() {
       const res = await fetch(apiUrl("/api/auth/google"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
@@ -154,43 +173,26 @@ function Login() {
         setGoogleError(data.error || "Sign-in failed. Please try again.");
         return;
       }
-      // First-time Google login: no account yet → complete profile form, then account is created on "Save and continue"
-      // Clear any existing auth so navbar shows "Login" until they press "Save and continue" and account is created in DB
-      if (data.pendingRegistration && data.tempToken) {
-        logout();
-        sessionStorage.setItem(
-          "pendingRegistration",
-          JSON.stringify({
-            email: data.email,
-            name: data.name,
-            picture: data.picture,
-            tempToken: data.tempToken,
-          })
-        );
-        navigate("/complete-profile", { replace: true, state: { pendingRegistration: true } });
+      // Both existing and new users: backend sent 6-digit code to email. Show code step.
+      if (data && data.needsCode && data.email) {
+        setEmail(data.email);
+        setStep("code");
+        setCode("");
+        setLoginError("");
+        if (data.devCode) setDevCode(data.devCode);
+        if (data.newUser && data.tempToken) {
+          setGoogleNewUser(true);
+          setGoogleTempToken(data.tempToken);
+        } else {
+          setGoogleNewUser(false);
+          setGoogleTempToken("");
+        }
         return;
       }
-      // Returning user: account exists → go to profile (my data & account), admin, or communities
-      if (data.user && data.token) {
-        const user = data.user;
-        setUserAndToken(user, data.token);
-        const loginState = { replace: true, state: { fromLogin: true } };
-        setTimeout(() => {
-          if (user.must_complete_profile) {
-            navigate("/complete-profile", loginState);
-          } else if (isAdmin(user)) {
-            navigate("/admin", loginState);
-          } else if (isDean(user) || isSupervisor(user) || isCommunityLeader(user)) {
-            navigate("/communities", loginState);
-          } else if (isStudent(user)) {
-            navigate("/profile", loginState); // My profile & account (student)
-          } else {
-            navigate("/profile", loginState); // fallback: my account
-          }
-        }, 0);
-      } else {
-        setGoogleError("Invalid response from server. Please try again.");
-      }
+      setGoogleError(
+        data?.error ||
+          "Invalid response from server. Please try again. Use a university Google account (@stu.najah.edu or @najah.edu) and ensure the backend is running."
+      );
     } catch (err) {
       setGoogleError(
         err?.message === "Failed to fetch"
@@ -238,131 +240,108 @@ rgb(240, 237, 237) 38%,
               Sign in to Najah
             </h1>
             <p className="mt-2 text-center text-sm text-slate-600 leading-relaxed">
-              Use your university email to access your dashboard securely.
+              Enter your university email to receive a 6-digit code, then sign in.
             </p>
 
-            <form className="mt-8 space-y-5" onSubmit={handleSubmit}>
-              <div>
-                <label
-                  htmlFor="email"
-                  className="block text-sm font-semibold text-slate-700 mb-1.5"
-                >
-                  Email Address
-                </label>
-                <input
-                  id="email"
-                  type="email"
-                  value={email}
-                  onChange={(e) => {
-                    setEmail(e.target.value);
-                    if (emailError) setEmailError("");
-                  }}
-                  onBlur={handleEmailBlur}
-                  placeholder="e.g. student@stu.najah.edu"
-                  className={`w-full px-4 py-3 border rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${
-                    emailError
-                      ? "border-red-500 focus:ring-red-500/30"
-                      : "border-slate-200"
-                  }`}
-                  aria-invalid={!!emailError}
-                  aria-describedby={emailError ? "email-error" : undefined}
-                />
-                {emailError && (
-                  <p id="email-error" className="mt-1.5 text-sm text-red-600">
-                    {emailError}
-                  </p>
-                )}
-                {!emailError && getAllowedDomains().length > 0 && (
-                  <p className="mt-1.5 text-xs text-slate-500">
-                    Allowed: <span className="font-medium">{getAllowedDomains().join(", ")}</span>
-                  </p>
-                )}
-              </div>
-
-              <div>
-                <div className="flex items-center justify-between mb-1.5">
-                  <label
-                    htmlFor="password"
-                    className="block text-sm font-semibold text-slate-700"
-                  >
-                    Password
+            {step === "email" ? (
+              <form className="mt-8 space-y-5" onSubmit={handleRequestCode}>
+                <div>
+                  <label htmlFor="email" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    Email Address
                   </label>
-                  <Link
-                    to="/forgot-password"
-                    className="text-sm font-semibold text-[#00356b] hover:underline"
-                  >
-                    Forgot password?
-                  </Link>
-                </div>
-                <div className="relative">
                   <input
-                    id="password"
-                    type={showPassword ? "text" : "password"}
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    placeholder="Enter your password"
-                    className="w-full px-4 py-3 pr-12 border border-slate-200 rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                    id="email"
+                    type="email"
+                    value={email}
+                    onChange={(e) => {
+                      setEmail(e.target.value);
+                      if (emailError) setEmailError("");
+                    }}
+                    onBlur={handleEmailBlur}
+                    placeholder="e.g. student@stu.najah.edu"
+                    className={`w-full px-4 py-3 border rounded-xl bg-white text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${
+                      emailError ? "border-red-500 focus:ring-red-500/30" : "border-slate-200"
+                    }`}
+                    aria-invalid={!!emailError}
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 p-1"
-                    aria-label={
-                      showPassword ? "Hide password" : "Show password"
-                    }
-                  >
-                    {showPassword ? (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M13.875 18.825A10.05 10.05 0 0112 19c-4.478 0-8.268-2.943-9.543-7a9.97 9.97 0 011.563-3.029m5.858.908a3 3 0 114.243 4.243M9.878 9.878l4.242 4.242M9.88 9.88l-3.29-3.29m7.532 7.532l3.29 3.29M3 3l3.59 3.59m0 0A9.953 9.953 0 0112 5c4.478 0 8.268 2.943 9.543 7a10.025 10.025 0 01-4.132 5.411m0 0L21 21"
-                        />
-                      </svg>
-                    ) : (
-                      <svg
-                        className="w-5 h-5"
-                        fill="none"
-                        stroke="currentColor"
-                        viewBox="0 0 24 24"
-                      >
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
-                        />
-                        <path
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
-                          strokeWidth={2}
-                          d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"
-                        />
-                      </svg>
-                    )}
-                  </button>
+                  {emailError && <p className="mt-1.5 text-sm text-red-600">{emailError}</p>}
+                  {!emailError && getAllowedDomains().length > 0 && (
+                    <p className="mt-1.5 text-xs text-slate-500">
+                      Allowed: <span className="font-medium">{getAllowedDomains().join(", ")}</span>
+                    </p>
+                  )}
                 </div>
-              </div>
-
-              {loginError && (
-                <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
-                  {loginError}
+                {loginError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {loginError}
+                  </div>
+                )}
+                <button
+                  type="submit"
+                  disabled={formLoading || !email.trim() || !isEmailAllowed(email.trim().toLowerCase())}
+                  className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70"
+                >
+                  {formLoading ? "Sending code…" : "Send login code"}
+                </button>
+              </form>
+            ) : (
+              <form className="mt-8 space-y-5" onSubmit={handleVerifyCode}>
+                <p className="text-sm text-slate-600">
+                  We sent a 6-digit code to <strong>{email}</strong>. Enter it below.
+                </p>
+                <div>
+                  <label htmlFor="code" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                    6-digit code
+                  </label>
+                  <input
+                    id="code"
+                    type="text"
+                    inputMode="numeric"
+                    maxLength={6}
+                    value={code}
+                    onChange={(e) => setCode(e.target.value.replace(/\D/g, "").slice(0, 6))}
+                    placeholder="000000"
+                    className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-center text-lg tracking-[0.4em] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                  />
                 </div>
-              )}
-              <button
-                type="submit"
-                disabled={formLoading}
-                className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70"
-              >
-                {formLoading ? "Signing in…" : "Sign in"}
-              </button>
-            </form>
+                {!googleNewUser && (
+                <label className="flex items-center gap-2 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={(e) => setRememberMe(e.target.checked)}
+                    className="rounded border-slate-300 text-[#00356b] focus:ring-[#00356b]/20"
+                  />
+                  <span className="text-sm font-medium text-slate-700">Remember me</span>
+                </label>
+                )}
+                {googleNewUser && (
+                  <p className="text-sm text-slate-600">After verifying, you&apos;ll complete your profile.</p>
+                )}
+                {loginError && (
+                  <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                    {loginError}
+                  </div>
+                )}
+                {devCode && (
+                  <p className="text-xs text-slate-500">Dev code: {devCode}</p>
+                )}
+                <button
+                  type="submit"
+                  disabled={formLoading || code.replace(/\D/g, "").length !== 6}
+                  className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70"
+                >
+                  {formLoading ? "Verifying…" : "Verify and sign in"}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => { setStep("email"); setLoginError(""); setDevCode(""); setGoogleTempToken(""); setGoogleNewUser(false); }}
+                  className="w-full text-sm font-medium text-[#00356b] hover:underline"
+                >
+                  Use a different email
+                </button>
+              </form>
+            )}
 
             <div className="relative my-8">
               <div className="absolute inset-0 flex items-center">

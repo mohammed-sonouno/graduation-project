@@ -1,7 +1,7 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useGoogleLogin } from '@react-oauth/google';
-import { apiUrl } from '../api';
+import { apiUrl, verifyLoginCode, verifyGoogleNewCode, getColleges, getMajors } from '../api';
 import { useAuth } from '../context/AuthContext';
 import { isEmailAllowed, getEmailRuleMessage, validatePassword, getPasswordRules, getAllowedDomains } from '../../config/rules.js';
 
@@ -48,6 +48,30 @@ function Register() {
   const [loading, setLoading] = useState(false);
   const [googleError, setGoogleError] = useState('');
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [step, setStep] = useState('form'); // 'form' | 'code' (after Google)
+  const [code, setCode] = useState('');
+  const [rememberMe, setRememberMe] = useState(false);
+  const [googleTempToken, setGoogleTempToken] = useState('');
+  const [googleNewUser, setGoogleNewUser] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
+  const [devCode, setDevCode] = useState('');
+  const [colleges, setColleges] = useState([]);
+  const [majors, setMajors] = useState([]);
+  const [collegeId, setCollegeId] = useState('');
+  const [major, setMajor] = useState('');
+
+  useEffect(() => {
+    getColleges().then(setColleges).catch(() => setColleges([]));
+  }, []);
+  useEffect(() => {
+    if (!collegeId) {
+      setMajors([]);
+      setMajor('');
+      return;
+    }
+    getMajors(collegeId).then(setMajors).catch(() => setMajors([]));
+    setMajor('');
+  }, [collegeId]);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -66,6 +90,11 @@ function Register() {
       setError(`Password: ${pwdCheck.errors.join(', ')}.`);
       return;
     }
+    const collegeName = collegeId ? colleges.find((c) => String(c.id) === String(collegeId))?.name : '';
+    if (!collegeName || !major.trim()) {
+      setError('Please select your college and academic program (major).');
+      return;
+    }
     setLoading(true);
     try {
       const res = await fetch(apiUrl('/api/auth/register'), {
@@ -74,6 +103,8 @@ function Register() {
         body: JSON.stringify({
           email: email.trim().toLowerCase(),
           password,
+          college: collegeName,
+          major: major.trim(),
         }),
       });
       const data = await res.json().catch(() => ({}));
@@ -81,8 +112,8 @@ function Register() {
         setError(data.error || 'Registration failed. Please try again.');
         return;
       }
-      if (data.user && data.token) {
-        setUserAndToken(data.user, data.token);
+      if (data.user) {
+        setUserAndToken(data.user);
         setMessage('Account created! Complete your profile…');
         setTimeout(() => {
           if (data.user.must_complete_profile) {
@@ -116,6 +147,7 @@ function Register() {
       const res = await fetch(apiUrl('/api/auth/google'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(body),
       });
       const data = await res.json().catch(() => ({}));
@@ -123,29 +155,26 @@ function Register() {
         setGoogleError(data.error || 'Sign-in failed. Please try again.');
         return;
       }
-      // First-time Google: no account yet → complete profile, then account is created on "Save and continue"
-      if (data.pendingRegistration && data.tempToken) {
-        logout();
-        sessionStorage.setItem(
-          'pendingRegistration',
-          JSON.stringify({
-            email: data.email,
-            name: data.name,
-            picture: data.picture,
-            tempToken: data.tempToken,
-          })
-        );
-        navigate('/complete-profile', { replace: true, state: { pendingRegistration: true } });
+      // Both existing and new users: backend sent 6-digit code. Show code step.
+      if (data && data.needsCode && data.email) {
+        setEmail(data.email);
+        setStep('code');
+        setCode('');
+        setGoogleError('');
+        if (data.devCode) setDevCode(data.devCode);
+        if (data.newUser && data.tempToken) {
+          setGoogleNewUser(true);
+          setGoogleTempToken(data.tempToken);
+        } else {
+          setGoogleNewUser(false);
+          setGoogleTempToken('');
+        }
         return;
       }
-      // Returning user: account already exists
-      if (data.user && data.token) {
-        setUserAndToken(data.user, data.token);
-        setMessage('Welcome back!');
-        setTimeout(() => navigate('/', { replace: true }), 500);
-      } else {
-        setGoogleError('Invalid response from server. Please try again.');
-      }
+      setGoogleError(
+        data?.error ||
+          'Invalid response from server. Please try again. Use a university Google account (@stu.najah.edu or @najah.edu) and ensure the backend is running.'
+      );
     } catch (err) {
       setGoogleError(
         err?.message === 'Failed to fetch'
@@ -160,6 +189,44 @@ function Register() {
   const handleGoogleError = () => {
     setGoogleError('Google sign-in was cancelled or failed. Please try again.');
     setGoogleLoading(false);
+  };
+
+  const handleVerifyCode = async (e) => {
+    e.preventDefault();
+    setGoogleError('');
+    const codeDigits = code.replace(/\D/g, '').slice(0, 6);
+    if (codeDigits.length !== 6) {
+      setGoogleError('Please enter the 6-digit code from your email.');
+      return;
+    }
+    setFormLoading(true);
+    const emailNorm = email.trim().toLowerCase();
+    try {
+      if (googleNewUser && googleTempToken) {
+        const data = await verifyGoogleNewCode(emailNorm, codeDigits, googleTempToken);
+        if (data.verified && data.sessionId) {
+          logout();
+          setGoogleNewUser(false);
+          setGoogleTempToken('');
+          navigate(`/complete-profile?sessionId=${encodeURIComponent(data.sessionId)}`, { replace: true, state: { pendingRegistration: true } });
+        } else {
+          setGoogleError('Invalid response. Please try again.');
+        }
+        return;
+      }
+      const data = await verifyLoginCode(emailNorm, codeDigits, rememberMe);
+      if (data.user) {
+        setUserAndToken(data.user);
+        setMessage('Welcome back!');
+        setTimeout(() => navigate('/', { replace: true }), 500);
+      } else {
+        setGoogleError('Invalid response. Please try again.');
+      }
+    } catch (err) {
+      setGoogleError(err.message || 'Invalid or expired code. Sign in with Google again to get a new code.');
+    } finally {
+      setFormLoading(false);
+    }
   };
 
   const layeredBg = {
@@ -183,8 +250,53 @@ function Register() {
             Create account
           </h1>
           <p className="mt-2 text-center text-sm text-slate-600 leading-relaxed">
-            Register for the Najah platform. Use your university email.
+            {step === 'code' ? 'Enter the 6-digit code we sent to your email.' : 'Register for the Najah platform. Use your university email.'}
           </p>
+          {step === 'code' ? (
+          <form onSubmit={handleVerifyCode} className="mt-8 space-y-5">
+            <p className="text-sm text-slate-600">
+              We sent a 6-digit code to <strong>{email}</strong>. Enter it below.
+            </p>
+            <div>
+              <label htmlFor="reg-code" className="block text-sm font-semibold text-slate-700 mb-1.5">6-digit code</label>
+              <input
+                id="reg-code"
+                type="text"
+                inputMode="numeric"
+                maxLength={6}
+                value={code}
+                onChange={(e) => setCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                placeholder="000000"
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 text-center text-lg tracking-[0.4em] placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+              />
+            </div>
+            {!googleNewUser && (
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input type="checkbox" checked={rememberMe} onChange={(e) => setRememberMe(e.target.checked)} className="rounded border-slate-300 text-[#00356b] focus:ring-[#00356b]/20" />
+                <span className="text-sm font-medium text-slate-700">Remember me</span>
+              </label>
+            )}
+            {googleNewUser && <p className="text-sm text-slate-600">After verifying, you&apos;ll complete your profile.</p>}
+            {devCode && <p className="text-xs text-slate-500">Dev code: {devCode}</p>}
+            {googleError && (
+              <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{googleError}</div>
+            )}
+            <button
+              type="submit"
+              disabled={formLoading || code.replace(/\D/g, '').length !== 6}
+              className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70"
+            >
+              {formLoading ? 'Verifying…' : 'Verify and continue'}
+            </button>
+            <button
+              type="button"
+              onClick={() => { setStep('form'); setGoogleError(''); setDevCode(''); setGoogleTempToken(''); setGoogleNewUser(false); }}
+              className="w-full text-sm font-medium text-[#00356b] hover:underline"
+            >
+              Use a different email
+            </button>
+          </form>
+          ) : (
           <form onSubmit={handleSubmit} className="mt-8 space-y-5">
             <div>
               <label htmlFor="reg-email" className="block text-sm font-semibold text-slate-700 mb-1.5">
@@ -224,6 +336,41 @@ function Register() {
                 })}
               </ul>
             </div>
+            <div>
+              <label htmlFor="reg-college" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                College <span className="text-red-600">*</span>
+              </label>
+              <select
+                id="reg-college"
+                required
+                value={collegeId}
+                onChange={(e) => setCollegeId(e.target.value)}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+              >
+                <option value="">Select college…</option>
+                {colleges.map((c) => (
+                  <option key={c.id} value={String(c.id)}>{c.name}</option>
+                ))}
+              </select>
+            </div>
+            <div>
+              <label htmlFor="reg-major" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                Academic program (major) <span className="text-red-600">*</span>
+              </label>
+              <select
+                id="reg-major"
+                required
+                value={major}
+                onChange={(e) => setMajor(e.target.value)}
+                disabled={!collegeId}
+                className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                <option value="">Select program…</option>
+                {majors.map((m) => (
+                  <option key={m.id} value={m.name}>{m.name}</option>
+                ))}
+              </select>
+            </div>
             {error && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
                 {error}
@@ -236,7 +383,7 @@ function Register() {
             )}
             <button
               type="submit"
-              disabled={loading || googleLoading}
+              disabled={loading || googleLoading || !email.trim() || !isEmailAllowed(email.trim().toLowerCase()) || !password || !validatePassword(password).valid || !collegeId || !major.trim()}
               className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70 disabled:cursor-not-allowed"
             >
               {loading ? 'Creating account…' : 'Create account'}
@@ -272,6 +419,7 @@ function Register() {
               </div>
             )}
           </form>
+          )}
           <p className="mt-8 text-center text-sm text-slate-600">
             Already have an account?{' '}
             <Link to="/login" className="font-semibold text-[#00356b] hover:underline">

@@ -32,9 +32,26 @@ Migrations live in `db/migrations/`. Run in order with:
 node server/run-migrations.js
 ```
 
-**Core tables:** `app_users`, `colleges`, `majors`, `events`, `event_registrations`, `student_profiles`, `notifications`.
+**Full schema (جداول وعلاقات منظمة):** see **[db/SCHEMA.md](SCHEMA.md)** for:
+- ترتيب الجداول والعلاقات (قلب الداتا بيس والتيبلز)
+- تفاصيل كل جدول وأهم الأعمدة
+- ترتيب تشغيل المايجريشن
+- PII vs مرجعية والفهارس
+
+**Core tables:** `app_users`, `colleges`, `majors`, `communities`, `events`, `event_registrations`, `student_profiles`, `notifications`, `login_codes`, `app_module_data`.
+
+**Table overview (PII vs reference):**
+
+| Table | Contains |
+|-------|----------|
+| `app_users` | PII: email, name, password_hash (nullable), role, college_id, community_id |
+| `login_codes` | One-time 6-digit codes for email login |
+| `student_profiles` | PII: college, major, gpa, picture per user |
+| `event_registrations` | PII: user_id, name, email, student_id per event |
+| `notifications` | Per-user title/message |
+| `app_module_data` | Keyed JSON per module/user; restrict by module_name and auth |
+| `colleges`, `majors`, `communities`, `events` | Reference and event metadata |
 
 **Future-ready:**
 
-- **Chatbot** (`009_chatbot.sql`): `chat_conversations` (one per user thread), `chat_messages` (role: user / assistant / system, content). Use these when you build the chatbot; add API routes and UI that read/write these tables.
-- **Module data** (`010_module_data.sql`): `app_module_data` stores keyed JSON per module (`module_name`, optional `user_id`, `key`, `value`). Use for any new feature (e.g. chatbot settings, user preferences, feature flags) without new migrations. Example: `module_name = 'chatbot'`, `user_id = 5`, `key = 'settings'`, `value = { "model": "gpt-4" }`.
+- **Module data** (`010_module_data.sql`): `app_module_data` stores keyed JSON per module (`module_name`, optional `user_id`, `key`, `value`). Use for user preferences, feature flags, or any future module without new migrations.

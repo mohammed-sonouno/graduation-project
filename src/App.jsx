@@ -17,6 +17,7 @@ import AdminPortal from './pages/AdminPortal';
 import ManageEvents from './pages/ManageEvents';
 import Communities from './pages/Communities';
 import AdminAssignments from './pages/AdminAssignments';
+import EventRegistrations from './pages/EventRegistrations';
 import ForgotPassword from './pages/ForgotPassword';
 import CompleteProfile from './pages/CompleteProfile';
 import ChangePassword from './pages/ChangePassword';
@@ -49,6 +50,7 @@ function App() {
           <Route path="admin" element={<AdminPortal />} />
           <Route path="admin/assignments" element={<AdminAssignments />} />
           <Route path="manage-events" element={<ManageEvents />} />
+          <Route path="event-registrations" element={<EventRegistrations />} />
           <Route path="communities" element={<Communities />} />
           <Route path="profile" element={<Profile />} />
           <Route path="login" element={<Login />} />

@@ -1,18 +1,18 @@
 import { useState, useEffect } from "react";
-import { useNavigate, useLocation } from "react-router-dom";
-import { apiUrl } from "../api";
+import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
+import { apiUrl, getPendingRegistration } from "../api";
 import { useAuth } from "../context/AuthContext";
 import { validatePassword, getPasswordRules } from "../../config/rules.js";
-
-const PENDING_KEY = "pendingRegistration";
 
 function CompleteProfile() {
   const navigate = useNavigate();
   const location = useLocation();
-  const { setUserAndToken } = useAuth();
+  const [searchParams] = useSearchParams();
+  const { user: authUser, setUserAndToken } = useAuth();
   const [colleges, setColleges] = useState([]);
   const [majors, setMajors] = useState([]);
   const [pendingData, setPendingData] = useState(null);
+  const [pendingSessionId, setPendingSessionId] = useState(null);
   const [form, setForm] = useState({
     first_name: "",
     father_name: "",
@@ -30,50 +30,50 @@ function CompleteProfile() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  const stored = localStorage.getItem("user");
-  const user = stored ? JSON.parse(stored) : null;
-  const isPendingRegistration = Boolean(pendingData || location.state?.pendingRegistration);
+  const user = authUser;
+  const isPendingRegistration = Boolean(pendingData || location.state?.pendingRegistration || searchParams.get("sessionId"));
 
+  // Load pending registration from DB when sessionId is in URL (no sessionStorage)
   useEffect(() => {
-    if (location.state?.pendingRegistration) {
-      try {
-        const raw = sessionStorage.getItem(PENDING_KEY);
-        const data = raw ? JSON.parse(raw) : null;
-        if (data?.email && data?.tempToken) {
-          setPendingData(data);
-          const parts = (data.name || "").trim().split(/\s+/).filter(Boolean);
-          const [first, father, grandfather, family] = [
-            parts[0] ?? "",
-            parts[1] ?? "",
-            parts[2] ?? "",
-            parts.length >= 4 ? parts[3] : parts.length === 3 ? parts[2] : parts.length === 2 ? parts[1] : "",
-          ];
-          const localPart = (data.email || "").split("@")[0] || "";
-          setForm((prev) => ({
-            ...prev,
-            first_name: first || prev.first_name,
-            father_name: father || prev.father_name,
-            third_name: grandfather || prev.third_name,
-            family_name: family || prev.family_name,
-            student_number: localPart || prev.student_number,
-          }));
-        } else {
-          navigate("/login", { replace: true });
-        }
-      } catch {
-        navigate("/login", { replace: true });
-      }
+    const sessionId = searchParams.get("sessionId");
+    if (sessionId) {
+      getPendingRegistration(sessionId)
+        .then((data) => {
+          if (data?.email) {
+            setPendingData(data);
+            setPendingSessionId(sessionId);
+            const parts = (data.name || "").trim().split(/\s+/).filter(Boolean);
+            const [first, father, grandfather, family] = [
+              parts[0] ?? "",
+              parts[1] ?? "",
+              parts[2] ?? "",
+              parts.length >= 4 ? parts[3] : parts.length === 3 ? parts[2] : parts.length === 2 ? parts[1] : "",
+            ];
+            const localPart = (data.email || "").split("@")[0] || "";
+            setForm((prev) => ({
+              ...prev,
+              first_name: first || prev.first_name,
+              father_name: father || prev.father_name,
+              third_name: grandfather || prev.third_name,
+              family_name: family || prev.family_name,
+              student_number: localPart || prev.student_number,
+            }));
+          } else {
+            navigate("/login", { replace: true });
+          }
+        })
+        .catch(() => navigate("/login", { replace: true }));
       return;
     }
-    if (!user) {
+    if (!user && !sessionId) {
       navigate("/login", { replace: true });
       return;
     }
-    if (!user.must_complete_profile) {
+    if (user && !user.must_complete_profile && !sessionId) {
       navigate("/profile", { replace: true });
       return;
     }
-    if (user.name) {
+    if (user?.name) {
       const parts = user.name.trim().split(/\s+/).filter(Boolean);
       const [first, father, grandfather, family] = [
         parts[0] ?? "",
@@ -89,21 +89,19 @@ function CompleteProfile() {
         family_name: family || prev.family_name,
       }));
     }
-    if (user.email) {
+    if (user?.email) {
       const localPart = user.email.split("@")[0] || "";
       setForm((prev) => ({
         ...prev,
         student_number: prev.student_number || localPart,
       }));
     }
-  }, [user, navigate, location.state?.pendingRegistration]);
+  }, [user, navigate, location.state?.pendingRegistration, searchParams]);
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    const headers = { ...(token ? { Authorization: `Bearer ${token}` } : {}) };
     Promise.all([
-      fetch(apiUrl("/api/colleges"), { headers }).then((r) => r.json()),
-      fetch(apiUrl("/api/majors"), { headers }).then((r) => r.json()),
+      fetch(apiUrl("/api/colleges"), { credentials: "include" }).then((r) => r.json()),
+      fetch(apiUrl("/api/majors"), { credentials: "include" }).then((r) => r.json()),
     ])
       .then(([c, m]) => {
         setColleges(Array.isArray(c) ? c : []);
@@ -178,14 +176,21 @@ function CompleteProfile() {
       setError("First name, family name, and student number are required.");
       return;
     }
-    const pwdCheck = validatePassword(form.password);
-    if (!pwdCheck.valid) {
-      setError(`Password: ${pwdCheck.errors.join(", ")}.`);
+    const effectiveCollege = form.college?.trim() || (form.collegeId ? colleges.find((c) => String(c.id) === String(form.collegeId))?.name : "") || "";
+    if (!effectiveCollege || !(form.major || "").trim()) {
+      setError("College and major are required for every student.");
       return;
     }
-    if (form.password !== form.confirmPassword) {
-      setError("Passwords do not match.");
-      return;
+    if (!isPendingRegistration) {
+      const pwdCheck = validatePassword(form.password);
+      if (!pwdCheck.valid) {
+        setError(`Password: ${pwdCheck.errors.join(", ")}.`);
+        return;
+      }
+      if (form.password !== form.confirmPassword) {
+        setError("Passwords do not match.");
+        return;
+      }
     }
     if (form.phoneNumber.trim()) {
       const digits = form.phoneNumber.replace(/\D/g, "");
@@ -204,7 +209,7 @@ function CompleteProfile() {
     setLoading(true);
     try {
       // Account is created only when user presses "Save and continue" (this submit); not on Google sign-in.
-      if (pendingData) {
+      if (pendingData && pendingSessionId) {
         const father_name = (form.father_name?.trim() || fromPending.father_name || "").trim() || undefined;
         const third_name = (form.third_name?.trim() || fromPending.third_name || "").trim() || undefined;
         const res = await fetch(apiUrl("/api/auth/complete-registration"), {
@@ -212,7 +217,7 @@ function CompleteProfile() {
           headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
-            tempToken: pendingData.tempToken,
+            sessionId: pendingSessionId,
             email: pendingData.email,
             first_name: first_name || fromPending.first_name,
             father_name,
@@ -222,7 +227,7 @@ function CompleteProfile() {
             college: form.college || (form.collegeId ? colleges.find((c) => String(c.id) === String(form.collegeId))?.name : undefined) || undefined,
             major: form.major || undefined,
             phone: fullPhone || undefined,
-            password: form.password,
+            ...(form.password ? { password: form.password } : {}),
           }),
         });
         const data = await res.json();
@@ -230,21 +235,16 @@ function CompleteProfile() {
           setError(data.error || "Could not create account.");
           return;
         }
-        if (data.user && data.token) {
-          sessionStorage.removeItem(PENDING_KEY);
-          setUserAndToken(data.user, data.token);
+        if (data.user) {
+          setUserAndToken(data.user);
           navigate("/profile", { replace: true });
         }
       } else {
         const father_name = (form.father_name?.trim() || fromUser.father_name || "").trim() || undefined;
         const third_name = (form.third_name?.trim() || fromUser.third_name || "").trim() || undefined;
-        const token = localStorage.getItem("token");
         const res = await fetch(apiUrl("/api/auth/complete-profile"), {
           method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-            ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          },
+          headers: { "Content-Type": "application/json" },
           credentials: "include",
           body: JSON.stringify({
             email: user.email,
@@ -256,7 +256,7 @@ function CompleteProfile() {
             college: form.college || (form.collegeId ? colleges.find((c) => String(c.id) === String(form.collegeId))?.name : undefined) || undefined,
             major: form.major || undefined,
             phone: fullPhone || undefined,
-            password: form.password,
+            ...(form.password ? { password: form.password } : {}),
           }),
         });
         const data = await res.json();
@@ -265,7 +265,7 @@ function CompleteProfile() {
           return;
         }
         if (data.user) {
-          setUserAndToken(data.user, token || null);
+          setUserAndToken(data.user);
           navigate("/profile", { replace: true });
         }
       }
@@ -295,7 +295,7 @@ function CompleteProfile() {
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">Complete your profile</h1>
             <p className="mt-2 text-sm text-blue-100">
-              You signed in with Google. Fill in your university details and set a password to finish.
+              You signed in with Google. Fill in your university details to finish.
             </p>
           </div>
 
@@ -350,9 +350,10 @@ function CompleteProfile() {
               <div className="space-y-5">
                 <h2 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">University details</h2>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">College</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">College <span className="text-red-600">*</span></label>
                   <select
                     name="collegeId"
+                    required
                     value={form.collegeId}
                     onChange={handleChange}
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] transition"
@@ -364,12 +365,13 @@ function CompleteProfile() {
                   </select>
                 </div>
                 <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Academic program</label>
+                  <label className="block text-sm font-medium text-slate-700 mb-1.5">Academic program (major) <span className="text-red-600">*</span></label>
                   <select
                     name="major"
                     value={form.major}
                     onChange={handleChange}
-                    disabled={!form.college}
+                    disabled={!form.collegeId}
+                    required
                     className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] disabled:opacity-50 disabled:cursor-not-allowed transition"
                   >
                     <option value="">Select program…</option>
@@ -405,6 +407,7 @@ function CompleteProfile() {
                 </div>
               </div>
 
+              {!isPendingRegistration && (
               <div className="space-y-5">
                 <h2 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">Set your password</h2>
                 <div>
@@ -445,10 +448,11 @@ function CompleteProfile() {
                   />
                 </div>
               </div>
+              )}
 
               <button
                 type="submit"
-                disabled={loading || (Boolean(location.state?.pendingRegistration) && !pendingData)}
+                disabled={loading || (isPendingRegistration && !pendingData)}
                 className="w-full py-3.5 bg-[#00356b] text-white font-semibold rounded-xl hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-60 transition shadow-sm"
               >
                 {loading ? "Saving…" : "Save and continue"}

@@ -24,12 +24,20 @@ const migrations = [
   '006_student_profiles.sql',
   '007_notifications.sql',
   '008_seed_events.sql',
-  '009_chatbot.sql',
   '010_module_data.sql',
   '011_communities_and_role_assignments.sql',
   '012_ensure_app_users_full_schema.sql',
   '013_events_community_college.sql',
   '014_backfill_event_community.sql',
+  '016_db_checkup_improvements.sql',
+  '017_drop_chatbot.sql',
+  '018_login_codes.sql',
+  '019_password_hash_nullable.sql',
+  '020_constraints_checks.sql',
+  '021_pending_registrations.sql',
+  '022_event_registrations_status.sql',
+  '023_event_audience_colleges_majors.sql',
+  '024_event_registrations_payment.sql',
 ];
 
 async function run() {

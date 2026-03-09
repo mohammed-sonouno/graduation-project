@@ -1,7 +1,7 @@
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { isAdmin } from "../utils/permissions";
+import { isAdmin, isDean, isSupervisor, isCommunityLeader } from "../utils/permissions";
 import { getAdminEvents, approveEvent, rejectEvent, updateEvent } from "../api";
 import SmallApprovalStepper from "../components/SmallApprovalStepper";
 
@@ -24,18 +24,22 @@ function EventApproval() {
   const [feedbackText, setFeedbackText] = useState("");
   const [expandedId, setExpandedId] = useState(null);
 
+  const canAccessApproval = isAdmin(user) || isDean(user) || isSupervisor(user) || isCommunityLeader(user);
+
   useEffect(() => {
     if (loading) return;
-    if (!user || !isAdmin(user)) {
+    if (!user || !canAccessApproval) {
       navigate("/login", { replace: true });
     }
-  }, [user, loading, navigate]);
+  }, [user, loading, canAccessApproval, navigate]);
 
   const loadEvents = useCallback(() => {
     getAdminEvents()
       .then((list) => {
-        setEvents(Array.isArray(list) ? list : []);
-        setPending((Array.isArray(list) ? list : []).filter((e) => e.status === "pending"));
+        const all = Array.isArray(list) ? list : [];
+        setEvents(all);
+        const pendingAll = all.filter((e) => e.status === "pending");
+        setPending(pendingAll);
       })
       .catch(() => {
         setEvents([]);
@@ -43,9 +47,25 @@ function EventApproval() {
       });
   }, []);
 
+  const pendingICanApprove = useMemo(() => {
+    if (!user) return [];
+    const p = events.filter((e) => e.status === "pending");
+    if (isAdmin(user)) return p;
+    const step = (e) => (e.approvalStep != null ? Number(e.approvalStep) : 0);
+    if (isSupervisor(user) || isCommunityLeader(user)) {
+      const myCommunityId = user.community_id != null ? Number(user.community_id) : null;
+      return myCommunityId != null ? p.filter((e) => step(e) === 0 && Number(e.communityId) === myCommunityId) : [];
+    }
+    if (isDean(user)) {
+      const myCollegeId = user.college_id != null ? Number(user.college_id) : null;
+      return myCollegeId != null ? p.filter((e) => step(e) === 1 && Number(e.collegeId) === myCollegeId) : [];
+    }
+    return [];
+  }, [events, user]);
+
   useEffect(() => {
-    if (isAdmin(user)) loadEvents();
-  }, [user, loadEvents]);
+    if (canAccessApproval) loadEvents();
+  }, [user, loadEvents, canAccessApproval]);
 
   const handleApprove = (ev) => {
     approveEvent(ev.id).then(() => { loadEvents(); setFeedbackFor(null); }).catch((e) => console.warn(e));
@@ -71,7 +91,7 @@ function EventApproval() {
     setFeedbackText("");
   };
 
-  if (loading || !user) {
+  if (loading || !user || !canAccessApproval) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f7f6f3]">
         <p className="text-slate-500">Loading…</p>
@@ -106,21 +126,23 @@ function EventApproval() {
             </p>
           </div>
           <p className="text-center text-sm text-slate-500">
-            <span className="font-semibold text-slate-700">{pending.length}</span> event{pending.length !== 1 ? "s" : ""} pending approval
+            <span className="font-semibold text-slate-700">{pendingICanApprove.length}</span> event{pendingICanApprove.length !== 1 ? "s" : ""} pending your approval
           </p>
         </div>
       </section>
 
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 py-8">
 
-        {pending.length === 0 ? (
+        {pendingICanApprove.length === 0 ? (
           <div className="rounded-xl border border-slate-200 bg-white p-12 text-center shadow-sm">
             <div className="mx-auto w-14 h-14 rounded-full bg-slate-100 flex items-center justify-center text-slate-400 mb-4">
               <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
             </div>
             <h2 className="text-lg font-semibold text-slate-800" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>No events pending approval</h2>
             <p className="mt-2 text-sm text-slate-500 max-w-sm mx-auto">
-              When event organizers submit events for approval, they will appear here.
+              {pending.length === 0
+                ? "When event organizers submit events for approval, they will appear here."
+                : "No events are currently at your approval step. Other reviewers may need to act first."}
             </p>
             <Link
               to="/manage-events"
@@ -132,7 +154,7 @@ function EventApproval() {
           </div>
         ) : (
           <ul className="space-y-6">
-            {pending.map((ev) => (
+            {pendingICanApprove.map((ev) => (
               <li key={ev.id}>
                 <article className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
                   <div className="flex flex-col md:flex-row">
