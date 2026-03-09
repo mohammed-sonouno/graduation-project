@@ -40,6 +40,8 @@ const migrations = [
   '024_event_registrations_payment.sql',
   '025_event_reviews.sql',
   '026_event_reviews_integrity.sql',
+  '027_app_users_role_allow_user.sql',
+  '028_event_reviews_event_id_comment.sql',
 ];
 
 async function run() {

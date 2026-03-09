@@ -1,20 +1,24 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { getEvent, getColleges, getMajors, registerForEvent } from '../api';
+import { getEvent, getColleges, getMajors, registerForEvent, getEventReviews, submitEventReview } from '../api';
 import { REVIEW_MAX_CHARS } from '../../config/rules.js';
 
 const REVIEWS_SECTION_ID = 'event-reviews';
 const FEEDBACK_DISPLAYED_ON_PAGE = 2;
 
-const MOCK_REVIEWS_INITIAL = [
-  { id: '1', name: 'Dr. James Davidson', initials: 'JD', rating: 5, comment: 'An inspiring evening of academic excellence. The cross-disciplinary dialogue was particularly enlightening.', createdAt: '2024-09-20T14:00:00Z' },
-  { id: '2', name: 'Elena Martinez', initials: 'EM', rating: 5, comment: 'Well-organized, looking forward to next year. The student poster session provided great networking opportunities.', createdAt: '2024-09-18T10:30:00Z' },
-  { id: '3', name: 'Arthur Lewis', initials: 'AL', rating: 5, comment: 'Exceptional catering and venue. The University Hall was the perfect backdrop for such a prestigious gathering.', createdAt: '2024-09-15T16:45:00Z' },
-  { id: '4', name: 'Sarah Chen', initials: 'SC', rating: 4, comment: 'Very informative sessions. Would have liked more time for Q&A.', createdAt: '2024-09-12T09:00:00Z' },
-  { id: '5', name: 'Michael Brown', initials: 'MB', rating: 4, comment: 'Great event overall. Logistics were smooth.', createdAt: '2024-09-10T11:20:00Z' },
-  { id: '6', name: 'Priya Patel', initials: 'PP', rating: 3, comment: 'Good content but the room was a bit crowded.', createdAt: '2024-09-08T13:15:00Z' },
-];
+function toDisplayReview(r) {
+  const comment = r.comment || '';
+  const initial = comment.trim() ? comment.trim()[0].toUpperCase() : 'A';
+  return {
+    id: r.id,
+    name: 'Attendee',
+    initials: initial,
+    rating: r.rating,
+    comment: comment || '(No comment)',
+    createdAt: r.createdAt,
+  };
+}
 
 function IconCalendar(props) {
   return (
@@ -157,10 +161,11 @@ function ReviewForm({
   errors,
   textareaRef,
   ratingRef,
+  submitLoading = false,
 }) {
   const [hoverValue, setHoverValue] = useState(null);
   const count = reviewText.length;
-  const canSubmit = rating >= 1 && count <= REVIEW_MAX_CHARS;
+  const canSubmit = rating >= 1 && count <= REVIEW_MAX_CHARS && !submitLoading;
 
   if (submitted && successMessage) {
     return (
@@ -238,7 +243,7 @@ function ReviewForm({
         className="rounded-xl bg-[#00356b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-50 disabled:cursor-not-allowed transition-opacity"
         aria-label="Submit your review"
       >
-        Submit review
+        {submitLoading ? 'Submitting…' : 'Submit review'}
       </button>
     </form>
   );
@@ -271,6 +276,7 @@ function ReviewsSidebar({
   totalCount,
   ratingSummary,
   sectionId,
+  reviewsLoading = false,
 }) {
   const hasReviews = totalCount > 0;
   const isEmpty = displayedReviews.length === 0;
@@ -281,6 +287,11 @@ function ReviewsSidebar({
       className="lg:sticky lg:top-24 lg:self-start space-y-5 transition-all duration-200"
       aria-label="Attendee reviews"
     >
+      {reviewsLoading && !hasReviews && (
+        <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
+          <p>Loading feedback…</p>
+        </div>
+      )}
       {hasReviews && ratingSummary && (
         <div className="rounded-xl border border-slate-200 bg-white p-4 shadow-sm">
           <div className="flex items-baseline gap-2">
@@ -316,7 +327,7 @@ function ReviewsSidebar({
       </h2>
 
       <div className="space-y-4">
-        {isEmpty && (
+        {isEmpty && !reviewsLoading && (
           <div className="rounded-xl border border-slate-200 bg-slate-50 p-6 text-center text-slate-600">
             <p>No reviews yet. Be the first to review.</p>
           </div>
@@ -387,10 +398,12 @@ function EventDetails() {
   const { id } = useParams();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
-  const [reviews, setReviews] = useState(MOCK_REVIEWS_INITIAL);
+  const [reviews, setReviews] = useState([]);
+  const [reviewsLoading, setReviewsLoading] = useState(true);
   const [rating, setRating] = useState(0);
   const [reviewText, setReviewText] = useState('');
   const [submitted, setSubmitted] = useState(false);
+  const [submitLoading, setSubmitLoading] = useState(false);
   const [successMessage, setSuccessMessage] = useState('');
   const [errors, setErrors] = useState({});
   const [regName, setRegName] = useState('');
@@ -437,6 +450,17 @@ function EventDetails() {
       .finally(() => setLoading(false));
   }, [id]);
 
+  useEffect(() => {
+    if (!id) return;
+    setReviewsLoading(true);
+    getEventReviews(id)
+      .then((list) => {
+        setReviews(Array.isArray(list) ? list.map(toDisplayReview) : []);
+      })
+      .catch(() => setReviews([]))
+      .finally(() => setReviewsLoading(false));
+  }, [id]);
+
   const event = eventRaw;
   const isPast = event?.status === 'past';
 
@@ -475,7 +499,7 @@ function EventDetails() {
     [regCollege, majorsList]
   );
 
-  const handleSubmitReview = (e) => {
+  const handleSubmitReview = async (e) => {
     e.preventDefault();
     const nextErrors = {};
     if (rating < 1) nextErrors.rating = 'Please select a rating.';
@@ -489,19 +513,24 @@ function EventDetails() {
     }
 
     setErrors({});
-    const newReview = {
-      id: `new-${Date.now()}`,
-      name: 'You',
-      initials: 'Y',
-      rating,
-      comment: reviewText.trim(),
-      createdAt: new Date().toISOString(),
-    };
-    setReviews((prev) => [newReview, ...prev]);
-    setRating(0);
-    setReviewText('');
-    setSubmitted(true);
-    setSuccessMessage('Thanks! Your review was submitted.');
+    setSubmitLoading(true);
+    try {
+      const created = await submitEventReview(id, { rating, comment: reviewText.trim() });
+      setReviews((prev) => [toDisplayReview(created), ...prev]);
+      setRating(0);
+      setReviewText('');
+      setSubmitted(true);
+      setSuccessMessage('Thanks! Your review was submitted and will appear in analytics.');
+    } catch (err) {
+      const msg = err?.data?.error || err?.message || 'Failed to submit review.';
+      if (err?.status === 409) {
+        setErrors({ review: 'You have already submitted a review for this event.' });
+      } else {
+        setErrors({ review: msg });
+      }
+    } finally {
+      setSubmitLoading(false);
+    }
   };
 
   if (loading) return <LoadingSkeleton />;
@@ -552,6 +581,7 @@ function EventDetails() {
                   errors={errors}
                   textareaRef={textareaRef}
                   ratingRef={ratingRef}
+                  submitLoading={submitLoading}
                 />
               </div>
             </div>
@@ -561,6 +591,7 @@ function EventDetails() {
               totalCount={reviews.length}
               ratingSummary={ratingSummary}
               sectionId={REVIEWS_SECTION_ID}
+              reviewsLoading={reviewsLoading}
             />
           </div>
         </section>

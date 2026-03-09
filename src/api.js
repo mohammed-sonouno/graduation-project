@@ -114,6 +114,19 @@ export async function getEvent(id) {
   return apiRequest(`/api/events/${encodeURIComponent(id)}`);
 }
 
+/** List reviews for an event (from DB). Used by event detail page. */
+export async function getEventReviews(eventId) {
+  return apiRequest(`/api/events/${encodeURIComponent(eventId)}/reviews`);
+}
+
+/** Submit a review for an event (stored in DB; included in analytics). Body: { rating: 1–5, comment?: string }. */
+export async function submitEventReview(eventId, body) {
+  return apiRequest(`/api/events/${encodeURIComponent(eventId)}/reviews`, {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
 export async function createEvent(body) {
   return apiRequest('/api/events', { method: 'POST', body: JSON.stringify(body) });
 }

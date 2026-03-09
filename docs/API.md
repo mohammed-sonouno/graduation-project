@@ -324,11 +324,39 @@ Alias for **GET /api/majors/:id** (same response).
 
 **Auth:** Optional.
 
-**Response:** `200`  
+**Response:** `200`
 - Body: single event object (same shape as list item).
 
-**Errors:**  
+**Errors:**
 - `404` — Event not found
+
+---
+
+### GET /api/events/:eventId/reviews
+
+**Auth:** Optional.  
+Returns all reviews for an event from the database (for event detail page). All analytics and dashboard data use this same `event_reviews` table.
+
+**Response:** `200` — Array of `{ id, rating, comment, createdAt }` ordered by newest first.
+
+**Errors:** `404` — Event not found
+
+---
+
+### POST /api/events/:eventId/reviews
+
+**Auth:** Required.  
+Submit a review (students or any authenticated user). Stored in `event_reviews`; one review per user per event. These reviews are included in dashboard analytics and filters (all from DB).
+
+**Body:** `{ rating: number (1–5), comment?: string }`  
+- `comment` optional; trimmed and limited to 2000 characters.
+
+**Response:** `201` — `{ id, eventId, rating, comment, createdAt }`
+
+**Errors:**
+- `400` — Invalid event id; or rating missing/not 1–5; or event not open for reviews (only approved/upcoming/past).
+- `404` — Event not found
+- `409` — You have already submitted a review for this event.
 
 ---
 
@@ -424,17 +452,35 @@ Alias for **GET /api/majors/:id** (same response).
 **Auth:** Required.  
 Registers the **current user** for an event. Student data (name, email, student_id, college, major) is taken from the user’s profile, not from the request body.
 
+**Free vs paid events (by event `price`):**  
+- **Free events** (`price` 0 or null): Registration is **auto-approved** (first come, first served). User is confirmed immediately.  
+- **Paid events** (`price` > 0): Registration starts as **pending_payment**. After the student pays, the community leader marks the registration as paid; then the leader approves. First paid, first approved until event capacity is full.  
+- When the event is **full** (approved count ≥ `available_seats`): New registration requests are **rejected** and the user receives a notification (e.g. “rejected – event full; no payment confirmed in time” for paid events).
+
 **Body:** `{ eventId: string | number, associationMember?: string }`  
 - `eventId` required.  
 - `associationMember` optional (e.g. `"member"` / `"non-member"`); default `"non-member"`.  
-- Extra fields (e.g. `studentId`, `college`, `major`, `name`, `email`) are ignored; server uses profile.
+- Extra fields are ignored; server uses profile.
 
-**Response:** `201`  
-- Body: `{ id, eventId, createdAt }` or `{ registered: true }`
+**Response:** `201` — Body: `{ id, eventId, status, createdAt }`  
+**Response:** `409` — Already registered for this event.
 
 **Errors:**  
-- `400` — eventId required; or cannot register (event draft/pending/rejected); or user profile not found  
+- `400` — eventId required; or cannot register (event draft/pending/rejected); or event full; or user profile not found  
 - `404` — Event not found
+
+---
+
+### GET /api/events/:eventId/registrations
+
+**Auth:** Required.  
+Returns the **list of event members** (registrations for that event). **Allowed only for non-students:** admin, dean, supervisor, community leader. **Students receive 403** and cannot see other participants.
+
+**Response:** `200` — Array of `{ id, userId, studentId, college, major, associationMember, name, email, status, paidAt, createdAt, userEmail }` ordered by approved first, then by `paidAt`, then `createdAt`.
+
+**Errors:**  
+- `403` — Student role (students cannot view event members list) or not allowed for this event (e.g. dean for another college).  
+- `404` — Event not found.
 
 ---
 
@@ -502,13 +548,15 @@ Creates a notification for the current user (e.g. welcome). Server may skip crea
 
 ### GET /api/admin/events
 
-**Auth:** Required. Admin: all events; Community leader / supervisor: only events of their community.
+**Auth:** Required. Admin: all events; Dean: events of their college; Community leader / supervisor: only events of their community. Only events **linked to a community** (`community_id` not null) are returned, so analytics and dashboard events are always tied to communities.
 
-**Response:** `200`  
-- Body: array of event objects (same shape as **GET /api/events**).
+**Query:** `communityId` (optional) — filter to events of that community only.
 
-**Errors:**  
-- `403` — Only admin or community leader can list manageable events
+**Response:** `200`
+- Body: array of event objects (same shape as **GET /api/events**, including `communityId`, `communityName`).
+
+**Errors:**
+- `403` — Only admin, dean, or community leader can list manageable events
 
 ---
 
@@ -579,13 +627,13 @@ Assigns a **supervisor** or **community_leader** to a community (one leader per 
 
 ## Analytics
 
-Event performance and feedback. All data from DB (`event_reviews`, `events`, `event_analytics_summary`). Frontend: `getAnalyticsForEvent`, `getAnalyticsTrend`, `getAnalyticsTopics`, `createEventReview`, `getExportReviewsCsvUrl`, `getExportAlertsCsvUrl`, `downloadEventReviewsCsv`, `downloadEventAlertsCsv` in `src/api.js`.
+Event performance and feedback. **Analytics are connected to events from communities:** only events with a `community_id` are included. The dashboard event list (GET /api/admin/events) returns only events linked to a community; analytics are available only for such events. All data from DB: `event_reviews`, `events`, `event_analytics_summary`. Student reviews from `POST /api/events/:eventId/reviews` are stored and included. Frontend: `getAnalyticsForEvent`, `getAnalyticsTrend`, `getAnalyticsTopics`, export helpers in `src/api.js`.
 
 ### GET /api/analytics/event/:eventId
 
-**Auth:** Required (session/cookie).
+**Auth:** Required (admin). **Event must be linked to a community** (`community_id` not null); otherwise `400` — "Analytics are available only for events linked to a community."
 
-**Response:** `200` — Full analytics: `totalReviews`, `averageRating`, `overallPerformance`, `ratingDistribution`, `sentiment`, `sentimentPercentages`, `topPhrase`, `kpi`, `registrationsCount`, `identifiedReviewsCount`, `responseRate`, `riskAlerts`, `benchmarks`, `aspects`, `suggestions`, `recentReviews`.
+**Response:** `200` — Full analytics: `eventId`, `communityId`, `communityName`, `totalReviews`, `averageRating`, `overallPerformance`, `ratingDistribution`, `sentiment`, `sentimentPercentages`, `topPhrase`, `kpi`, `registrationsCount`, `identifiedReviewsCount`, `responseRate`, `riskAlerts`, `benchmarks`, `aspects`, `suggestions`, `recentReviews`.
 
 ### GET /api/analytics/event/:eventId/trend
 

@@ -343,15 +343,30 @@ export default function analyticsRouter(pool) {
     return lines.join('\n');
   }
 
-  // GET /event/:eventId — full analytics for one event
+  // GET /event/:eventId — full analytics for one event (events must be linked to a community)
   router.get('/event/:eventId', async (req, res) => {
     try {
       const eventId = requireEventId(req.params.eventId);
       if (!eventId) return res.status(400).json({ error: 'Invalid eventId' });
       if (!(await eventExists(eventId))) return res.status(404).json({ error: 'Event not found' });
 
+      const eventRow = await pool.query(
+        `SELECT e.id, e.community_id, c.name AS community_name
+         FROM events e
+         LEFT JOIN communities c ON c.id = e.community_id
+         WHERE e.id = $1`,
+        [eventId]
+      );
+      const ev = eventRow.rows[0];
+      if (!ev || ev.community_id == null) {
+        return res.status(400).json({ error: 'Analytics are available only for events linked to a community.' });
+      }
+      const communityId = ev.community_id;
+      const communityName = ev.community_name || null;
+
+      // Reviews are stored with event_id; analytics scope by event_id so each event's metrics use only its reviews
       const revResult = await pool.query(
-        `SELECT id, rating, sentiment, override_sentiment, comment, created_at
+        `SELECT id, event_id, rating, sentiment, override_sentiment, comment, created_at
          FROM event_reviews WHERE event_id = $1`,
         [eventId]
       );
@@ -367,6 +382,9 @@ export default function analyticsRouter(pool) {
         const summary = summaryResult.rows[0] || {};
         const registrationsCount = Number(summary.registrations_count || 0);
         return res.json({
+          eventId,
+          communityId,
+          communityName,
           totalReviews: 0,
           averageRating: 0,
           overallPerformance: 'No Data',
@@ -460,6 +478,9 @@ export default function analyticsRouter(pool) {
         }));
 
       res.json({
+        eventId,
+        communityId,
+        communityName,
         totalReviews: total,
         averageRating: Number(avg.toFixed(2)),
         overallPerformance: performanceLabel(avg),

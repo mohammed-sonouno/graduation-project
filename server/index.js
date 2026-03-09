@@ -1,54 +1,82 @@
 import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import rateLimit from 'express-rate-limit';
 import pg from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
-import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswordRules, isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole, EVENT_REQUIRED_FIELDS } from '../config/rules.js';
+import { randomUUID } from 'node:crypto';
+import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswordRules, isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole, EVENT_REQUIRED_FIELDS, DEAN_DISPLAY_NAME, SUPERVISOR_DISPLAY_NAME, COMMUNITY_LEADER_DISPLAY_NAME } from '../config/rules.js';
 import analyticsRouter from './routes/analytics.js';
 
 const { Pool } = pg;
 const app = express();
+const isProduction = process.env.NODE_ENV === 'production';
+
 // Backend default port (override with PORT in .env if needed)
 const PORT = process.env.PORT || 2000;
-const JWT_SECRET = process.env.JWT_SECRET || 'graduation-project-secret';
 
-// Default DB: 10.20.10.20:5433, user postgres, database "graduation Project" (override with DATABASE_URL in .env)
-const DEFAULT_DATABASE_URL = 'postgresql://postgres:Ss%402004%24@10.20.10.20:5433/graduation%20Project';
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
-});
+// JWT: require secret from env in production; weak default only for dev
+const JWT_SECRET_ENV = process.env.JWT_SECRET;
+if (isProduction && !JWT_SECRET_ENV) {
+  console.warn('Security: Set JWT_SECRET in .env for production. Using a random fallback for this run only.');
+}
+const effectiveJwtSecret = JWT_SECRET_ENV || (!isProduction ? 'graduation-project-secret' : require('node:crypto').randomBytes(32).toString('hex'));
 
-const ADMIN_EMAIL = 'admin@najah.edu';
-const ADMIN_PASSWORD = '123456';
+// Database: never hardcode credentials in production; use DATABASE_URL from .env
+const DEFAULT_DATABASE_URL = isProduction ? undefined : 'postgresql://postgres:Ss%402004%24@10.20.10.20:5433/graduation%20Project';
+const connectionString = process.env.DATABASE_URL || DEFAULT_DATABASE_URL;
+if (isProduction && !process.env.DATABASE_URL) {
+  console.error('Fatal: DATABASE_URL is required in production.');
+  process.exit(1);
+}
+const pool = new Pool({ connectionString });
 
-async function ensureAdminUser() {
+// Admin bootstrap: use env in production; fallback only in dev
+const ADMIN_EMAIL = process.env.ADMIN_EMAIL || (isProduction ? null : 'admin@najah.edu');
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || (isProduction ? null : '123456');
+if (isProduction && (!ADMIN_EMAIL || !ADMIN_PASSWORD)) {
+  console.warn('Security: Set ADMIN_EMAIL and ADMIN_PASSWORD in .env for production admin bootstrap.');
+}
+
+const DEV_ADMIN_EMAIL = 'admin@najah.edu';
+const DEV_ADMIN_PASSWORD = '123456';
+
+/**
+ * Ensure admin user exists and has correct password. Uses ADMIN_EMAIL/ADMIN_PASSWORD from env,
+ * or in dev (non-production) can use overrideEmail/overridePassword (e.g. when login tries admin@najah.edu).
+ */
+async function ensureAdminUser(overrideEmail = null, overridePassword = null) {
+  const email = overrideEmail || ADMIN_EMAIL;
+  const password = overridePassword || ADMIN_PASSWORD;
+  if (!email || !password) return false;
   const client = await pool.connect();
   try {
-    const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
-    const r = await client.query('SELECT 1 FROM app_users WHERE email = $1 LIMIT 1', [ADMIN_EMAIL]);
+    const hash = await bcrypt.hash(password, 10);
+    const r = await client.query('SELECT 1 FROM app_users WHERE LOWER(email) = LOWER($1) LIMIT 1', [email]);
     if (r.rows.length > 0) {
       await client.query(
-        "UPDATE app_users SET password_hash = $1, role = 'admin' WHERE email = $2",
-        [hash, ADMIN_EMAIL]
+        "UPDATE app_users SET email = $1, password_hash = $2, role = 'admin' WHERE LOWER(email) = LOWER($1)",
+        [email, hash]
       );
-      console.log('Admin user password refreshed: admin@najah.edu');
+      if (!overrideEmail) console.log('Admin user password refreshed:', email);
       return true;
     }
     const old = await client.query("SELECT 1 FROM app_users WHERE email = 'admin' LIMIT 1");
     if (old.rows.length > 0) {
       await client.query(
         "UPDATE app_users SET email = $1, password_hash = $2, role = 'admin' WHERE email = 'admin'",
-        [ADMIN_EMAIL, hash]
+        [email, hash]
       );
-      console.log('Admin user migrated to admin@najah.edu');
+      console.log('Admin user migrated to', email);
       return true;
     }
     await client.query(
       "INSERT INTO app_users (email, password_hash, role) VALUES ($1, $2, 'admin')",
-      [ADMIN_EMAIL, hash]
+      [email, hash]
     );
-    console.log('Admin user created: admin@najah.edu, password 123456');
+    console.log('Admin user created:', email);
     return true;
   } catch (err) {
     console.error('ensureAdminUser failed:', err?.message || err);
@@ -66,12 +94,21 @@ const CORS_ORIGINS = process.env.CORS_ORIGIN
   ? process.env.CORS_ORIGIN.split(',').map((o) => o.trim()).filter(Boolean)
   : ['http://localhost:3000', 'http://localhost:5173'];
 app.disable('x-powered-by');
+app.use(helmet({ contentSecurityPolicy: false })); // CSP can be enabled and tuned for your frontend
 app.use(cors({
   origin: (origin, cb) => {
     if (!origin || CORS_ORIGINS.includes(origin)) return cb(null, true);
     return cb(null, CORS_ORIGINS[0]);
   },
   credentials: true,
+}));
+// Rate limit auth endpoints to reduce brute-force and abuse
+app.use('/api/auth', rateLimit({
+  windowMs: 15 * 60 * 1000,
+  max: 50,
+  message: { error: 'Too many attempts. Please try again later.' },
+  standardHeaders: true,
+  legacyHeaders: false,
 }));
 app.use(express.json({ limit: '5mb' })); // allow base64 images for profile picture
 
@@ -189,7 +226,7 @@ async function optionalAuth(req, res, next) {
     return next();
   }
   try {
-    const payload = jwt.verify(token, JWT_SECRET);
+    const payload = jwt.verify(token, effectiveJwtSecret);
     const r = await pool.query(
 'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE id = $1',
     [payload.userId]
@@ -213,7 +250,19 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-/** Attach permissions from user.role (stored in DB). Frontend uses these to show/hide menus and content per role. */
+/** Human-readable label for role (for display on admin login / navbar). */
+function roleLabel(role) {
+  if (!role) return null;
+  const r = String(role).toLowerCase();
+  if (r === 'admin') return 'Administrator';
+  if (r === 'dean') return DEAN_DISPLAY_NAME;
+  if (r === 'supervisor') return SUPERVISOR_DISPLAY_NAME;
+  if (r === 'community_leader') return COMMUNITY_LEADER_DISPLAY_NAME;
+  if (r === 'student' || r === 'user') return 'Student';
+  return role;
+}
+
+/** Attach permissions and roleLabel from user.role (stored in DB). Frontend uses these to show/hide menus and content per role. */
 function withPermissions(user) {
   if (!user) return user;
   const admin = isAdminRole(user.role);
@@ -223,6 +272,7 @@ function withPermissions(user) {
   const student = isStudentRole(user.role) || user.role === 'user';
   return {
     ...user,
+    roleLabel: roleLabel(user.role),
     permissions: {
       admin,
       dean,
@@ -240,8 +290,8 @@ app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'Backend running' });
 });
 
-// ========== Analytics (event reviews — dashboard data analysis) ==========
-app.use('/api/analytics', analyticsRouter(pool));
+// ========== Analytics (event reviews — dashboard data analysis; admin-only) ==========
+app.use('/api/analytics', optionalAuth, requireAuth, requireAdmin, analyticsRouter(pool));
 
 // ========== Auth: all accounts and login are stored/verified in DB (app_users) ==========
 // Session tokens are never issued without the required steps:
@@ -265,6 +315,18 @@ app.get('/api/auth/me', optionalAuth, async (req, res) => {
     user.communityName = r.rows[0]?.name;
   }
   res.json({ user });
+});
+
+/** GET /api/auth/admin-login-roles — roles that can sign in via the admin login page (for display on the form). */
+app.get('/api/auth/admin-login-roles', (req, res) => {
+  res.json({
+    roles: [
+      { value: 'admin', label: 'Administrator' },
+      { value: 'dean', label: DEAN_DISPLAY_NAME },
+      { value: 'supervisor', label: SUPERVISOR_DISPLAY_NAME },
+      { value: 'community_leader', label: COMMUNITY_LEADER_DISPLAY_NAME },
+    ],
+  });
 });
 
 /** POST /api/auth/logout — clear auth cookie (no localStorage; session lives in cookie). */
@@ -330,7 +392,7 @@ app.post('/api/auth/register', async (req, res) => {
       [emailNorm, hash, college, major]
     );
     const row = r.rows[0];
-    const token = jwt.sign({ userId: row.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: row.id }, effectiveJwtSecret, { expiresIn: '7d' });
     setAuthCookie(res, token, false);
     const userRow = {
       ...row,
@@ -375,27 +437,52 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(400).json({ error: 'Password is too long.' });
   }
   const emailNorm = email.toLowerCase();
+  // Admin / staff login only: only @najah.edu (not @stu.najah.edu); student role cannot use this login.
+  if (emailNorm.endsWith('@stu.najah.edu')) {
+    logAuth('login', { email: emailNorm, success: false, reason: 'admin_login_stu_domain' });
+    return res.status(403).json({ error: 'Use Student Login for @stu.najah.edu accounts. This page is for staff (e.g. admin@najah.edu).' });
+  }
+  if (!emailNorm.endsWith('@najah.edu')) {
+    logAuth('login', { email: emailNorm, success: false, reason: 'admin_login_domain' });
+    return res.status(403).json({ error: 'This login is for @najah.edu accounts only. Use Student Login for student accounts.' });
+  }
   try {
     let r = await pool.query(
-      'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE email = $1 LIMIT 1',
+      'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
       [emailNorm]
     );
     let row = r.rows[0];
-    if (!row && emailNorm === ADMIN_EMAIL) {
-      await ensureAdminUser();
-      r = await pool.query(
-        'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE email = $1 LIMIT 1',
-        [emailNorm]
+    // If admin@najah.edu not found (or no password), ensure admin exists (dev) or prompt setup (production)
+    if ((!row || !row.password_hash) && emailNorm === (ADMIN_EMAIL || DEV_ADMIN_EMAIL).toLowerCase()) {
+      const created = await ensureAdminUser(
+        ADMIN_EMAIL || (isProduction ? null : DEV_ADMIN_EMAIL),
+        ADMIN_PASSWORD || (isProduction ? null : DEV_ADMIN_PASSWORD)
       );
-      row = r.rows[0];
+      if (created) {
+        r = await pool.query(
+          'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
+          [emailNorm]
+        );
+        row = r.rows[0];
+      }
     }
     if (!row) {
       logAuth('login', { email: emailNorm, success: false, reason: 'user_not_found' });
+      if (emailNorm === 'admin@najah.edu') {
+        return res.status(503).json({
+          error: 'Admin account not set up. Run: npm run migrate then npm run seed:admin (or set ADMIN_EMAIL and ADMIN_PASSWORD in .env and restart the server).',
+        });
+      }
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
     const hash = row.password_hash;
     if (!hash || typeof hash !== 'string') {
       logAuth('login', { email: emailNorm, success: false, reason: 'no_hash' });
+      if (emailNorm === 'admin@najah.edu') {
+        return res.status(503).json({
+          error: 'Admin account has no password. Run: npm run seed:admin then try again.',
+        });
+      }
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
     let match = false;
@@ -409,6 +496,12 @@ app.post('/api/auth/login', async (req, res) => {
     if (!match) {
       logAuth('login', { email: emailNorm, success: false, reason: 'bad_password' });
       return res.status(401).json({ error: 'Invalid email or password.' });
+    }
+    // Student role cannot use this (password) login — they must use Student Login (code or Google).
+    const role = (row.role || '').toLowerCase();
+    if (role === 'student' || role === 'user') {
+      logAuth('login', { email: emailNorm, success: false, reason: 'admin_login_student_role' });
+      return res.status(403).json({ error: 'Student accounts cannot sign in here. Use Student Login.' });
     }
     const user = withPermissions(toUser(row));
     if (!user || !user.id) {
@@ -424,7 +517,7 @@ app.post('/api/auth/login', async (req, res) => {
       const cr = await pool.query('SELECT name FROM communities WHERE id = $1', [user.community_id]);
       user.communityName = cr.rows[0]?.name;
     }
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id }, effectiveJwtSecret, { expiresIn: '7d' });
     setAuthCookie(res, token, false);
     logAuth('login', { email: emailNorm, success: true, userId: user.id });
     await createNotification(user.id, 'New login', 'A new sign-in to your Najah account was detected.');
@@ -555,7 +648,7 @@ app.post('/api/auth/verify-login-code', async (req, res) => {
       user.communityName = cr.rows[0]?.name;
     }
     const expiresIn = rememberMe ? JWT_EXPIRY_REMEMBER : JWT_EXPIRY_SESSION;
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn });
+    const token = jwt.sign({ userId: user.id }, effectiveJwtSecret, { expiresIn });
     setAuthCookie(res, token, rememberMe);
     logAuth('login', { email, success: true, userId: user.id, provider: 'code' });
     await createNotification(user.id, 'New login', 'A new sign-in to your Najah account was detected.');
@@ -585,7 +678,7 @@ app.post('/api/auth/verify-google-new-code', async (req, res) => {
     }
     let payload;
     try {
-      payload = jwt.verify(tempToken, JWT_SECRET);
+      payload = jwt.verify(tempToken, effectiveJwtSecret);
     } catch {
       return res.status(401).json({ error: 'Session expired. Please sign in with Google again.' });
     }
@@ -718,7 +811,7 @@ This code is valid for a limited time only.</p>
           picture: data.picture || null,
           pendingRegistration: true,
         },
-        JWT_SECRET,
+        effectiveJwtSecret,
         { expiresIn: '15m' }
       );
       result.newUser = true;
@@ -797,7 +890,7 @@ app.post('/api/auth/complete-registration', async (req, res) => {
   } else if (tempToken) {
     let payload;
     try {
-      payload = jwt.verify(tempToken, JWT_SECRET);
+      payload = jwt.verify(tempToken, effectiveJwtSecret);
     } catch {
       return res.status(401).json({ error: 'Registration link expired. Please sign in with Google again.' });
     }
@@ -877,7 +970,7 @@ app.post('/api/auth/complete-registration', async (req, res) => {
     }
     const user = withPermissions(toUser({ ...row, name: [first_name, last_name_final].filter(Boolean).join(' ') || email }));
     if (pictureFromPayload) user.picture = pictureFromPayload;
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: '7d' });
+    const token = jwt.sign({ userId: user.id }, effectiveJwtSecret, { expiresIn: '7d' });
     setAuthCookie(res, token);
     await createNotification(user.id, 'Welcome to Najah platform', 'Your student account has been created successfully.');
     res.json({ user });
@@ -1208,6 +1301,121 @@ app.get('/api/events/:id', optionalAuth, async (req, res) => {
   } catch (err) {
     console.error('event get error:', err);
     res.status(500).json({ error: 'Failed to load event' });
+  }
+});
+
+/** GET /api/events/:eventId/registrations — list of event members (registrations). All roles except students can see it; students get 403. */
+app.get('/api/events/:eventId/registrations', optionalAuth, requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const isStudent = isStudentRole(user?.role) || user?.role === 'user';
+    if (isStudent) {
+      return res.status(403).json({ error: 'Only admin, dean, supervisor, or community leader can view the event members list. Students cannot see other participants.' });
+    }
+    const eventId = req.params.eventId;
+    if (!eventId || typeof eventId !== 'string' || eventId.length > 100) {
+      return res.status(400).json({ error: 'Invalid event id' });
+    }
+    const ev = await pool.query('SELECT id, community_id FROM events WHERE id = $1', [eventId]);
+    if (ev.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
+    const eventRow = ev.rows[0];
+    const isAdmin = isAdminRole(user?.role);
+    const isDean = isDeanRole(user?.role) && user?.college_id != null;
+    const isLeader = (isCommunityLeaderRole(user?.role) || isSupervisorRole(user?.role)) && user?.community_id != null;
+    if (!isAdmin && !isDean && !isLeader) {
+      return res.status(403).json({ error: 'Only admin, dean, supervisor, or community leader can view event members.' });
+    }
+    if (isLeader && !isAdmin && Number(eventRow.community_id) !== Number(user.community_id)) {
+      return res.status(403).json({ error: 'You can only view members of events in your community.' });
+    }
+    if (isDean && !isAdmin) {
+      const comm = await pool.query('SELECT college_id FROM communities WHERE id = $1', [eventRow.community_id]);
+      if (comm.rows.length === 0 || Number(comm.rows[0].college_id) !== Number(user.college_id)) {
+        return res.status(403).json({ error: 'You can only view members of events in your college.' });
+      }
+    }
+    const r = await pool.query(
+      `SELECT er.id, er.user_id AS "userId", er.student_id AS "studentId", er.college, er.major,
+              er.association_member AS "associationMember", er.name, er.email,
+              er.status, er.paid_at AS "paidAt", er.created_at AS "createdAt",
+              u.email AS "userEmail"
+       FROM event_registrations er
+       JOIN app_users u ON u.id = er.user_id
+       WHERE er.event_id = $1
+       ORDER BY er.status = 'approved' DESC, er.paid_at ASC NULLS LAST, er.created_at ASC`,
+      [eventId]
+    );
+    res.json(r.rows);
+  } catch (err) {
+    console.error('event registrations list error:', err);
+    res.status(500).json({ error: 'Failed to load event members' });
+  }
+});
+
+/** GET /api/events/:eventId/reviews — list reviews for an event (from DB). Used by event detail page; all data from event_reviews. */
+app.get('/api/events/:eventId/reviews', optionalAuth, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    if (!eventId || typeof eventId !== 'string' || eventId.length > 100) {
+      return res.status(400).json({ error: 'Invalid event id' });
+    }
+    const ev = await pool.query('SELECT 1 FROM events WHERE id = $1', [eventId]);
+    if (ev.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
+    const r = await pool.query(
+      `SELECT id, event_id AS "eventId", rating, comment, created_at AS "createdAt"
+       FROM event_reviews
+       WHERE event_id = $1
+       ORDER BY created_at DESC`,
+      [eventId]
+    );
+    res.json(r.rows);
+  } catch (err) {
+    console.error('event reviews list error:', err);
+    res.status(500).json({ error: 'Failed to load reviews' });
+  }
+});
+
+/** POST /api/events/:eventId/reviews — submit a review (student or any authenticated user). Stored in event_reviews; one per user per event. */
+app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, res) => {
+  try {
+    const eventId = req.params.eventId;
+    if (!eventId || typeof eventId !== 'string' || eventId.length > 100) {
+      return res.status(400).json({ error: 'Invalid event id' });
+    }
+    const body = req.body || {};
+    const rating = body.rating != null ? Number(body.rating) : NaN;
+    if (Number.isNaN(rating) || rating < 1 || rating > 5) {
+      return res.status(400).json({ error: 'Rating is required and must be 1–5.' });
+    }
+    const comment = typeof body.comment === 'string' ? body.comment.trim().slice(0, 2000) || null : null;
+    const ev = await pool.query('SELECT id, status FROM events WHERE id = $1', [eventId]);
+    if (ev.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
+    const status = ev.rows[0].status || '';
+    if (status !== 'approved' && status !== 'upcoming' && status !== 'past') {
+      return res.status(400).json({ error: 'Reviews are only accepted for approved or past events.' });
+    }
+    const sentiment = rating >= 4 ? 'positive' : rating <= 2 ? 'negative' : 'neutral';
+    const sentimentScore = rating >= 4 ? 0.8 : rating <= 2 ? -0.6 : 0;
+    const id = randomUUID();
+    // event_id links this review to the event so analytics can attribute feedback to the correct event
+    await pool.query(
+      `INSERT INTO event_reviews (id, event_id, rating, comment, sentiment, sentiment_score, user_id, language, source, is_seeded, updated_at)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, 'unknown', 'manual', false, NOW())`,
+      [id, eventId, rating, comment, sentiment, sentimentScore, req.user.id]
+    );
+    const row = (await pool.query(
+      `SELECT id, event_id AS "eventId", rating, comment, created_at AS "createdAt"
+       FROM event_reviews WHERE id = $1`,
+      [id]
+    )).rows[0];
+    res.status(201).json(row);
+  } catch (err) {
+    if (err?.code === '23505') {
+      return res.status(409).json({ error: 'You have already submitted a review for this event.' });
+    }
+    if (err?.code === '23503') return res.status(404).json({ error: 'Event not found' });
+    console.error('event review create error:', err);
+    res.status(500).json({ error: 'Failed to submit review.' });
   }
 });
 
@@ -1638,9 +1846,12 @@ app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res)
     const { eventId, associationMember } = req.body || {};
     if (!eventId) return res.status(400).json({ error: 'eventId is required' });
 
-    // Ensure event exists and is visible for registration (approved / upcoming / past). Include audience columns.
+    // Ensure event exists and is visible for registration (approved / upcoming / past). Include audience, price, capacity.
     const ev = await pool.query(
-      `SELECT id, status, community_id, title, COALESCE(for_all_colleges, true) AS for_all_colleges,
+      `SELECT id, status, community_id, title,
+       COALESCE(available_seats, 0) AS available_seats,
+       COALESCE(price, 0) AS price,
+       COALESCE(for_all_colleges, true) AS for_all_colleges,
        COALESCE(target_college_ids, '[]'::jsonb) AS target_college_ids,
        COALESCE(target_all_majors, true) AS target_all_majors,
        COALESCE(target_major_ids, '[]'::jsonb) AS target_major_ids
@@ -1654,6 +1865,26 @@ app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res)
     const eventStatus = eventRow.status || 'draft';
     if (eventStatus === 'draft' || eventStatus === 'pending' || eventStatus === 'rejected') {
       return res.status(400).json({ error: 'You cannot register for this event yet.' });
+    }
+    const isFreeEvent = eventRow.price == null || Number(eventRow.price) === 0;
+    const capacity = Number(eventRow.available_seats) || 0;
+    const approvedCountResult = await pool.query(
+      'SELECT COUNT(*) AS cnt FROM event_registrations WHERE event_id = $1 AND status = $2',
+      [eventId, 'approved']
+    );
+    const approvedCount = parseInt(approvedCountResult.rows[0]?.cnt || '0', 10);
+    if (capacity > 0 && approvedCount >= capacity) {
+      const fullMessage = isFreeEvent
+        ? 'The event is full. No further registrations accepted.'
+        : 'The event is full. Your request was rejected because no payment was confirmed in time; no further registrations or payments are accepted.';
+      await createNotification(
+        req.user.id,
+        'Registration rejected – event full',
+        `Your request to join "${eventRow.title || eventId}" was rejected. ${fullMessage}`
+      );
+      return res.status(400).json({
+        error: 'This event is full. No further registrations or payments are accepted.',
+      });
     }
 
     // Always take student information from the authenticated user's profile / account,
@@ -1687,38 +1918,67 @@ app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res)
       });
     }
 
-    await pool.query(
+    const initialStatus = isFreeEvent ? 'approved' : 'pending_payment';
+    const ins = await pool.query(
       `INSERT INTO event_registrations (user_id, event_id, student_id, college, major, association_member, name, email, status)
-       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,'pending_payment')
-       ON CONFLICT (user_id, event_id) DO NOTHING`,
-      [req.user.id, eventId, studentId || null, college || null, major || null, associationMember || 'non-member', name || null, email || null]
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9)
+       ON CONFLICT (user_id, event_id) DO NOTHING
+       RETURNING id, event_id AS "eventId", status, created_at AS "createdAt"`,
+      [req.user.id, eventId, studentId || null, college || null, major || null, associationMember || 'non-member', name || null, email || null, initialStatus]
     );
-    const r = await pool.query(
-      'SELECT id, event_id AS "eventId", status, created_at AS "createdAt" FROM event_registrations WHERE user_id = $1 AND event_id = $2',
-      [req.user.id, eventId]
-    );
-    // Notify community leader/supervisor that a new registration is pending payment
-    if (eventRow.community_id != null) {
-      const lr = await pool.query(
-        "SELECT id FROM app_users WHERE community_id = $1 AND role IN ('supervisor','community_leader') LIMIT 1",
-        [eventRow.community_id]
+    if (ins.rows.length === 0) {
+      const existing = await pool.query(
+        'SELECT id, event_id AS "eventId", status, created_at AS "createdAt" FROM event_registrations WHERE user_id = $1 AND event_id = $2',
+        [req.user.id, eventId]
       );
-      const leader = lr.rows[0];
-      if (leader?.id) {
-        await createNotification(
-          leader.id,
-          'New event registration (pending payment)',
-          `A new student requested to join your event "${eventRow.title || eventId}". After they pay, you can approve.`
-        );
+      if (existing.rows.length > 0) {
+        return res.status(409).json({ error: 'You are already registered for this event.', registration: existing.rows[0] });
       }
+      return res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
-    // Notify student: pending payment, then community will approve
-    await createNotification(
-      req.user.id,
-      'Registration pending payment',
-      `Your request to join the event "${eventRow.title || eventId}" is pending payment. After you pay, the community will approve your spot (first paid, first approved until event is full).`
-    );
-    res.status(201).json(r.rows[0] || { registered: true });
+    const row = ins.rows[0];
+
+    if (isFreeEvent) {
+      await createNotification(
+        req.user.id,
+        'You\'re registered',
+        `You're registered for "${eventRow.title || eventId}" (free event – first come, first served).`
+      );
+      if (eventRow.community_id != null) {
+        const lr = await pool.query(
+          "SELECT id FROM app_users WHERE community_id = $1 AND role IN ('supervisor','community_leader') LIMIT 1",
+          [eventRow.community_id]
+        );
+        if (lr.rows[0]?.id) {
+          await createNotification(
+            lr.rows[0].id,
+            'New registration (free event)',
+            `A student joined "${eventRow.title || eventId}" (free event – auto-approved).`
+          );
+        }
+      }
+    } else {
+      if (eventRow.community_id != null) {
+        const lr = await pool.query(
+          "SELECT id FROM app_users WHERE community_id = $1 AND role IN ('supervisor','community_leader') LIMIT 1",
+          [eventRow.community_id]
+        );
+        const leader = lr.rows[0];
+        if (leader?.id) {
+          await createNotification(
+            leader.id,
+            'New event registration (pending payment)',
+            `A new student requested to join your event "${eventRow.title || eventId}". After they pay, you can approve.`
+          );
+        }
+      }
+      await createNotification(
+        req.user.id,
+        'Registration pending payment',
+        `Your request to join "${eventRow.title || eventId}" is pending payment. After you pay, the community leader will approve your spot (first paid, first approved until the event is full).`
+      );
+    }
+    res.status(201).json(row);
   } catch (err) {
     if (err?.code === '23503') return res.status(404).json({ error: 'Event not found' });
     console.error('registration create error:', err);
@@ -2020,7 +2280,7 @@ app.post('/api/notifications', optionalAuth, requireAuth, async (req, res) => {
   }
 });
 
-/** GET /api/admin/events — admin: all events; dean: events of their college; community leader / supervisor: only events of their community. */
+/** GET /api/admin/events — admin: all events; dean: events of their college; community leader / supervisor: only events of their community. Optional ?communityId= to filter by community (analytics are tied to events from communities). */
 app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
   try {
     const user = req.user;
@@ -2028,7 +2288,7 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
     const isDean = isDeanRole(user?.role) && user?.college_id != null;
     const isLeader = (isCommunityLeaderRole(user?.role) || isSupervisorRole(user?.role)) && user?.community_id != null;
     if (!isAdmin && !isDean && !isLeader) return res.status(403).json({ error: 'Only admin, dean, or community leader can list manageable events' });
-    let q = EVENTS_SELECT + ' WHERE 1=1';
+    let q = EVENTS_SELECT + ' WHERE e.community_id IS NOT NULL';
     const params = [];
     if (isLeader && !isAdmin) {
       params.push(user.community_id);
@@ -2036,6 +2296,11 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
     } else if (isDean && !isAdmin) {
       params.push(user.college_id);
       q += ` AND c.college_id = $${params.length}`;
+    }
+    const filterCommunityId = req.query.communityId != null ? Number(req.query.communityId) : NaN;
+    if (!Number.isNaN(filterCommunityId)) {
+      params.push(filterCommunityId);
+      q += ` AND e.community_id = $${params.length}`;
     }
     q += ' ORDER BY e.created_at DESC';
     const r = await pool.query(q, params);
