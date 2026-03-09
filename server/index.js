@@ -447,28 +447,27 @@ app.post('/api/auth/login', async (req, res) => {
     return res.status(403).json({ error: 'This login is for @najah.edu accounts only. Use Student Login for student accounts.' });
   }
   try {
+    const adminLoginEmail = 'admin@najah.edu';
+    const isAdminLoginAttempt = emailNorm === adminLoginEmail;
+    // When logging in as admin@najah.edu: ensure admin account exists (create/repair with password 123456 in dev)
+    if (isAdminLoginAttempt) {
+      const bootstrapEmail = isProduction ? ADMIN_EMAIL : adminLoginEmail;
+      const bootstrapPassword = isProduction ? ADMIN_PASSWORD : DEV_ADMIN_PASSWORD;
+      if (bootstrapEmail && bootstrapPassword) {
+        await ensureAdminUser(bootstrapEmail, bootstrapPassword);
+      } else if (!isProduction) {
+        await ensureAdminUser(adminLoginEmail, DEV_ADMIN_PASSWORD);
+      }
+    }
+
     let r = await pool.query(
       'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
       [emailNorm]
     );
     let row = r.rows[0];
-    // If admin@najah.edu not found (or no password), ensure admin exists (dev) or prompt setup (production)
-    if ((!row || !row.password_hash) && emailNorm === (ADMIN_EMAIL || DEV_ADMIN_EMAIL).toLowerCase()) {
-      const created = await ensureAdminUser(
-        ADMIN_EMAIL || (isProduction ? null : DEV_ADMIN_EMAIL),
-        ADMIN_PASSWORD || (isProduction ? null : DEV_ADMIN_PASSWORD)
-      );
-      if (created) {
-        r = await pool.query(
-          'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
-          [emailNorm]
-        );
-        row = r.rows[0];
-      }
-    }
     if (!row) {
       logAuth('login', { email: emailNorm, success: false, reason: 'user_not_found' });
-      if (emailNorm === 'admin@najah.edu') {
+      if (isAdminLoginAttempt) {
         return res.status(503).json({
           error: 'Admin account not set up. Run: npm run migrate then npm run seed:admin (or set ADMIN_EMAIL and ADMIN_PASSWORD in .env and restart the server).',
         });
@@ -476,18 +475,29 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
     const hash = row.password_hash;
-    if (!hash || typeof hash !== 'string') {
+    let hashToUse = hash;
+    if (!hashToUse || typeof hashToUse !== 'string') {
       logAuth('login', { email: emailNorm, success: false, reason: 'no_hash' });
-      if (emailNorm === 'admin@najah.edu') {
-        return res.status(503).json({
-          error: 'Admin account has no password. Run: npm run seed:admin then try again.',
-        });
+      if (isAdminLoginAttempt) {
+        await ensureAdminUser(adminLoginEmail, isProduction ? ADMIN_PASSWORD : DEV_ADMIN_PASSWORD);
+        r = await pool.query(
+          'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
+          [emailNorm]
+        );
+        row = r.rows[0];
+        hashToUse = row?.password_hash;
+        if (!hashToUse) {
+          return res.status(503).json({
+            error: 'Admin account has no password. Run: npm run seed:admin then try again.',
+          });
+        }
+      } else {
+        return res.status(401).json({ error: 'Invalid email or password.' });
       }
-      return res.status(401).json({ error: 'Invalid email or password.' });
     }
     let match = false;
     try {
-      match = await bcrypt.compare(password, hash);
+      match = await bcrypt.compare(password, hashToUse);
     } catch (bcryptErr) {
       console.error('Login bcrypt error:', bcryptErr);
       logAuth('login', { email: emailNorm, success: false, reason: 'bcrypt_error' });
@@ -497,8 +507,16 @@ app.post('/api/auth/login', async (req, res) => {
       logAuth('login', { email: emailNorm, success: false, reason: 'bad_password' });
       return res.status(401).json({ error: 'Invalid email or password.' });
     }
-    // Student role cannot use this (password) login — they must use Student Login (code or Google).
     const role = (row.role || '').toLowerCase();
+    // If admin@najah.edu has student/user role, upgrade to admin so this login page works
+    if ((role === 'student' || role === 'user') && isAdminLoginAttempt) {
+      await ensureAdminUser(adminLoginEmail, isProduction ? ADMIN_PASSWORD : DEV_ADMIN_PASSWORD);
+      r = await pool.query(
+        'SELECT id, email, password_hash, role, created_at, college_id, community_id, first_name, middle_name, last_name, student_number, must_change_password, must_complete_profile FROM app_users WHERE LOWER(email) = $1 LIMIT 1',
+        [emailNorm]
+      );
+      row = r.rows[0];
+    }
     if (role === 'student' || role === 'user') {
       logAuth('login', { email: emailNorm, success: false, reason: 'admin_login_student_role' });
       return res.status(403).json({ error: 'Student accounts cannot sign in here. Use Student Login.' });
@@ -1936,7 +1954,7 @@ app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res)
       }
       return res.status(500).json({ error: 'Registration failed. Please try again.' });
     }
-    const row = ins.rows[0];
+    const regRow = ins.rows[0];
 
     if (isFreeEvent) {
       await createNotification(
@@ -1978,7 +1996,7 @@ app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res)
         `Your request to join "${eventRow.title || eventId}" is pending payment. After you pay, the community leader will approve your spot (first paid, first approved until the event is full).`
       );
     }
-    res.status(201).json(row);
+    res.status(201).json(regRow);
   } catch (err) {
     if (err?.code === '23503') return res.status(404).json({ error: 'Event not found' });
     console.error('registration create error:', err);

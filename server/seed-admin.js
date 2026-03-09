@@ -18,11 +18,11 @@ async function seedAdmin() {
   const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
   const client = await pool.connect();
   try {
-    const r = await client.query('SELECT id FROM app_users WHERE email = $1', [ADMIN_EMAIL]);
+    const r = await client.query('SELECT id, email FROM app_users WHERE LOWER(email) = LOWER($1) LIMIT 1', [ADMIN_EMAIL]);
     if (r.rows.length > 0) {
       await client.query(
-        "UPDATE app_users SET password_hash = $1, role = 'admin' WHERE email = $2",
-        [hash, ADMIN_EMAIL]
+        "UPDATE app_users SET email = $1, password_hash = $2, role = 'admin' WHERE LOWER(email) = LOWER($1)",
+        [ADMIN_EMAIL, hash]
       );
       console.log('Admin updated: admin@najah.edu, password 123456');
     } else {
