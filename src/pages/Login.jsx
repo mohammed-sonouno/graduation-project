@@ -229,18 +229,18 @@ rgb(240, 237, 237) 38%,
           <div className="rounded-2xl border border-slate-200/80 bg-white shadow-md p-8 md:p-10">
             <div className="flex flex-col items-center mb-6">
               <div className="h-14 w-14 rounded-full overflow-hidden bg-white flex items-center justify-center shadow-md ring-2 ring-[#0b2d52]/10 flex-shrink-0">
-                <img src="/main-logo.png" alt="Main Logo - An-Najah" className="h-full w-full object-contain p-1" />
+                <span className="text-xl font-bold text-[#0b2d52]">N</span>
               </div>
               <div
                 className="mt-3 w-12 h-0.5 bg-amber-700/40 rounded-full"
                 aria-hidden="true"
               />
             </div>
-            <h1 className="mt-2 text-center text-2xl md:text-3xl font-bold text-[#0b2d52] leading-tight">
-              Sign in to Najah
+            <h1 className="mt-2 text-center text-2xl md:text-3xl font-bold text-[#0b2d52] leading-tight font-serif">
+              Student Login
             </h1>
             <p className="mt-2 text-center text-sm text-slate-600 leading-relaxed">
-              Enter your university email to receive a 6-digit code, then sign in.
+              Enter your university email to receive a 6-digit code, or continue with Google.
             </p>
 
             {step === "email" ? (
@@ -323,9 +323,6 @@ rgb(240, 237, 237) 38%,
                     {loginError}
                   </div>
                 )}
-                {devCode && (
-                  <p className="text-xs text-slate-500">Dev code: {devCode}</p>
-                )}
                 <button
                   type="submit"
                   disabled={formLoading || code.replace(/\D/g, "").length !== 6}
@@ -349,54 +346,46 @@ rgb(240, 237, 237) 38%,
               </div>
               <div className="relative flex justify-center">
                 <span className="bg-white px-3 text-[11px] font-semibold text-slate-400 uppercase tracking-widest">
-                  Or continue with
+                  OR CONTINUE WITH
                 </span>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <div className="flex justify-center">
-                {hasGoogleClientId ? (
+            {hasGoogleClientId && (
+              <div className="space-y-2">
+                <div className="flex justify-center">
                   <GoogleSignInButton
                     onSuccess={handleGoogleSuccess}
                     onError={handleGoogleError}
                     disabled={googleLoading}
                   />
-                ) : (
-                  <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 text-center text-sm text-slate-600">
-                    Google sign-in isn’t configured. Set{" "}
-                    <span className="font-semibold">VITE_GOOGLE_CLIENT_ID</span>{" "}
-                    in <span className="font-semibold">.env</span>, then restart
-                    the dev server.
-                  </div>
+                </div>
+                {googleLoading && (
+                  <p className="text-sm text-slate-500 text-center">
+                    Signing you in…
+                  </p>
+                )}
+                {googleError && (
+                  <p className="text-sm text-red-600 text-center">
+                    {googleError}
+                  </p>
                 )}
               </div>
-              {googleLoading && (
-                <p className="text-sm text-slate-500 text-center">
-                  Signing you in…
-                </p>
-              )}
-              {getAllowedDomains().length > 0 && (
-                <p className="text-center text-xs text-slate-500">
-                  Only {getAllowedDomains().join(" or ")} Google accounts are allowed.
-                </p>
-              )}
-              {googleError && (
-                <p className="text-sm text-red-600 text-center">
-                  {googleError}
-                </p>
-              )}
-            </div>
+            )}
 
-            <p className="mt-8 text-center text-sm text-slate-600">
-              Don’t have access yet?{" "}
-              <Link
-                to="/register"
-                className="font-semibold text-[#00356b] hover:underline"
-              >
-                Create an account
-              </Link>
-            </p>
+            <div className="mt-8 text-center text-sm text-slate-600 space-y-1">
+              <p className="text-xs text-slate-500">
+                Only @stu.najah.edu or @najah.edu Google accounts are allowed.
+              </p>
+              <p>
+                <Link
+                  to="/admin-login"
+                  className="font-semibold text-[#00356b] hover:underline"
+                >
+                  Login as Admin
+                </Link>
+              </p>
+            </div>
           </div>
         </div>
       </div>

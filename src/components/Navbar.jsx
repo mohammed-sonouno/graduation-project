@@ -17,7 +17,7 @@ const centerLinks = [
 function LogoPlaceholder({ className = "" }) {
   return (
     <img
-      src="/main-logo.png"
+      src="/university-logo.png"
       alt="Main Logo - An-Najah National University"
       className={`flex-shrink-0 object-contain ${className}`}
       style={{ height: "100%", width: "auto" }}
@@ -108,7 +108,7 @@ function Navbar() {
     (link) =>
       !(link.adminOnly && !admin) &&
       !(link.deanOrAdmin && !admin && !dean && !communityLeader) &&
-      !(link.leaderOrAdmin && !admin && !communityLeader) &&
+      !(link.leaderOrAdmin && !admin && !communityLeader && !supervisor) &&
       !(link.approvalFlow && !admin && !dean && !supervisor && !communityLeader)
   );
 
@@ -220,7 +220,7 @@ function Navbar() {
                 <LogoPlaceholder className={scrolled ? "h-11 w-11" : "h-13 w-13"} />
               ) : (
                 <img
-                  src="/main-logo.png"
+                  src="/university-logo.png"
                   alt="Main Logo - An-Najah National University"
                   style={{
                     height: scrolled ? '50px' : '60px',

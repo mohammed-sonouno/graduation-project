@@ -233,23 +233,23 @@ function Communities() {
               </div>
               <div>
                 <label htmlFor="community-leader" className="block text-sm font-medium text-slate-700 mb-1">
-                  Supervisor <span className="text-red-500">*</span>
+                  Leader (email) <span className="text-red-500">*</span>
                 </label>
                 <select
                   id="community-leader"
                   value={createLeaderId}
                   onChange={(e) => setCreateLeaderId(e.target.value)}
                   required
-                  className={`w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${!createLeaderId ? 'border-slate-200' : 'border-slate-200'}`}
+                  className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
                 >
-                  <option value="">Select a supervisor or community leader</option>
+                  <option value="">Select a supervisor or community leader by email</option>
                   {leaderOptions.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.email}{u.communityName ? ` (currently: ${u.communityName})` : ''}
                     </option>
                   ))}
                 </select>
-                <p className="mt-1 text-xs text-slate-500">Each community must have one. If they already lead a community, they will be moved to this one.</p>
+                <p className="mt-1 text-xs text-slate-500">The leader is identified by their account email. Each community must have one. If they already lead a community, they will be moved to this one.</p>
               </div>
               {error && (
                 <p className="text-sm text-red-600" role="alert">

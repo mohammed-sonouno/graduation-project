@@ -8,7 +8,8 @@ import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswo
 
 const { Pool } = pg;
 const app = express();
-const PORT = process.env.PORT || 3001;
+// Backend default port (override with PORT in .env if needed)
+const PORT = process.env.PORT || 2000;
 const JWT_SECRET = process.env.JWT_SECRET || 'graduation-project-secret';
 
 // Default DB: 10.20.10.20:5433, user postgres, database "graduation Project" (override with DATABASE_URL in .env)

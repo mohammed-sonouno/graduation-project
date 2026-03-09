@@ -246,7 +246,7 @@ function Register() {
     <div className="min-h-screen relative flex items-center justify-center py-12" style={layeredBg}>
       <div className="max-w-md w-full mx-auto px-6 relative">
         <div className="rounded-2xl border border-slate-200/80 bg-white shadow-md p-8 md:p-10">
-          <h1 className="mt-2 text-center text-2xl md:text-3xl font-bold text-[#0b2d52] leading-tight">
+          <h1 className="mt-2 text-center text-2xl md:text-3xl font-bold text-[#0b2d52] leading-tight font-serif">
             Create account
           </h1>
           <p className="mt-2 text-center text-sm text-slate-600 leading-relaxed">
@@ -277,7 +277,6 @@ function Register() {
               </label>
             )}
             {googleNewUser && <p className="text-sm text-slate-600">After verifying, you&apos;ll complete your profile.</p>}
-            {devCode && <p className="text-xs text-slate-500">Dev code: {devCode}</p>}
             {googleError && (
               <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">{googleError}</div>
             )}

@@ -35,6 +35,14 @@ export async function getPendingRegistration(sessionId) {
   return apiRequest(`/api/auth/pending-registration?sessionId=${encodeURIComponent(sessionId)}`);
 }
 
+/** Admin login with email and password. Returns { user }. */
+export async function loginWithPassword(email, password) {
+  return apiRequest('/api/auth/login', {
+    method: 'POST',
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+  });
+}
+
 /** Fetch with credentials (auth via httpOnly cookie). */
 export async function apiRequest(path, options = {}) {
   const url = apiUrl(path);

@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\"",
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
@@ -36,6 +37,7 @@
     "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
+    "concurrently": "^9.0.1",
     "@tailwindcss/postcss": "^4.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.24",

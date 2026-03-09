@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { isAdmin, isCommunityLeader } from '../utils/permissions';
+import { isAdmin, isCommunityLeader, isSupervisor } from '../utils/permissions';
 import { getAdminEvents, createEvent, updateEvent, deleteEvent, getCommunities, getColleges, getMajors } from '../api';
 import SmallApprovalStepper from '../components/SmallApprovalStepper';
 
@@ -160,7 +160,8 @@ function ManageEvents() {
   const { user, loading } = useAuth();
   const admin = isAdmin(user);
   const communityLeader = isCommunityLeader(user);
-  const accessAllowed = admin || communityLeader;
+  const isLeader = communityLeader || isSupervisor(user);
+  const accessAllowed = admin || isLeader;
 
   useEffect(() => {
     if (!loading && !user) navigate('/login', { replace: true });
@@ -290,8 +291,8 @@ function ManageEvents() {
     const err = {};
     if (!form.title?.trim()) err.title = 'Event title is required';
     if (!form.description?.trim()) err.description = 'Description is required';
-    const hasCommunity = form.communityId !== '' && form.communityId != null || (communityLeader && user?.community_id != null);
-    if (!hasCommunity) err.communityId = 'Community is required (each event is connected to a community and its college)';
+    const hasCommunity = (form.communityId !== '' && form.communityId != null) || (isLeader && user?.community_id != null);
+    if (!hasCommunity) err.communityId = 'Club / Association is required (each event is connected to a community).';
     if (!form.forAllColleges && (!Array.isArray(form.targetCollegeIds) || form.targetCollegeIds.length === 0)) {
       err.audience = 'Select at least one college when event is for specific colleges.';
     }
@@ -314,8 +315,9 @@ function ManageEvents() {
   const handleSubmitForApproval = async (e) => {
     e.preventDefault();
     if (!validate()) return;
-    const effectiveCommunityId = form.communityId ? Number(form.communityId) : (communityLeader && user?.community_id != null ? Number(user.community_id) : undefined);
-    const effectiveClubName = communityLeader && user?.communityName ? String(user.communityName).trim() : (form.clubName.trim() || 'University');
+    const effectiveCommunityId = form.communityId ? Number(form.communityId) : (isLeader && user?.community_id != null ? Number(user.community_id) : undefined);
+    const selectedCommunity = admin && effectiveCommunityId ? communities.find((c) => Number(c.id) === effectiveCommunityId) : null;
+    const effectiveClubName = isLeader && user?.communityName ? String(user.communityName).trim() : (selectedCommunity?.name?.trim() || form.clubName?.trim() || 'University');
     const payload = {
       id: selectedEvent?.id || `ev-${Date.now()}`,
       title: form.title.trim(),
@@ -362,11 +364,10 @@ function ManageEvents() {
 
   const handleAddNewEvent = () => {
     setSelectedId(null);
-    const defaultCommunityId = communityLeader && user?.community_id != null ? String(user.community_id) : '';
-    const defaultClubName = communityLeader && user?.communityName ? String(user.communityName) : '';
+    const defaultCommunityId = isLeader && user?.community_id != null ? String(user.community_id) : '';
     setForm({
       title: '',
-      clubName: defaultClubName,
+      clubName: '',
       description: '',
       image: '',
       startDate: '',
@@ -509,7 +510,7 @@ function ManageEvents() {
                       <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.title}</p>
                     )}
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className={admin ? 'grid grid-cols-1 md:grid-cols-2 gap-4' : ''}>
                     <div>
                       <label htmlFor="me-desc" className="block text-sm font-semibold text-slate-700 mb-1.5">
                         Description
@@ -526,57 +527,36 @@ function ManageEvents() {
                         <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.description}</p>
                       )}
                     </div>
-                    <div>
-                      <label htmlFor="me-club" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                        Club / Association name
-                      </label>
-                      {communityLeader && user?.communityName ? (
-                        <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700">
-                          {user.communityName}
-                        </div>
-                      ) : (
-                        <>
-                          <input
-                            id="me-club"
-                            type="text"
-                            value={form.clubName}
-                            onChange={(e) => setFormField('clubName', e.target.value)}
-                            placeholder="e.g., IEEE Student Branch"
-                            className="w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-                          />
-                          <p className="mt-1 text-xs text-slate-500">
-                            Leave empty for a general university event.
+                    {admin && (
+                      <div>
+                        <label htmlFor="me-club" className="block text-sm font-semibold text-slate-700 mb-1.5">
+                          Club / Association name <span className="text-red-500">*</span>
+                        </label>
+                        {communities.length === 0 ? (
+                          <p className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500">
+                            No associations available.
                           </p>
-                        </>
-                      )}
-                    </div>
-                  </div>
-                  <div>
-                    <label htmlFor="me-community" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                      Community <span className="text-red-500">*</span>
-                    </label>
-                    {communityLeader ? (
-                      <div className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-700">
-                        {communities.find((c) => String(c.id) === form.communityId)?.name || (communities[0]?.name ?? 'Your community')}
-                        {communities[0]?.collegeName && ` (${communities[0].collegeName})`}
+                        ) : (
+                          <select
+                            id="me-club"
+                            value={form.communityId}
+                            onChange={(e) => setFormField('communityId', e.target.value)}
+                            className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${formErrors.communityId ? 'border-red-500' : 'border-slate-200'}`}
+                          >
+                            <option value="">Select association (event is linked to community and its college)</option>
+                            {[...communities]
+                              .sort((a, b) => (a.collegeName || '').localeCompare(b.collegeName || '') || (a.name || '').localeCompare(b.name || ''))
+                              .map((c) => (
+                                <option key={c.id} value={String(c.id)}>
+                                  {c.name}{c.collegeName ? ` (${c.collegeName})` : ''}
+                                </option>
+                              ))}
+                          </select>
+                        )}
+                        {formErrors.communityId && (
+                          <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.communityId}</p>
+                        )}
                       </div>
-                    ) : (
-                      <select
-                        id="me-community"
-                        value={form.communityId}
-                        onChange={(e) => setFormField('communityId', e.target.value)}
-                        className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${formErrors.communityId ? 'border-red-500' : 'border-slate-200'}`}
-                      >
-                        <option value="">Select community (event is linked to community and its college)</option>
-                        {communities.map((c) => (
-                          <option key={c.id} value={String(c.id)}>
-                            {c.name}{c.collegeName ? ` (${c.collegeName})` : ''}
-                          </option>
-                        ))}
-                      </select>
-                    )}
-                    {formErrors.communityId && (
-                      <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.communityId}</p>
                     )}
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-4">
@@ -806,9 +786,7 @@ function ManageEvents() {
       <section className="max-w-6xl mx-auto px-6 lg:px-10 py-10">
         {eventsToShow.length === 0 && (
               <div className="rounded-2xl border border-slate-200 bg-white shadow-sm p-10 text-center text-slate-500 text-sm">
-                {true
-                  ? 'No events yet.'
-                  : 'No events yet. Click â€œAdd new eventâ€ '}
+                No events yet.
               </div>
             )}
             {eventsToShow.length > 0 && (
