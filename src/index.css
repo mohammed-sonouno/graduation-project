@@ -1,0 +1,9 @@
+@import "tailwindcss";
+
+body {
+  font-family: 'Inter', sans-serif;
+}
+
+h1, h2, h3, .serif-brand {
+  font-family: 'EB Garamond', serif;
+}

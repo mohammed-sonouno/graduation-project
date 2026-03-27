@@ -1,0 +1,3 @@
+-- Seed initial events: removed demo/static events so Manage Events shows only events created through the app.
+-- Previously inserted symp-2024, future-projects, etc. with status upcoming/past; no longer needed.
+-- (No INSERT; use 036_delete_seed_events.sql to remove any such rows from existing DBs.)
