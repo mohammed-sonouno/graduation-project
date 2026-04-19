@@ -2,13 +2,15 @@ import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
-import pg from 'pg';
 import bcrypt from 'bcrypt';
 import jwt from 'jsonwebtoken';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
 import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswordRules, isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole, EVENT_REQUIRED_FIELDS } from '../config/rules.js';
+import { pool } from './db/pool.js';
+import { createChatRouter } from './routes/chat.routes.js';
+import { createChatMlAdminRouter } from './routes/chatMl.admin.routes.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -62,17 +64,10 @@ function imageToFilename(image) {
   return basename || null;
 }
 
-const { Pool } = pg;
 const app = express();
 // Backend default port (override with PORT in .env if needed)
 const PORT = process.env.PORT || 2000;
 const JWT_SECRET = process.env.JWT_SECRET || 'graduation-project-secret';
-
-// Default DB: 10.20.10.20:5433, user postgres, database "graduation Project" (override with DATABASE_URL in .env)
-const DEFAULT_DATABASE_URL = 'postgresql://postgres:Ss%402004%24@10.20.10.20:5433/graduation%20Project';
-const pool = new Pool({
-  connectionString: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
-});
 
 const ADMIN_EMAIL = 'admin@najah.edu';
 const ADMIN_PASSWORD = '123';
@@ -386,6 +381,9 @@ function withPermissions(user) {
 app.get('/api/health', (req, res) => {
   res.json({ ok: true, message: 'Backend running' });
 });
+
+app.use('/api/chat', optionalAuth, requireAuth, createChatRouter());
+app.use('/api/admin/chat-ml', optionalAuth, requireAuth, requireAdmin, createChatMlAdminRouter());
 
 // ========== Auth: all accounts and login are stored/verified in DB (app_users) ==========
 // Session tokens are never issued without the required steps:
@@ -1310,11 +1308,21 @@ async function getMajorById(req, res) {
   try {
     const id = req.params.id;
     const r = await pool.query(
-      'SELECT m.id, m.name, m.college_id AS "collegeId", c.name AS "collegeName", c.name AS "college_short_name" FROM majors m LEFT JOIN colleges c ON c.id = m.college_id WHERE m.id = $1',
+      `SELECT m.id, m.name, m.college_id AS "collegeId", c.name AS "collegeName", c.name AS "college_short_name",
+              x.category AS "chatCategory",
+              x.greeting_en AS "chatGreetingEn",
+              x.greeting_ar AS "chatGreetingAr",
+              x.suggested_questions_en AS "chatSuggestedEn",
+              x.suggested_questions_ar AS "chatSuggestedAr"
+       FROM majors m
+       LEFT JOIN colleges c ON c.id = m.college_id
+       LEFT JOIN major_chat_context x ON x.major_id = m.id
+       WHERE m.id = $1`,
       [id]
     );
     if (r.rows.length === 0) return res.status(404).json({ error: 'Major not found' });
     const row = r.rows[0];
+    const toArr = (v) => (Array.isArray(v) ? v.map(String) : []);
     res.json({
       id: row.id,
       name: row.name,
@@ -1328,6 +1336,13 @@ async function getMajorById(req, res) {
       description: null,
       about_text: null,
       image_url: null,
+      chat: {
+        category: row.chatCategory || null,
+        greetingEn: row.chatGreetingEn || null,
+        greetingAr: row.chatGreetingAr || null,
+        suggestedEn: toArr(row.chatSuggestedEn),
+        suggestedAr: toArr(row.chatSuggestedAr)
+      }
     });
   } catch (err) {
     console.error('major get error:', err);

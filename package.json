@@ -6,6 +6,7 @@
   "scripts": {
     "dev": "vite",
     "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\" \"npm run nlp:dev\"",
+    "dev:web": "concurrently \"npm run dev\" \"npm run server:dev\"",
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
@@ -22,7 +23,8 @@
     "seed:supervisor": "node server/seed-supervisor.js",
     "seed:community-leader": "node server/seed-community-leader.js",
     "seed:student": "node server/seed-student.js",
-    "seed:ieee": "node server/seed-ieee.js"
+    "seed:ieee": "node server/seed-ieee.js",
+    "cleanup:legacy-chatbot": "powershell -NoProfile -ExecutionPolicy Bypass -File scripts/cleanup-legacy-chatbot-folders.ps1"
   },
   "dependencies": {
     "@react-oauth/google": "^0.13.4",

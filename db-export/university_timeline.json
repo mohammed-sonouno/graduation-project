@@ -1,0 +1,128 @@
+[
+  {
+    "id": 1,
+    "university_id": 1,
+    "year": 1918,
+    "title": "Established as An-Najah Nabulsi School",
+    "description": "An-Najah was established as a primary school (An-Najah Nabulsi School), educating students from Palestine and abroad.",
+    "source_id": 2,
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "university_id": 1,
+    "year": 1941,
+    "title": "Named “An-Najah College”",
+    "description": "The institution was named “An-Najah College”.",
+    "source_id": 2,
+    "sort_order": 2
+  },
+  {
+    "id": 3,
+    "university_id": 1,
+    "year": 1965,
+    "title": "Intermediate university degrees",
+    "description": "An-Najah became a teacher preparation institute and granted intermediate university degrees in various fields.",
+    "source_id": 2,
+    "sort_order": 3
+  },
+  {
+    "id": 4,
+    "university_id": 1,
+    "year": 1977,
+    "title": "Chartered as An-Najah National University",
+    "description": "An-Najah evolved into a full-fledged university, “An-Najah National University,” initially with Faculties of Arts and Sciences.",
+    "source_id": 2,
+    "sort_order": 4
+  },
+  {
+    "id": 5,
+    "university_id": 1,
+    "year": 1978,
+    "title": "Engineering and other faculties inaugurated",
+    "description": "Faculties of Economics, Administrative Sciences, Educational Sciences and Engineering were inaugurated.",
+    "source_id": 2,
+    "sort_order": 5
+  },
+  {
+    "id": 6,
+    "university_id": 1,
+    "year": 1994,
+    "title": "Faculty of Pharmacy established",
+    "description": "Faculty of Pharmacy established along with new centres including APSIM and the Water and Environmental Studies Institute.",
+    "source_id": 2,
+    "sort_order": 6
+  },
+  {
+    "id": 7,
+    "university_id": 1,
+    "year": 1995,
+    "title": "Faculty of Law established",
+    "description": null,
+    "source_id": 2,
+    "sort_order": 7
+  },
+  {
+    "id": 8,
+    "university_id": 1,
+    "year": 1999,
+    "title": "Faculty of Medicine established",
+    "description": "Established in cooperation with Al-Quds and Al-Azhar Universities.",
+    "source_id": 2,
+    "sort_order": 8
+  },
+  {
+    "id": 9,
+    "university_id": 1,
+    "year": 2000,
+    "title": "New Campus foundation stone laid",
+    "description": "Late Yasser Arafat laid the foundation stone for the New Campus. Faculty of Veterinary Medicine and Computer Engineering also established.",
+    "source_id": 2,
+    "sort_order": 9
+  },
+  {
+    "id": 10,
+    "university_id": 1,
+    "year": 2005,
+    "title": "New Campus inaugurated by President Abbas",
+    "description": "President Mahmoud Abbas inaugurated the New Campus. Faculty of Honors and Architectural Conservation unit established.",
+    "source_id": 2,
+    "sort_order": 10
+  },
+  {
+    "id": 11,
+    "university_id": 1,
+    "year": 2008,
+    "title": "Teaching hospital and sports complex",
+    "description": "Faculty of Medicine accredited independently. University hospital acquired and sports complex inaugurated.",
+    "source_id": 2,
+    "sort_order": 11
+  },
+  {
+    "id": 12,
+    "university_id": 1,
+    "year": 2012,
+    "title": "EFQM Global Excellence Award",
+    "description": "University obtains the EFQM Global Excellence Award.",
+    "source_id": 2,
+    "sort_order": 12
+  },
+  {
+    "id": 13,
+    "university_id": 1,
+    "year": 2014,
+    "title": "ABET accreditation for engineering",
+    "description": "Seven engineering programmes received ABET accreditation, a first in Palestine.",
+    "source_id": 2,
+    "sort_order": 13
+  },
+  {
+    "id": 14,
+    "university_id": 1,
+    "year": 2016,
+    "title": "Ranked 1st in Palestine",
+    "description": "Ranked 1st Palestinian university by Webometrics and U.S. News. Two additional ABET accreditations obtained.",
+    "source_id": 2,
+    "sort_order": 14
+  }
+]

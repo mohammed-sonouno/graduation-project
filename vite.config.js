@@ -6,6 +6,7 @@ export default defineConfig({
   plugins: [react()],
   server: {
     port: 3000,
+    strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:2000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:2000', changeOrigin: true },
@@ -13,6 +14,7 @@ export default defineConfig({
   },
   preview: {
     port: 3000,
+    strictPort: true,
     proxy: {
       '/api': { target: 'http://localhost:2000', changeOrigin: true },
       '/uploads': { target: 'http://localhost:2000', changeOrigin: true },

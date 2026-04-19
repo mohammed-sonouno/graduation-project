@@ -1,0 +1,186 @@
+[
+  {
+    "table": "app_module_data",
+    "rows": 0
+  },
+  {
+    "table": "app_users",
+    "rows": 6
+  },
+  {
+    "table": "chat_answer_logs",
+    "rows": 22
+  },
+  {
+    "table": "chat_conversations",
+    "rows": 14
+  },
+  {
+    "table": "chat_entity_logs",
+    "rows": 22
+  },
+  {
+    "table": "chat_knowledge_allowlist",
+    "rows": 24
+  },
+  {
+    "table": "chat_messages",
+    "rows": 72
+  },
+  {
+    "table": "chat_ml_feedback",
+    "rows": 0
+  },
+  {
+    "table": "chat_ml_interaction_logs",
+    "rows": 22
+  },
+  {
+    "table": "chat_ml_labeled_examples",
+    "rows": 0
+  },
+  {
+    "table": "chat_ml_model_registry",
+    "rows": 0
+  },
+  {
+    "table": "chat_ml_review_queue",
+    "rows": 0
+  },
+  {
+    "table": "chat_question_logs",
+    "rows": 22
+  },
+  {
+    "table": "chat_training_samples",
+    "rows": 2
+  },
+  {
+    "table": "chat_unanswered",
+    "rows": 2
+  },
+  {
+    "table": "colleges",
+    "rows": 18
+  },
+  {
+    "table": "communities",
+    "rows": 1
+  },
+  {
+    "table": "engineering_program_sources",
+    "rows": 3
+  },
+  {
+    "table": "engineering_programs",
+    "rows": 13
+  },
+  {
+    "table": "event_registrations",
+    "rows": 4
+  },
+  {
+    "table": "event_reviews",
+    "rows": 19
+  },
+  {
+    "table": "events",
+    "rows": 8
+  },
+  {
+    "table": "faculty_departments",
+    "rows": 3
+  },
+  {
+    "table": "faculty_facilities",
+    "rows": 2
+  },
+  {
+    "table": "faculty_profiles",
+    "rows": 13
+  },
+  {
+    "table": "faculty_qa",
+    "rows": 48
+  },
+  {
+    "table": "faculty_sources",
+    "rows": 8
+  },
+  {
+    "table": "faculty_statistics",
+    "rows": 1
+  },
+  {
+    "table": "faculty_tags",
+    "rows": 51
+  },
+  {
+    "table": "faculty_timeline",
+    "rows": 2
+  },
+  {
+    "table": "faculty_topic_tags",
+    "rows": 306
+  },
+  {
+    "table": "faculty_topics",
+    "rows": 6
+  },
+  {
+    "table": "login_codes",
+    "rows": 3
+  },
+  {
+    "table": "major_chat_context",
+    "rows": 135
+  },
+  {
+    "table": "majors",
+    "rows": 135
+  },
+  {
+    "table": "notifications",
+    "rows": 205
+  },
+  {
+    "table": "pending_registrations",
+    "rows": 0
+  },
+  {
+    "table": "student_profiles",
+    "rows": 1
+  },
+  {
+    "table": "university_profiles",
+    "rows": 1
+  },
+  {
+    "table": "university_qa",
+    "rows": 11
+  },
+  {
+    "table": "university_sources",
+    "rows": 6
+  },
+  {
+    "table": "university_statistics",
+    "rows": 1
+  },
+  {
+    "table": "university_tags",
+    "rows": 12
+  },
+  {
+    "table": "university_timeline",
+    "rows": 14
+  },
+  {
+    "table": "university_topic_tags",
+    "rows": 48
+  },
+  {
+    "table": "university_topics",
+    "rows": 4
+  }
+]

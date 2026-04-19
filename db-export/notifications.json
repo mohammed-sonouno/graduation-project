@@ -1,0 +1,1642 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "title": "Welcome",
+    "message": "You are logged in to An-Najah National University.",
+    "read": false,
+    "created_at": "2026-03-07T09:55:16.745Z"
+  },
+  {
+    "id": 5,
+    "user_id": 3,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": true,
+    "created_at": "2026-03-09T14:35:16.983Z"
+  },
+  {
+    "id": 4,
+    "user_id": 3,
+    "title": "Welcome to Najah platform",
+    "message": "Your student account has been created successfully.",
+    "read": true,
+    "created_at": "2026-03-09T14:34:39.901Z"
+  },
+  {
+    "id": 6,
+    "user_id": 3,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T14:35:54.745Z"
+  },
+  {
+    "id": 7,
+    "user_id": 3,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T14:36:36.138Z"
+  },
+  {
+    "id": 8,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T18:57:17.904Z"
+  },
+  {
+    "id": 9,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T19:01:50.062Z"
+  },
+  {
+    "id": 10,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T19:05:06.671Z"
+  },
+  {
+    "id": 11,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T19:37:08.002Z"
+  },
+  {
+    "id": 12,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T19:49:07.634Z"
+  },
+  {
+    "id": 13,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:31:25.358Z"
+  },
+  {
+    "id": 14,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:42:04.476Z"
+  },
+  {
+    "id": 15,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:44:08.254Z"
+  },
+  {
+    "id": 16,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:45:05.902Z"
+  },
+  {
+    "id": 18,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:46:25.062Z"
+  },
+  {
+    "id": 19,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:46:53.095Z"
+  },
+  {
+    "id": 20,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T20:47:12.870Z"
+  },
+  {
+    "id": 23,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T21:03:31.889Z"
+  },
+  {
+    "id": 28,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T22:08:27.661Z"
+  },
+  {
+    "id": 29,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-09T22:09:09.060Z"
+  },
+  {
+    "id": 31,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-09T22:26:36.369Z"
+  },
+  {
+    "id": 32,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-09T22:26:41.113Z"
+  },
+  {
+    "id": 30,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": true,
+    "created_at": "2026-03-09T22:13:08.131Z"
+  },
+  {
+    "id": 27,
+    "user_id": 4,
+    "title": "Event submitted for approval",
+    "message": "Your event \"test 222222\" has been submitted and is pending approval.",
+    "read": true,
+    "created_at": "2026-03-09T21:48:47.524Z"
+  },
+  {
+    "id": 22,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": true,
+    "created_at": "2026-03-09T20:50:07.206Z"
+  },
+  {
+    "id": 21,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": true,
+    "created_at": "2026-03-09T20:48:14.694Z"
+  },
+  {
+    "id": 17,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": true,
+    "created_at": "2026-03-09T20:45:57.894Z"
+  },
+  {
+    "id": 26,
+    "user_id": 4,
+    "title": "Event submitted for approval",
+    "message": "Your event \"testIEEE\" has been submitted and is pending approval.",
+    "read": true,
+    "created_at": "2026-03-09T21:47:28.561Z"
+  },
+  {
+    "id": 25,
+    "user_id": 4,
+    "title": "Event submitted for approval",
+    "message": "Your event \"testIEEE\" has been submitted and is pending approval.",
+    "read": true,
+    "created_at": "2026-03-09T21:47:26.165Z"
+  },
+  {
+    "id": 24,
+    "user_id": 4,
+    "title": "Event submitted for approval",
+    "message": "Your event \"test\" has been submitted and is pending approval.",
+    "read": true,
+    "created_at": "2026-03-09T21:16:25.451Z"
+  },
+  {
+    "id": 33,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-09T23:32:11.356Z"
+  },
+  {
+    "id": 34,
+    "user_id": 7,
+    "title": "Welcome to Najah platform",
+    "message": "Your student account has been created successfully.",
+    "read": false,
+    "created_at": "2026-03-10T13:56:14.102Z"
+  },
+  {
+    "id": 35,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T14:38:36.539Z"
+  },
+  {
+    "id": 36,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T14:55:32.372Z"
+  },
+  {
+    "id": 37,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:06:58.001Z"
+  },
+  {
+    "id": 38,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T15:07:08.103Z"
+  },
+  {
+    "id": 39,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:07:23.175Z"
+  },
+  {
+    "id": 40,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:07:39.031Z"
+  },
+  {
+    "id": 41,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T15:07:44.406Z"
+  },
+  {
+    "id": 42,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:07:55.212Z"
+  },
+  {
+    "id": 43,
+    "user_id": 4,
+    "title": "Event approved",
+    "message": "Your event has been approved.",
+    "read": false,
+    "created_at": "2026-03-10T15:08:00.913Z"
+  },
+  {
+    "id": 44,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:08:56.238Z"
+  },
+  {
+    "id": 45,
+    "user_id": 4,
+    "title": "New event registration (pending payment)",
+    "message": "A new student requested to join your event \"test\". After they pay, you can approve.",
+    "read": false,
+    "created_at": "2026-03-10T15:09:13.557Z"
+  },
+  {
+    "id": 46,
+    "user_id": 7,
+    "title": "Registration pending payment",
+    "message": "Your request to join the event \"test\" is pending payment. After you pay, the community will approve your spot (first paid, first approved until event is full).",
+    "read": false,
+    "created_at": "2026-03-10T15:09:13.629Z"
+  },
+  {
+    "id": 47,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:11:03.459Z"
+  },
+  {
+    "id": 48,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T15:16:20.154Z"
+  },
+  {
+    "id": 49,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:16:40.477Z"
+  },
+  {
+    "id": 50,
+    "user_id": 4,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-10T15:16:55.675Z"
+  },
+  {
+    "id": 51,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:17:17.989Z"
+  },
+  {
+    "id": 52,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:19:09.044Z"
+  },
+  {
+    "id": 53,
+    "user_id": 7,
+    "title": "Payment recorded",
+    "message": "Your payment for the event \"test\" has been recorded. The community will approve your spot (first paid, first approved until the event is full).",
+    "read": false,
+    "created_at": "2026-03-10T15:27:18.290Z"
+  },
+  {
+    "id": 54,
+    "user_id": 7,
+    "title": "Registration approved",
+    "message": "Your registration for the event \"test\" has been approved.",
+    "read": false,
+    "created_at": "2026-03-10T15:27:24.580Z"
+  },
+  {
+    "id": 55,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:28:26.253Z"
+  },
+  {
+    "id": 56,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:41:55.359Z"
+  },
+  {
+    "id": 57,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T15:42:43.739Z"
+  },
+  {
+    "id": 58,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:44:09.803Z"
+  },
+  {
+    "id": 59,
+    "user_id": 4,
+    "title": "Changes requested",
+    "message": "Changes were requested for your event.",
+    "read": false,
+    "created_at": "2026-03-10T15:45:03.271Z"
+  },
+  {
+    "id": 60,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:45:13.200Z"
+  },
+  {
+    "id": 61,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:45:36.634Z"
+  },
+  {
+    "id": 62,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:45:59.430Z"
+  },
+  {
+    "id": 63,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T15:46:15.668Z"
+  },
+  {
+    "id": 64,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T21:34:47.243Z"
+  },
+  {
+    "id": 65,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:36:10.428Z"
+  },
+  {
+    "id": 66,
+    "user_id": 4,
+    "title": "Changes requested",
+    "message": "Changes were requested for your event.",
+    "read": false,
+    "created_at": "2026-03-10T21:36:26.122Z"
+  },
+  {
+    "id": 67,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:36:50.959Z"
+  },
+  {
+    "id": 68,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T21:40:11.031Z"
+  },
+  {
+    "id": 69,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:40:44.248Z"
+  },
+  {
+    "id": 70,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:40:56.284Z"
+  },
+  {
+    "id": 71,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:42:17.156Z"
+  },
+  {
+    "id": 72,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:44:00.604Z"
+  },
+  {
+    "id": 73,
+    "user_id": 4,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-10T21:44:54.316Z"
+  },
+  {
+    "id": 74,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T21:45:14.991Z"
+  },
+  {
+    "id": 75,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T22:01:01.924Z"
+  },
+  {
+    "id": 76,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:01:20.276Z"
+  },
+  {
+    "id": 77,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:13:10.634Z"
+  },
+  {
+    "id": 78,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:13:30.396Z"
+  },
+  {
+    "id": 79,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:13:45.233Z"
+  },
+  {
+    "id": 80,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T22:19:45.036Z"
+  },
+  {
+    "id": 81,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:20:12.467Z"
+  },
+  {
+    "id": 82,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-10T22:20:32.059Z"
+  },
+  {
+    "id": 83,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:20:40.168Z"
+  },
+  {
+    "id": 84,
+    "user_id": 4,
+    "title": "Event approved",
+    "message": "Your event has been approved.",
+    "read": false,
+    "created_at": "2026-03-10T22:20:48.502Z"
+  },
+  {
+    "id": 85,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:21:20.185Z"
+  },
+  {
+    "id": 86,
+    "user_id": 4,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test5\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-10T22:22:00.825Z"
+  },
+  {
+    "id": 87,
+    "user_id": 5,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test5\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-10T22:22:01.199Z"
+  },
+  {
+    "id": 88,
+    "user_id": 7,
+    "title": "Pending approval",
+    "message": "Your request to join the event \"test5\" is pending approval from the community leader.",
+    "read": false,
+    "created_at": "2026-03-10T22:22:01.260Z"
+  },
+  {
+    "id": 89,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T22:22:11.790Z"
+  },
+  {
+    "id": 90,
+    "user_id": 7,
+    "title": "Registration approved",
+    "message": "Your registration for the event \"test5\" has been approved. You are confirmed for this event.",
+    "read": false,
+    "created_at": "2026-03-10T22:22:29.653Z"
+  },
+  {
+    "id": 91,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-10T23:10:26.106Z"
+  },
+  {
+    "id": 92,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:10:44.053Z"
+  },
+  {
+    "id": 93,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:11:40.281Z"
+  },
+  {
+    "id": 94,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:12:05.516Z"
+  },
+  {
+    "id": 95,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:12:22.620Z"
+  },
+  {
+    "id": 96,
+    "user_id": 4,
+    "title": "Changes requested",
+    "message": "Changes were requested for your event.",
+    "read": false,
+    "created_at": "2026-03-14T15:12:37.521Z"
+  },
+  {
+    "id": 97,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:12:55.754Z"
+  },
+  {
+    "id": 98,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:13:16.842Z"
+  },
+  {
+    "id": 99,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:13:27.159Z"
+  },
+  {
+    "id": 100,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:21:29.248Z"
+  },
+  {
+    "id": 101,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:21:40.729Z"
+  },
+  {
+    "id": 102,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:21:50.974Z"
+  },
+  {
+    "id": 103,
+    "user_id": 4,
+    "title": "Changes requested",
+    "message": "Changes were requested for your event.",
+    "read": false,
+    "created_at": "2026-03-14T15:22:03.405Z"
+  },
+  {
+    "id": 104,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:22:52.800Z"
+  },
+  {
+    "id": 105,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:23:07.342Z"
+  },
+  {
+    "id": 106,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:23:27.243Z"
+  },
+  {
+    "id": 107,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:23:54.483Z"
+  },
+  {
+    "id": 108,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:24:15.541Z"
+  },
+  {
+    "id": 109,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:24:29.942Z"
+  },
+  {
+    "id": 110,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:24:34.245Z"
+  },
+  {
+    "id": 111,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:24:42.223Z"
+  },
+  {
+    "id": 112,
+    "user_id": 4,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-14T15:24:45.866Z"
+  },
+  {
+    "id": 113,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:26:16.694Z"
+  },
+  {
+    "id": 114,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:27:08.888Z"
+  },
+  {
+    "id": 115,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:28:04.272Z"
+  },
+  {
+    "id": 116,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:29:35.121Z"
+  },
+  {
+    "id": 117,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:29:57.900Z"
+  },
+  {
+    "id": 118,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:30:08.618Z"
+  },
+  {
+    "id": 119,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:36:48.884Z"
+  },
+  {
+    "id": 120,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:40:03.968Z"
+  },
+  {
+    "id": 121,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:40:43.695Z"
+  },
+  {
+    "id": 122,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:40:58.697Z"
+  },
+  {
+    "id": 123,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:41:33.463Z"
+  },
+  {
+    "id": 124,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:41:41.520Z"
+  },
+  {
+    "id": 125,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:41:52.790Z"
+  },
+  {
+    "id": 126,
+    "user_id": 4,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-14T15:41:55.440Z"
+  },
+  {
+    "id": 127,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:42:06.757Z"
+  },
+  {
+    "id": 128,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T15:42:09.836Z"
+  },
+  {
+    "id": 129,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:42:20.139Z"
+  },
+  {
+    "id": 130,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:42:37.983Z"
+  },
+  {
+    "id": 131,
+    "user_id": 4,
+    "title": "Event approved",
+    "message": "Your event has been approved.",
+    "read": false,
+    "created_at": "2026-03-14T15:42:42.890Z"
+  },
+  {
+    "id": 132,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:43:03.227Z"
+  },
+  {
+    "id": 133,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:46:42.326Z"
+  },
+  {
+    "id": 134,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T15:48:23.309Z"
+  },
+  {
+    "id": 135,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:28:11.287Z"
+  },
+  {
+    "id": 136,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T16:28:52.070Z"
+  },
+  {
+    "id": 137,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:03.403Z"
+  },
+  {
+    "id": 138,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:06.808Z"
+  },
+  {
+    "id": 139,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:16.250Z"
+  },
+  {
+    "id": 140,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:18.802Z"
+  },
+  {
+    "id": 141,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:26.536Z"
+  },
+  {
+    "id": 142,
+    "user_id": 4,
+    "title": "Event approved",
+    "message": "Your event has been approved.",
+    "read": false,
+    "created_at": "2026-03-14T16:29:38.597Z"
+  },
+  {
+    "id": 143,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:30:56.004Z"
+  },
+  {
+    "id": 144,
+    "user_id": 4,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test completed\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-14T16:31:09.438Z"
+  },
+  {
+    "id": 145,
+    "user_id": 5,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test completed\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-14T16:31:09.565Z"
+  },
+  {
+    "id": 146,
+    "user_id": 7,
+    "title": "Pending approval",
+    "message": "Your request to join the event \"test completed\" is pending approval from the community leader.",
+    "read": false,
+    "created_at": "2026-03-14T16:31:09.705Z"
+  },
+  {
+    "id": 147,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:32:25.309Z"
+  },
+  {
+    "id": 148,
+    "user_id": 7,
+    "title": "Registration rejected",
+    "message": "Your registration for the event \"test completed\" has been rejected.",
+    "read": false,
+    "created_at": "2026-03-14T16:32:43.035Z"
+  },
+  {
+    "id": 149,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:34:16.981Z"
+  },
+  {
+    "id": 150,
+    "user_id": 4,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test completed\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-14T16:40:06.404Z"
+  },
+  {
+    "id": 151,
+    "user_id": 5,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test completed\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-14T16:40:06.477Z"
+  },
+  {
+    "id": 152,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T16:40:13.111Z"
+  },
+  {
+    "id": 153,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T17:12:56.894Z"
+  },
+  {
+    "id": 154,
+    "user_id": 7,
+    "title": "Registration rejected",
+    "message": "Your registration for the event \"test completed\" has been rejected.",
+    "read": false,
+    "created_at": "2026-03-14T17:13:01.746Z"
+  },
+  {
+    "id": 155,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T17:13:28.496Z"
+  },
+  {
+    "id": 156,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-14T17:57:18.784Z"
+  },
+  {
+    "id": 157,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-15T13:33:43.096Z"
+  },
+  {
+    "id": 158,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T13:55:05.167Z"
+  },
+  {
+    "id": 159,
+    "user_id": 1,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-15T13:55:10.307Z"
+  },
+  {
+    "id": 160,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T13:55:21.750Z"
+  },
+  {
+    "id": 161,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:02:32.565Z"
+  },
+  {
+    "id": 162,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:04:04.679Z"
+  },
+  {
+    "id": 163,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:28:39.881Z"
+  },
+  {
+    "id": 164,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:35:24.111Z"
+  },
+  {
+    "id": 165,
+    "user_id": 4,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test2 from admin\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-15T14:35:36.672Z"
+  },
+  {
+    "id": 166,
+    "user_id": 5,
+    "title": "New registration request",
+    "message": "A student has requested to join your event \"test2 from admin\". Approve or reject from the Event Registrations page.",
+    "read": false,
+    "created_at": "2026-03-15T14:35:36.742Z"
+  },
+  {
+    "id": 167,
+    "user_id": 7,
+    "title": "Pending approval",
+    "message": "Your request to join the event \"test2 from admin\" is pending approval from the community leader.",
+    "read": false,
+    "created_at": "2026-03-15T14:35:36.827Z"
+  },
+  {
+    "id": 168,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:35:49.351Z"
+  },
+  {
+    "id": 169,
+    "user_id": 7,
+    "title": "Registration approved",
+    "message": "Your registration for the event \"test2 from admin\" has been approved. You are confirmed for this event.",
+    "read": false,
+    "created_at": "2026-03-15T14:41:39.354Z"
+  },
+  {
+    "id": 170,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-15T14:42:07.288Z"
+  },
+  {
+    "id": 171,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:04:43.069Z"
+  },
+  {
+    "id": 172,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:07:29.554Z"
+  },
+  {
+    "id": 173,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:08:45.205Z"
+  },
+  {
+    "id": 174,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-17T19:11:10.933Z"
+  },
+  {
+    "id": 175,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:11:23.129Z"
+  },
+  {
+    "id": 176,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:05.380Z"
+  },
+  {
+    "id": 177,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:13.504Z"
+  },
+  {
+    "id": 178,
+    "user_id": 1,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:32.190Z"
+  },
+  {
+    "id": 179,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:39.238Z"
+  },
+  {
+    "id": 180,
+    "user_id": 4,
+    "title": "Changes requested",
+    "message": "Changes were requested for your event.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:50.957Z"
+  },
+  {
+    "id": 181,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:13:58.231Z"
+  },
+  {
+    "id": 182,
+    "user_id": 1,
+    "title": "Event resubmitted for your approval",
+    "message": "An event was updated and is waiting for your review again.",
+    "read": false,
+    "created_at": "2026-03-17T19:14:51.771Z"
+  },
+  {
+    "id": 183,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:15:00.665Z"
+  },
+  {
+    "id": 184,
+    "user_id": 4,
+    "title": "Event rejected",
+    "message": "Your event was rejected and returned to draft.",
+    "read": false,
+    "created_at": "2026-03-17T19:15:36.732Z"
+  },
+  {
+    "id": 185,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:15:44.071Z"
+  },
+  {
+    "id": 186,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-17T19:16:32.396Z"
+  },
+  {
+    "id": 187,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-18T14:17:46.199Z"
+  },
+  {
+    "id": 188,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-24T11:25:31.671Z"
+  },
+  {
+    "id": 189,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-24T14:02:56.584Z"
+  },
+  {
+    "id": 190,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T12:20:09.896Z"
+  },
+  {
+    "id": 191,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:00:30.684Z"
+  },
+  {
+    "id": 192,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:07:59.148Z"
+  },
+  {
+    "id": 193,
+    "user_id": 5,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-28T14:08:42.596Z"
+  },
+  {
+    "id": 194,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:11:51.859Z"
+  },
+  {
+    "id": 195,
+    "user_id": 7,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:15:26.951Z"
+  },
+  {
+    "id": 196,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:16:02.673Z"
+  },
+  {
+    "id": 197,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:16:27.228Z"
+  },
+  {
+    "id": 198,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:20:08.013Z"
+  },
+  {
+    "id": 199,
+    "user_id": 4,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:24:12.672Z"
+  },
+  {
+    "id": 200,
+    "user_id": 5,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:25:18.633Z"
+  },
+  {
+    "id": 201,
+    "user_id": 6,
+    "title": "Event pending your approval",
+    "message": "A new event is waiting for your approval.",
+    "read": false,
+    "created_at": "2026-03-28T14:25:44.724Z"
+  },
+  {
+    "id": 202,
+    "user_id": 6,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:25:55.432Z"
+  },
+  {
+    "id": 203,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-03-28T14:35:56.090Z"
+  },
+  {
+    "id": 204,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-04-14T13:33:25.764Z"
+  },
+  {
+    "id": 205,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-04-14T14:11:51.647Z"
+  },
+  {
+    "id": 206,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-04-14T16:23:29.803Z"
+  },
+  {
+    "id": 208,
+    "user_id": 1,
+    "title": "New login",
+    "message": "A new sign-in to your Najah account was detected.",
+    "read": false,
+    "created_at": "2026-04-16T08:00:23.859Z"
+  }
+]

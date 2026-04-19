@@ -1,0 +1,257 @@
+[
+  {
+    "id": 1,
+    "tag_text": "كلية الهندسة",
+    "lang": "ar"
+  },
+  {
+    "id": 2,
+    "tag_text": "كلية الهندسة وتكنولوجيا المعلومات",
+    "lang": "ar"
+  },
+  {
+    "id": 3,
+    "tag_text": "هندسة النجاح",
+    "lang": "ar"
+  },
+  {
+    "id": 4,
+    "tag_text": "جامعة النجاح",
+    "lang": "ar"
+  },
+  {
+    "id": 5,
+    "tag_text": "جامعة النجاح الوطنية",
+    "lang": "ar"
+  },
+  {
+    "id": 6,
+    "tag_text": "الأقسام",
+    "lang": "ar"
+  },
+  {
+    "id": 7,
+    "tag_text": "البرامج",
+    "lang": "ar"
+  },
+  {
+    "id": 8,
+    "tag_text": "المختبرات",
+    "lang": "ar"
+  },
+  {
+    "id": 9,
+    "tag_text": "الورش",
+    "lang": "ar"
+  },
+  {
+    "id": 10,
+    "tag_text": "المرافق",
+    "lang": "ar"
+  },
+  {
+    "id": 11,
+    "tag_text": "البحث العلمي",
+    "lang": "ar"
+  },
+  {
+    "id": 12,
+    "tag_text": "التدريب",
+    "lang": "ar"
+  },
+  {
+    "id": 13,
+    "tag_text": "الاعتماد",
+    "lang": "ar"
+  },
+  {
+    "id": 14,
+    "tag_text": "ABET",
+    "lang": "ar"
+  },
+  {
+    "id": 15,
+    "tag_text": "نابلس",
+    "lang": "ar"
+  },
+  {
+    "id": 16,
+    "tag_text": "Faculty of Engineering",
+    "lang": "en"
+  },
+  {
+    "id": 17,
+    "tag_text": "Faculty of Engineering and Information Technology",
+    "lang": "en"
+  },
+  {
+    "id": 18,
+    "tag_text": "Engineering Faculty",
+    "lang": "en"
+  },
+  {
+    "id": 19,
+    "tag_text": "An-Najah Engineering",
+    "lang": "en"
+  },
+  {
+    "id": 20,
+    "tag_text": "An-Najah National University",
+    "lang": "en"
+  },
+  {
+    "id": 21,
+    "tag_text": "departments",
+    "lang": "en"
+  },
+  {
+    "id": 22,
+    "tag_text": "programs",
+    "lang": "en"
+  },
+  {
+    "id": 23,
+    "tag_text": "labs",
+    "lang": "en"
+  },
+  {
+    "id": 24,
+    "tag_text": "laboratories",
+    "lang": "en"
+  },
+  {
+    "id": 25,
+    "tag_text": "workshops",
+    "lang": "en"
+  },
+  {
+    "id": 26,
+    "tag_text": "facilities",
+    "lang": "en"
+  },
+  {
+    "id": 27,
+    "tag_text": "research",
+    "lang": "en"
+  },
+  {
+    "id": 28,
+    "tag_text": "training",
+    "lang": "en"
+  },
+  {
+    "id": 29,
+    "tag_text": "mission",
+    "lang": "en"
+  },
+  {
+    "id": 30,
+    "tag_text": "achievements",
+    "lang": "en"
+  },
+  {
+    "id": 31,
+    "tag_text": "ABET",
+    "lang": "en"
+  },
+  {
+    "id": 32,
+    "tag_text": "accreditation",
+    "lang": "en"
+  },
+  {
+    "id": 33,
+    "tag_text": "Nablus",
+    "lang": "en"
+  },
+  {
+    "id": 67,
+    "tag_text": "Electrical and Computer Engineering",
+    "lang": "en"
+  },
+  {
+    "id": 68,
+    "tag_text": "Industrial and Mechanical Engineering",
+    "lang": "en"
+  },
+  {
+    "id": 69,
+    "tag_text": "Architectural and Civil Engineering",
+    "lang": "en"
+  },
+  {
+    "id": 70,
+    "tag_text": "الهندسة الكهربائية",
+    "lang": "ar"
+  },
+  {
+    "id": 71,
+    "tag_text": "هندسة الحاسوب",
+    "lang": "ar"
+  },
+  {
+    "id": 72,
+    "tag_text": "الهندسة الصناعية",
+    "lang": "ar"
+  },
+  {
+    "id": 73,
+    "tag_text": "الهندسة الميكانيكية",
+    "lang": "ar"
+  },
+  {
+    "id": 74,
+    "tag_text": "الهندسة المعمارية",
+    "lang": "ar"
+  },
+  {
+    "id": 75,
+    "tag_text": "الهندسة المدنية",
+    "lang": "ar"
+  },
+  {
+    "id": 76,
+    "tag_text": "ورش هندسية",
+    "lang": "ar"
+  },
+  {
+    "id": 77,
+    "tag_text": "مختبرات هندسية",
+    "lang": "ar"
+  },
+  {
+    "id": 78,
+    "tag_text": "engineering education",
+    "lang": "en"
+  },
+  {
+    "id": 79,
+    "tag_text": "community engagement",
+    "lang": "en"
+  },
+  {
+    "id": 80,
+    "tag_text": "industry partnership",
+    "lang": "en"
+  },
+  {
+    "id": 81,
+    "tag_text": "New Campus",
+    "lang": "en"
+  },
+  {
+    "id": 82,
+    "tag_text": "Al-Junaid",
+    "lang": "en"
+  },
+  {
+    "id": 83,
+    "tag_text": "الحرم الجديد",
+    "lang": "ar"
+  },
+  {
+    "id": 84,
+    "tag_text": "الجنيد",
+    "lang": "ar"
+  }
+]

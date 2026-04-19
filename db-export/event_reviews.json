@@ -1,0 +1,499 @@
+[
+  {
+    "id": "rv-1773846324489-s3e3jltrep",
+    "event_id": "ev-1773505731681",
+    "rating": 4,
+    "comment": "جيد مش كتير حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.1884007304906845,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.1884007304906845,
+        "negative": 0.1875278800725937,
+        "positive": 0.6240714192390442
+      },
+      "score": 0.1884007304906845,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T15:05:24.129Z",
+    "updated_at": "2026-03-18T15:24:08.488Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773846617132-j55i36npj8",
+    "event_id": "ev-1773505731681",
+    "rating": 2,
+    "comment": "جيد مش كتير حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.1884007304906845,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.1884007304906845,
+        "negative": 0.1875278800725937,
+        "positive": 0.6240714192390442
+      },
+      "score": 0.1884007304906845,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T15:10:16.773Z",
+    "updated_at": "2026-03-18T15:24:08.591Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774353638361-n3oed2h9vx",
+    "event_id": "ev-1773505731681",
+    "rating": 5,
+    "comment": "بجننننن",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.37825125455856323,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.37825125455856323,
+        "negative": 0.3090210556983948,
+        "positive": 0.3127277195453644
+      },
+      "score": 0.37825125455856323,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-24T12:00:36.787Z",
+    "updated_at": "2026-03-24T12:00:36.787Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774353651408-b3k1eud3yg",
+    "event_id": "ev-1773505731681",
+    "rating": 5,
+    "comment": "راااااااااااائع",
+    "sentiment": "positive",
+    "override_sentiment": null,
+    "sentiment_score": 0.6577897071838379,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.20388229191303253,
+        "negative": 0.13832800090312958,
+        "positive": 0.6577897071838379
+      },
+      "score": 0.6577897071838379,
+      "language": "ur",
+      "sentiment": "positive",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ur",
+    "created_at": "2026-03-24T12:00:49.835Z",
+    "updated_at": "2026-03-24T12:00:49.835Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773759020502-8gfrmmqudl",
+    "event_id": "ev-1773505731681",
+    "rating": 3,
+    "comment": "\"الايفنت كان سيء والتنظيم ضعيف جدا\"",
+    "sentiment": "negative",
+    "override_sentiment": null,
+    "sentiment_score": 0.9130069017410278,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.07334509491920471,
+        "negative": 0.9130069017410278,
+        "positive": 0.013647982850670815
+      },
+      "score": 0.9130069017410278,
+      "language": "ar",
+      "sentiment": "negative",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-17T14:50:19.971Z",
+    "updated_at": "2026-03-18T15:24:07.553Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773759069143-mstrwht96p",
+    "event_id": "ev-1773505731681",
+    "rating": 1,
+    "comment": "كتتتير منيييح كان ومرتب وكلشي تمام",
+    "sentiment": "positive",
+    "override_sentiment": null,
+    "sentiment_score": 0.8505333662033081,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.12134712189435959,
+        "negative": 0.028119545429944992,
+        "positive": 0.8505333662033081
+      },
+      "score": 0.8505333662033081,
+      "language": "ar",
+      "sentiment": "positive",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-17T14:51:08.607Z",
+    "updated_at": "2026-03-18T15:24:07.810Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773844041067-0x7rd2posv",
+    "event_id": "ev-1773505731681",
+    "rating": 3,
+    "comment": "جيد مش كتير بس منيح حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.14576184749603271,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.14576184749603271,
+        "negative": 0.0666457861661911,
+        "positive": 0.7875922918319702
+      },
+      "score": 0.14576184749603271,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T14:27:20.728Z",
+    "updated_at": "2026-03-18T15:24:07.921Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773844737547-63w1uaj8ry",
+    "event_id": "ev-1773505731681",
+    "rating": 1,
+    "comment": "جيد مش كتير بس منيح حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.14576184749603271,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.14576184749603271,
+        "negative": 0.0666457861661911,
+        "positive": 0.7875922918319702
+      },
+      "score": 0.14576184749603271,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T14:38:57.180Z",
+    "updated_at": "2026-03-18T15:24:08.042Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773845317391-rtpfz70odi",
+    "event_id": "ev-1773505731681",
+    "rating": 1,
+    "comment": "جيد مش كتير بس منيح حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.14576184749603271,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.14576184749603271,
+        "negative": 0.0666457861661911,
+        "positive": 0.7875922918319702
+      },
+      "score": 0.14576184749603271,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T14:48:37.029Z",
+    "updated_at": "2026-03-18T15:24:08.151Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773845608664-bn2vrcyqs1",
+    "event_id": "ev-1773505731681",
+    "rating": 2,
+    "comment": "جيد مش كتير بس",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.2742159068584442,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.2742159068584442,
+        "negative": 0.24989135563373566,
+        "positive": 0.4758927822113037
+      },
+      "score": 0.2742159068584442,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T14:53:28.399Z",
+    "updated_at": "2026-03-18T15:24:08.268Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773847240055-cgpdlpquei",
+    "event_id": "ev-1773505731681",
+    "rating": 2,
+    "comment": "جيد مش كتير حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.1884007304906845,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.1884007304906845,
+        "negative": 0.1875278800725937,
+        "positive": 0.6240714192390442
+      },
+      "score": 0.1884007304906845,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T15:20:39.700Z",
+    "updated_at": "2026-03-18T15:24:08.697Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773847975734-td2aia4wk9",
+    "event_id": "ev-1773505731681",
+    "rating": 1,
+    "comment": "very gooooood",
+    "sentiment": "positive",
+    "override_sentiment": null,
+    "sentiment_score": 0.7152421474456787,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.17182964086532593,
+        "negative": 0.11292823404073715,
+        "positive": 0.7152421474456787
+      },
+      "score": 0.7152421474456787,
+      "language": "af",
+      "sentiment": "positive",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "af",
+    "created_at": "2026-03-18T15:32:55.383Z",
+    "updated_at": "2026-03-18T15:32:55.383Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774352585372-764ntqw2vm",
+    "event_id": "ev-1773505731681",
+    "rating": 5,
+    "comment": "حلو منيح بس كان في مشكله كراسي قليله بس مرتب وحلو كتييير",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.35088592767715454,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.35088592767715454,
+        "negative": 0.21744205057621002,
+        "positive": 0.43167200684547424
+      },
+      "score": 0.35088592767715454,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-24T11:43:03.793Z",
+    "updated_at": "2026-03-24T11:43:03.793Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774353687042-72ul395qko",
+    "event_id": "ev-1773582181778",
+    "rating": 5,
+    "comment": "رائئئئع",
+    "sentiment": "positive",
+    "override_sentiment": null,
+    "sentiment_score": 0.6577897071838379,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.20388229191303253,
+        "negative": 0.13832800090312958,
+        "positive": 0.6577897071838379
+      },
+      "score": 0.6577897071838379,
+      "language": "ur",
+      "sentiment": "positive",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ur",
+    "created_at": "2026-03-24T12:01:25.470Z",
+    "updated_at": "2026-03-24T12:01:25.470Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773759041527-zyt3ijeeue",
+    "event_id": "ev-1773505731681",
+    "rating": 5,
+    "comment": "الايفنت كان سيء والتنظيم ضعيف جدا",
+    "sentiment": "negative",
+    "override_sentiment": null,
+    "sentiment_score": 0.9153335094451904,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.06888620555400848,
+        "negative": 0.9153335094451904,
+        "positive": 0.01578030362725258
+      },
+      "score": 0.9153335094451904,
+      "language": "ar",
+      "sentiment": "negative",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-17T14:50:40.991Z",
+    "updated_at": "2026-03-18T15:24:07.677Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1773846043194-kec9mzifzr",
+    "event_id": "ev-1773505731681",
+    "rating": 2,
+    "comment": "جيد مش كتير حلو",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0.1884007304906845,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.1884007304906845,
+        "negative": 0.1875278800725937,
+        "positive": 0.6240714192390442
+      },
+      "score": 0.1884007304906845,
+      "language": "ar",
+      "sentiment": "neutral",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "ar",
+    "created_at": "2026-03-18T15:00:42.836Z",
+    "updated_at": "2026-03-18T15:24:08.378Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774353848090-9f8yxu6254",
+    "event_id": "ev-1773582181778",
+    "rating": 1,
+    "comment": "سيييييييئ",
+    "sentiment": "negative",
+    "override_sentiment": null,
+    "sentiment_score": 0.8593186736106873,
+    "sentiment_raw": {
+      "probs": {
+        "neutral": 0.07917798310518265,
+        "negative": 0.8593186736106873,
+        "positive": 0.06150330230593681
+      },
+      "score": 0.8593186736106873,
+      "language": "fa",
+      "sentiment": "negative",
+      "model_version": "cardiffnlp/twitter-xlm-roberta-base-sentiment | GP-NLP-AR-MIXED-V1"
+    },
+    "language": "fa",
+    "created_at": "2026-03-24T12:04:06.517Z",
+    "updated_at": "2026-03-24T12:04:06.517Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1774708927023-ru10k663hh",
+    "event_id": "ev-1773582181778",
+    "rating": 4,
+    "comment": "كتي منيح بس شوي طويل الوقت",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0,
+    "sentiment_raw": {
+      "error": "This operation was aborted"
+    },
+    "language": "unknown",
+    "created_at": "2026-03-28T14:42:06.101Z",
+    "updated_at": "2026-03-28T14:42:06.101Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  },
+  {
+    "id": "rv-1776176646514-bavwlj6uy4",
+    "event_id": "ev-1773582181778",
+    "rating": 5,
+    "comment": "اشي بقلعط",
+    "sentiment": "neutral",
+    "override_sentiment": null,
+    "sentiment_score": 0,
+    "sentiment_raw": {
+      "error": "fetch failed"
+    },
+    "language": "unknown",
+    "created_at": "2026-04-14T14:24:05.729Z",
+    "updated_at": "2026-04-14T14:24:05.729Z",
+    "user_id": null,
+    "registration_id": null,
+    "source": "manual",
+    "is_seeded": false
+  }
+]

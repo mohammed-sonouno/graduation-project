@@ -1,0 +1,74 @@
+[
+  {
+    "id": 1,
+    "name": "Engineering & IT"
+  },
+  {
+    "id": 2,
+    "name": "Medicine & Health"
+  },
+  {
+    "id": 3,
+    "name": "Arts & Sciences"
+  },
+  {
+    "id": 4,
+    "name": "Business School"
+  },
+  {
+    "id": 5,
+    "name": "Law & Policy"
+  },
+  {
+    "id": 6,
+    "name": "Faculty of Medicine and Allied medical Sciences"
+  },
+  {
+    "id": 7,
+    "name": "Faculty of Engineering"
+  },
+  {
+    "id": 8,
+    "name": "Faculty of Dentistry & Dental Surgery"
+  },
+  {
+    "id": 9,
+    "name": "Faculty of Nursing"
+  },
+  {
+    "id": 10,
+    "name": "Faculty of Pharmacy"
+  },
+  {
+    "id": 11,
+    "name": "Faculty of Information Technology & Artificial Intelligence"
+  },
+  {
+    "id": 12,
+    "name": "Faculty of Science"
+  },
+  {
+    "id": 13,
+    "name": "Faculty of Shari'ah"
+  },
+  {
+    "id": 14,
+    "name": "Faculty of Humanities and Educational Sciences"
+  },
+  {
+    "id": 15,
+    "name": "Faculty of Business and Communication"
+  },
+  {
+    "id": 16,
+    "name": "Faculty of Veterinary Medicine and Agricultural Engineering"
+  },
+  {
+    "id": 17,
+    "name": "Faculty of Law and Political Sciences"
+  },
+  {
+    "id": 18,
+    "name": "Faculty of Fine Arts"
+  }
+]

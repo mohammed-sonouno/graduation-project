@@ -1,0 +1,56 @@
+[
+  {
+    "id": 1,
+    "faculty_id": 1,
+    "topic_key": "overview",
+    "title_en": "Overview",
+    "title_ar": "نبذة عامة",
+    "summary_en": null,
+    "summary_ar": null
+  },
+  {
+    "id": 2,
+    "faculty_id": 1,
+    "topic_key": "departments",
+    "title_en": "Departments",
+    "title_ar": "الأقسام",
+    "summary_en": null,
+    "summary_ar": null
+  },
+  {
+    "id": 3,
+    "faculty_id": 1,
+    "topic_key": "facilities",
+    "title_en": "Facilities & Labs",
+    "title_ar": "المرافق والمختبرات",
+    "summary_en": null,
+    "summary_ar": null
+  },
+  {
+    "id": 4,
+    "faculty_id": 1,
+    "topic_key": "history",
+    "title_en": "History",
+    "title_ar": "التاريخ",
+    "summary_en": null,
+    "summary_ar": null
+  },
+  {
+    "id": 5,
+    "faculty_id": 1,
+    "topic_key": "achievements",
+    "title_en": "Achievements",
+    "title_ar": "الإنجازات",
+    "summary_en": null,
+    "summary_ar": null
+  },
+  {
+    "id": 6,
+    "faculty_id": 1,
+    "topic_key": "accreditation",
+    "title_en": "Accreditation (ABET)",
+    "title_ar": "الاعتماد (ABET)",
+    "summary_en": null,
+    "summary_ar": null
+  }
+]

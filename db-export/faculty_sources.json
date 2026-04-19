@@ -1,0 +1,66 @@
+[
+  {
+    "id": 1,
+    "source_name": "Faculty of Engineering and Information Technology - Home",
+    "source_url": "http://eng.najah.edu/",
+    "fetched_at": "2026-04-14T15:07:35.169Z",
+    "confidence": "0.90",
+    "notes": "Official faculty home page with overview and key figures."
+  },
+  {
+    "id": 2,
+    "source_name": "Faculty of Engineering and Information Technology - Departments",
+    "source_url": "https://eng.najah.edu/en/study/departments/",
+    "fetched_at": "2026-04-14T15:07:35.169Z",
+    "confidence": "0.95",
+    "notes": "Official departments listing page (high-level)."
+  },
+  {
+    "id": 3,
+    "source_name": "Faculty of Engineering (archived) - About",
+    "source_url": "http://eng-old.najah.edu/node/18",
+    "fetched_at": "2026-04-14T15:07:35.169Z",
+    "confidence": "0.85",
+    "notes": "Archived official page containing establishment year and facilities description; treat numeric claims cautiously."
+  },
+  {
+    "id": 4,
+    "source_name": "An-Najah National University - ABET accreditation (Engineering programmes)",
+    "source_url": "https://www.najah.edu/en/about/annu-facts/abet/",
+    "fetched_at": "2026-04-14T15:07:35.169Z",
+    "confidence": "0.95",
+    "notes": "Official university page listing ABET-accredited engineering programmes."
+  },
+  {
+    "id": 5,
+    "source_name": "Faculty of Engineering - ABET Accredited Programs",
+    "source_url": "https://eng.najah.edu/en/quality-unit/abet-accredited-engineering-programs/",
+    "fetched_at": "2026-04-14T17:18:18.525Z",
+    "confidence": "0.95",
+    "notes": "Official ABET accreditation listing page."
+  },
+  {
+    "id": 6,
+    "source_name": "Faculty of Engineering - Welcome / About",
+    "source_url": "https://eng.najah.edu/en/about/",
+    "fetched_at": "2026-04-14T17:18:18.525Z",
+    "confidence": "0.95",
+    "notes": "Official faculty about page."
+  },
+  {
+    "id": 9,
+    "source_name": "An-Najah official faculties page",
+    "source_url": "https://www.najah.edu/en/academic/faculties/",
+    "fetched_at": "2026-04-17T14:30:16.513Z",
+    "confidence": "0.95",
+    "notes": "Baseline faculty list used for faculty chat coverage."
+  },
+  {
+    "id": 10,
+    "source_name": "An-Najah official undergraduate programs by faculty",
+    "source_url": "https://www.najah.edu/en/academic/undergraduate-programs/by-faculty/",
+    "fetched_at": "2026-04-17T14:30:16.513Z",
+    "confidence": "0.95",
+    "notes": "Baseline faculty-program mapping used for faculty and major chat coverage."
+  }
+]

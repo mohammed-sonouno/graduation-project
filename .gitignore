@@ -161,3 +161,8 @@ vite.config.ts.timestamp-*
 .venv/
 **/.venv/
 node_modules/
+
+# Legacy standalone chatbot apps (merged into server/ + src/). Safe to delete locally if empty/locked.
+/chatbot-service/
+/chatbot-test-ui/
+/python-chatbot-service/

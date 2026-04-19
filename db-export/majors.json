@@ -1,0 +1,677 @@
+[
+  {
+    "id": "eng-mis",
+    "name": "Management Information Systems",
+    "college_id": 1
+  },
+  {
+    "id": "eng-cs",
+    "name": "Computer Science",
+    "college_id": 1
+  },
+  {
+    "id": "eng-ee",
+    "name": "Electrical Engineering",
+    "college_id": 1
+  },
+  {
+    "id": "eng-ce",
+    "name": "Civil Engineering",
+    "college_id": 1
+  },
+  {
+    "id": "eng-me",
+    "name": "Mechanical Engineering",
+    "college_id": 1
+  },
+  {
+    "id": "eng-it",
+    "name": "Information Technology",
+    "college_id": 1
+  },
+  {
+    "id": "eng-se",
+    "name": "Software Engineering",
+    "college_id": 1
+  },
+  {
+    "id": "arts-econ",
+    "name": "Economics",
+    "college_id": 3
+  },
+  {
+    "id": "arts-psych",
+    "name": "Psychology",
+    "college_id": 3
+  },
+  {
+    "id": "arts-bio",
+    "name": "Biology",
+    "college_id": 3
+  },
+  {
+    "id": "bus-mgmt",
+    "name": "Business Administration",
+    "college_id": 4
+  },
+  {
+    "id": "med-nursing",
+    "name": "Nursing",
+    "college_id": 2
+  },
+  {
+    "id": "law-legal",
+    "name": "Law",
+    "college_id": 5
+  },
+  {
+    "id": "annajah-med-01",
+    "name": "Anesthesia and Resuscitation",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-02",
+    "name": "Audiology and Speech Sciences",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-03",
+    "name": "Bachelor of Science in Clinical Nutrition",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-04",
+    "name": "Biomedical Sciences",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-05",
+    "name": "Cardiac Perfusion Technology Program",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-06",
+    "name": "Doctor of Medicine",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-07",
+    "name": "Health Information Management (HIM)",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-08",
+    "name": "Medical imaging",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-09",
+    "name": "Medical Laboratory Sciences",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-10",
+    "name": "Optometry",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-11",
+    "name": "Physical Education -Training",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-12",
+    "name": "Physiotherapy",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-med-13",
+    "name": "Respiratory Care Program",
+    "college_id": 6
+  },
+  {
+    "id": "annajah-eng-01",
+    "name": "Architectural Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-02",
+    "name": "Building Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-03",
+    "name": "Chemical Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-04",
+    "name": "Civil Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-05",
+    "name": "Computer Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-06",
+    "name": "Electrical Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-07",
+    "name": "Energy & Environmental Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-08",
+    "name": "Geomatics Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-09",
+    "name": "Industrial Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-10",
+    "name": "Materials Science Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-11",
+    "name": "Mechanical Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-12",
+    "name": "Mechatronics Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-13",
+    "name": "Planning Engineering and City Technology",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-eng-14",
+    "name": "Telecommunication Engineering",
+    "college_id": 7
+  },
+  {
+    "id": "annajah-den-01",
+    "name": "Dental Hygiene BA Program",
+    "college_id": 8
+  },
+  {
+    "id": "annajah-den-02",
+    "name": "Dental Laboratory Technology",
+    "college_id": 8
+  },
+  {
+    "id": "annajah-den-03",
+    "name": "Doctor of Dental Surgery",
+    "college_id": 8
+  },
+  {
+    "id": "annajah-nur-01",
+    "name": "Midwifery",
+    "college_id": 9
+  },
+  {
+    "id": "annajah-nur-02",
+    "name": "Nursing",
+    "college_id": 9
+  },
+  {
+    "id": "annajah-pha-01",
+    "name": "Cosmetics and Skin Care",
+    "college_id": 10
+  },
+  {
+    "id": "annajah-pha-02",
+    "name": "Pharmacy",
+    "college_id": 10
+  },
+  {
+    "id": "annajah-pha-03",
+    "name": "Pharmacy Doctor",
+    "college_id": 10
+  },
+  {
+    "id": "annajah-itai-01",
+    "name": "Artificial Intelligence and Data Science",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-itai-02",
+    "name": "Computer Information Systems",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-itai-03",
+    "name": "Computer Science",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-itai-04",
+    "name": "Computer Science Apprenticeship Program",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-itai-05",
+    "name": "Cyber Security",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-itai-06",
+    "name": "Management Information Systems",
+    "college_id": 11
+  },
+  {
+    "id": "annajah-sci-01",
+    "name": "Applied Chemistry",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-02",
+    "name": "Biology Biotechnology",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-03",
+    "name": "Chemistry",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-04",
+    "name": "Life Sciences",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-05",
+    "name": "Major Chemistry Minor Education",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-06",
+    "name": "Major Mathematics -Minor Education",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-07",
+    "name": "Major Mathematics -Minor Statistics",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-08",
+    "name": "Major Physics Minor Education",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-09",
+    "name": "Major Physics Minor Electronics",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-10",
+    "name": "Mathematics",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-11",
+    "name": "Mathematics and Data Science",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-12",
+    "name": "Mathematics Minor Insurance",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-13",
+    "name": "Physics",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sci-14",
+    "name": "Technology of Applied Physics",
+    "college_id": 12
+  },
+  {
+    "id": "annajah-sha-01",
+    "name": "Fiqih & Legistlation",
+    "college_id": 13
+  },
+  {
+    "id": "annajah-sha-02",
+    "name": "Fundamentals of Religion (Usool Al-Deen) with Arabic Minor",
+    "college_id": 13
+  },
+  {
+    "id": "annajah-sha-03",
+    "name": "Osoul Aldeen",
+    "college_id": 13
+  },
+  {
+    "id": "annajah-sha-04",
+    "name": "Sharia & Islamic Banks",
+    "college_id": 13
+  },
+  {
+    "id": "annajah-hum-01",
+    "name": "Arabic Language & Literature",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-02",
+    "name": "Arabic Language and Literature with Arabic for Non-Native Speakers Teachers' Training Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-03",
+    "name": "Arabic Language and Literature with Education Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-04",
+    "name": "Arabic Language and Literature with Hebrew Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-05",
+    "name": "English Language & Literature",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-06",
+    "name": "English Language and Literature with Arabic for Non-Native Speakers Teachers' Training Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-07",
+    "name": "English Language and Literature with Hebrew Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-08",
+    "name": "English Language Literature Minor Education",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-09",
+    "name": "English Language Literature Minor Translation",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-10",
+    "name": "French Language",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-11",
+    "name": "French Language with Arabic for Non-Native Speakers Teachers' Training Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-12",
+    "name": "French Language with Hebrew Minor",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-13",
+    "name": "Geography",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-14",
+    "name": "Geomatics",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-15",
+    "name": "History",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-16",
+    "name": "History Minor Education",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-17",
+    "name": "Inclusive and Special Education",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-18",
+    "name": "Kindergartens",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-19",
+    "name": "Lower Preparatory",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-20",
+    "name": "Major Psychology minor Psychological Counseling",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-21",
+    "name": "Major: English Language and Literature Minor: American Studies",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-22",
+    "name": "Major: English Language and Literature Minor: French",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-23",
+    "name": "Major: French Language and Literature, Minor: English",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-24",
+    "name": "Major: French Language, Minor: Public Relations",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-25",
+    "name": "Physical Education -Methods of Teaching",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-26",
+    "name": "Social Work",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-27",
+    "name": "Tourism & Archeology",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-28",
+    "name": "Upper Preparatory - Teacher in Arabic Language",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-29",
+    "name": "Upper Preparatory - Teacher in Social Studies",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-30",
+    "name": "Upper Preparatory- Teacher in Mathematics",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-31",
+    "name": "Upper Preparatory- Teacher in Sciences",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-32",
+    "name": "Upper Preparatory- Teacher in Technology",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-hum-33",
+    "name": "Upper Prepartory -Teacher in English Language",
+    "college_id": 14
+  },
+  {
+    "id": "annajah-bus-01",
+    "name": "Accounting",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-02",
+    "name": "Accounting Minor Insurance",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-03",
+    "name": "Business Administration",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-04",
+    "name": "Business Administration Minor Insurance",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-05",
+    "name": "Communication and Digital Marketing",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-06",
+    "name": "Communication and Digital Media",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-07",
+    "name": "Digital Economy and E-Commerce",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-08",
+    "name": "Economics Minor Insurance",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-09",
+    "name": "financial & Banking Sciences",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-10",
+    "name": "Financial Banking Sciences Minor Insurance",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-11",
+    "name": "Marketing Minor Insurance",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-12",
+    "name": "Public Relations & Communication",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-13",
+    "name": "Radio & Television",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-bus-14",
+    "name": "The Investment and Real Estate Development",
+    "college_id": 15
+  },
+  {
+    "id": "annajah-vet-01",
+    "name": "Agricultural Engineering BA Program",
+    "college_id": 16
+  },
+  {
+    "id": "annajah-vet-02",
+    "name": "Animal Production & Animal Health",
+    "college_id": 16
+  },
+  {
+    "id": "annajah-vet-03",
+    "name": "Nutrition and Food Technology",
+    "college_id": 16
+  },
+  {
+    "id": "annajah-vet-04",
+    "name": "Plant Production & Protection",
+    "college_id": 16
+  },
+  {
+    "id": "annajah-vet-05",
+    "name": "Veterinary Medicine",
+    "college_id": 16
+  },
+  {
+    "id": "annajah-law-01",
+    "name": "Law",
+    "college_id": 17
+  },
+  {
+    "id": "annajah-law-02",
+    "name": "Major: Law/ Minor: International Relations",
+    "college_id": 17
+  },
+  {
+    "id": "annajah-law-03",
+    "name": "Political Science and Government Administration",
+    "college_id": 17
+  },
+  {
+    "id": "annajah-art-01",
+    "name": "Bachelor's Program in Game Design",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-02",
+    "name": "Ceramic Art",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-03",
+    "name": "Expressive Art Therapy",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-04",
+    "name": "Fashion Design BA Program",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-05",
+    "name": "Graphic Design",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-06",
+    "name": "Interior Design",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-07",
+    "name": "Music",
+    "college_id": 18
+  },
+  {
+    "id": "annajah-art-08",
+    "name": "Painting",
+    "college_id": 18
+  }
+]

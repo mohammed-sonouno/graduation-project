@@ -39,7 +39,7 @@ function MajorDetails() {
   useEffect(() => {
     let cancelled = false;
     setLoading(true);
-    fetch(apiUrl(`/api/programs/${id}`))
+    fetch(apiUrl(`/api/programs/${id}`), { credentials: 'include' })
       .then((res) => {
         if (!res.ok) throw new Error('Not found');
         return res.json();
@@ -153,7 +153,7 @@ function MajorDetails() {
           </section>
         )}
 
-        <MajorChat majorName={major.name} majorShortName={major.name} />
+        <MajorChat majorId={major.id} major={major} />
       </div>
     </div>
   );

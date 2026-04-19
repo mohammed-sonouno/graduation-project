@@ -2,8 +2,6 @@ import { useState, useMemo, useEffect } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { getColleges, getMajors } from '../api';
 
-const INITIAL_MAJORS_COUNT = 6;
-
 const getMajorImage = (slug) => `/majors/${slug || 'placeholder'}.jpg`;
 
 function slugify(name) {
@@ -14,6 +12,7 @@ function SingleCollege() {
   const { id } = useParams();
   const [college, setCollege] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [sortOrder, setSortOrder] = useState('asc');
 
   useEffect(() => {
     if (!id) {
@@ -21,6 +20,7 @@ function SingleCollege() {
       setLoading(false);
       return;
     }
+
     Promise.all([getColleges(), getMajors(id)])
       .then(([collegesList, majorsList]) => {
         const c = (Array.isArray(collegesList) ? collegesList : []).find((x) => String(x.id) === String(id));
@@ -28,6 +28,7 @@ function SingleCollege() {
           setCollege(null);
           return;
         }
+
         const majors = (Array.isArray(majorsList) ? majorsList : []).map((m) => ({
           id: m.id,
           slug: slugify(m.name),
@@ -35,6 +36,7 @@ function SingleCollege() {
           credits: 120,
           description: '',
         }));
+
         setCollege({
           id: c.id,
           shortName: c.name,
@@ -49,29 +51,21 @@ function SingleCollege() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  const [sortOrder, setSortOrder] = useState('asc'); // 'asc' | 'desc' (name A→Z / Z→A)
-  const [showMoreMajors, setShowMoreMajors] = useState(false);
-
   const sortedMajors = useMemo(() => {
     if (!college?.majors) return [];
-    const list = [...college.majors].sort((a, b) =>
-      sortOrder === 'asc'
-        ? a.name.localeCompare(b.name)
-        : b.name.localeCompare(a.name)
+    return [...college.majors].sort((a, b) =>
+      sortOrder === 'asc' ? a.name.localeCompare(b.name) : b.name.localeCompare(a.name)
     );
-    return list;
   }, [college?.majors, sortOrder]);
-
-  const visibleMajors = showMoreMajors ? sortedMajors : sortedMajors.slice(0, INITIAL_MAJORS_COUNT);
-  const hasMoreMajors = sortedMajors.length > INITIAL_MAJORS_COUNT;
 
   if (loading) {
     return (
       <div className="bg-[#f7f6f3] min-h-[50vh] flex items-center justify-center">
-        <p className="text-slate-500">Loading…</p>
+        <p className="text-slate-500">Loading...</p>
       </div>
     );
   }
+
   if (!college) {
     return (
       <div className="bg-[#f7f6f3] min-h-[50vh] flex items-center justify-center">
@@ -87,10 +81,8 @@ function SingleCollege() {
 
   return (
     <div className="text-gray-900 bg-white min-h-screen">
-      {/* Subtle grid background for hero */}
       <div className="relative bg-[#fafaf9] bg-[linear-gradient(to_right,#e5e5e5_1px,transparent_1px),linear-gradient(to_bottom,#e5e5e5_1px,transparent_1px)] bg-[size:24px_24px]">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 pt-8 pb-16">
-          {/* Breadcrumbs — Colleges only (no Home) */}
           <nav className="flex items-center gap-2 text-sm mb-10" aria-label="Breadcrumb">
             <Link to="/colleges" className="text-slate-500 hover:text-[#00356b] hover:underline transition">
               Colleges
@@ -99,7 +91,6 @@ function SingleCollege() {
             <span className="font-semibold text-[#00356b]">{college.shortName}</span>
           </nav>
 
-          {/* Hero: tagline, title, description, badges */}
           <div className="text-center max-w-2xl mx-auto">
             <p className="text-xs font-semibold text-slate-500 uppercase tracking-widest mb-3">
               {college.tagline}
@@ -107,34 +98,14 @@ function SingleCollege() {
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-5">
               {college.name}
             </h1>
-            <p className="text-slate-600 leading-relaxed mb-8">
+            <p className="text-slate-600 leading-relaxed mb-4">
               {college.description}
             </p>
-            <div className="flex flex-wrap justify-center gap-4">
-              {college.badges.map((badge) => (
-                <span
-                  key={badge.label}
-                  className="inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-200 bg-white/80 text-[#00356b] font-medium text-sm"
-                >
-                  {badge.icon === 'check' && (
-                    <svg className="w-4 h-4 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
-                    </svg>
-                  )}
-                  {badge.icon === 'users' && (
-                    <svg className="w-4 h-4 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-                    </svg>
-                  )}
-                  {badge.label}
-                </span>
-              ))}
-            </div>
+            <p className="text-sm text-slate-500">Showing all {sortedMajors.length} majors in this college</p>
           </div>
         </div>
       </div>
 
-      {/* Academic Programs */}
       <section className="bg-[#f7f6f3] pt-12 pb-20">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
           <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
@@ -160,7 +131,7 @@ function SingleCollege() {
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {visibleMajors.map((major) => (
+            {sortedMajors.map((major) => (
               <Link
                 key={major.id}
                 to={`/majors/${major.id}`}
@@ -187,7 +158,7 @@ function SingleCollege() {
                     {major.name}
                   </h3>
                   <p className="text-slate-600 text-sm leading-relaxed mb-4 flex-1 line-clamp-2">
-                    {major.description}
+                    {major.description || 'Browse the programme page for more details about this major.'}
                   </p>
                   <span className="text-sm font-semibold text-[#00356b]">
                     View Major →
@@ -196,18 +167,6 @@ function SingleCollege() {
               </Link>
             ))}
           </div>
-
-          {hasMoreMajors && (
-            <div className="flex justify-center mt-10">
-              <button
-                type="button"
-                onClick={() => setShowMoreMajors((v) => !v)}
-                className="text-sm font-semibold text-[#00356b] hover:underline"
-              >
-                {showMoreMajors ? 'Show less' : 'Show more'}
-              </button>
-            </div>
-          )}
         </div>
       </section>
     </div>

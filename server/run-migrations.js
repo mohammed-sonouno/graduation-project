@@ -2,16 +2,12 @@
  * Run all DB migrations in order. Usage: node server/run-migrations.js
  */
 import 'dotenv/config';
-import pg from 'pg';
 import { readFile } from 'fs/promises';
 import { join, dirname } from 'path';
 import { fileURLToPath } from 'url';
+import { pool } from './db/pool.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
-const { Pool } = pg;
-
-const DEFAULT_DATABASE_URL = 'postgresql://postgres:Ss%402004%24@10.20.10.20:5433/graduation%20Project';
-const pool = new Pool({ connectionString: process.env.DATABASE_URL || DEFAULT_DATABASE_URL });
 
 const migrations = [
   '002_app_users.sql',
@@ -48,6 +44,18 @@ const migrations = [
   '034_events_requested_changes_at_step.sql',
   '035_events_approval_columns.sql',
   '036_delete_seed_events.sql',
+  '037_university_knowledge_annajah.sql',
+  '038_faculty_engineering_knowledge_annajah.sql',
+  '039_engineering_programs_recommendations.sql',
+  '040_chat_conversations_messages.sql',
+  '041_chat_major_advisor_context.sql',
+  '042_polish_major_advisor_copy.sql',
+  '043_enrich_knowledge_data.sql',
+  '044_chat_ml_learning_pipeline.sql',
+  '045_chat_ml_training_signals.sql',
+  '046_chat_controlled_learning.sql',
+  '047_natural_advisor_copy.sql',
+  '048_expand_chat_coverage_annajah.sql',
 ];
 
 async function run() {

@@ -1,0 +1,506 @@
+[
+  {
+    "id": 1,
+    "conversation_id": 1,
+    "sender": "user",
+    "content": "شو يعني علم حاسوب",
+    "created_at": "2026-04-14T17:49:12.956Z"
+  },
+  {
+    "id": 2,
+    "conversation_id": 1,
+    "sender": "bot",
+    "content": "قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):\n\n• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.\n• مؤشر التنافس في السجل: مرتفع.\n• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n• نطاق القبول المخزن: من 80 إلى 90.",
+    "created_at": "2026-04-14T17:49:12.963Z"
+  },
+  {
+    "id": 3,
+    "conversation_id": 2,
+    "sender": "user",
+    "content": "how are you",
+    "created_at": "2026-04-14T17:54:18.827Z"
+  },
+  {
+    "id": 4,
+    "conversation_id": 2,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T17:54:18.833Z"
+  },
+  {
+    "id": 5,
+    "conversation_id": 2,
+    "sender": "user",
+    "content": "What competition level is flagged in the database?",
+    "created_at": "2026-04-14T17:54:29.140Z"
+  },
+  {
+    "id": 6,
+    "conversation_id": 2,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T17:54:29.146Z"
+  },
+  {
+    "id": 7,
+    "conversation_id": 2,
+    "sender": "user",
+    "content": "What workload signal does the catalogue store for this programme?",
+    "created_at": "2026-04-14T17:54:42.148Z"
+  },
+  {
+    "id": 8,
+    "conversation_id": 2,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.",
+    "created_at": "2026-04-14T17:54:42.153Z"
+  },
+  {
+    "id": 9,
+    "conversation_id": 3,
+    "sender": "user",
+    "content": "what is computer science",
+    "created_at": "2026-04-14T18:22:08.415Z"
+  },
+  {
+    "id": 10,
+    "conversation_id": 3,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T18:22:08.422Z"
+  },
+  {
+    "id": 11,
+    "conversation_id": 3,
+    "sender": "user",
+    "content": "منيح ولا لا التخصص ؟",
+    "created_at": "2026-04-14T18:22:42.618Z"
+  },
+  {
+    "id": 12,
+    "conversation_id": 3,
+    "sender": "bot",
+    "content": "قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):\n\n• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.\n• مؤشر التنافس في السجل: مرتفع.\n• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n• نطاق القبول المخزن: من 80 إلى 90.",
+    "created_at": "2026-04-14T18:22:42.626Z"
+  },
+  {
+    "id": 13,
+    "conversation_id": 4,
+    "sender": "user",
+    "content": "hi",
+    "created_at": "2026-04-14T18:29:27.659Z"
+  },
+  {
+    "id": 14,
+    "conversation_id": 4,
+    "sender": "bot",
+    "content": "Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.",
+    "created_at": "2026-04-14T18:29:27.670Z"
+  },
+  {
+    "id": 15,
+    "conversation_id": 4,
+    "sender": "user",
+    "content": "شو نطاق القبول المخزن؟",
+    "created_at": "2026-04-14T18:29:34.926Z"
+  },
+  {
+    "id": 16,
+    "conversation_id": 4,
+    "sender": "bot",
+    "content": "قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):\n\n• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.\n• مؤشر التنافس في السجل: مرتفع.\n• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n• نطاق القبول المخزن: من 80 إلى 90.",
+    "created_at": "2026-04-14T18:29:34.931Z"
+  },
+  {
+    "id": 17,
+    "conversation_id": 4,
+    "sender": "user",
+    "content": "شو معدل القبول؟",
+    "created_at": "2026-04-14T18:33:05.163Z"
+  },
+  {
+    "id": 18,
+    "conversation_id": 4,
+    "sender": "bot",
+    "content": "حالياً ما عندي بيانات كافية في القاعدة عشان أجاوبك على هالسؤال بثقة. جرّب تعيد الصياغة، أو اسأل عن شيء مسجل عنا صراحة (فعاليات، مجتمعات، أو برامج هندسة موجودة بالسجل).\n\nإنت على صفحة **Computer Science**، فبقدر لسا ألخّص اللي بالقاعدة لهالبرنامج (الاقتراحات فوق من السجل).\n\nأمثلة مربوطة بالصفحة: «هل هالتخصص صعب؟»؛ «فيه رياضيات كثير؟»؛ «شو مستوى التنافس؟».",
+    "created_at": "2026-04-14T18:33:05.168Z"
+  },
+  {
+    "id": 19,
+    "conversation_id": 5,
+    "sender": "user",
+    "content": "What is the competition level?",
+    "created_at": "2026-04-14T18:48:59.530Z"
+  },
+  {
+    "id": 20,
+    "conversation_id": 5,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T18:48:59.538Z"
+  },
+  {
+    "id": 21,
+    "conversation_id": 6,
+    "sender": "user",
+    "content": "Is this programme difficult?",
+    "created_at": "2026-04-14T18:49:24.220Z"
+  },
+  {
+    "id": 22,
+    "conversation_id": 6,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.",
+    "created_at": "2026-04-14T18:49:24.229Z"
+  },
+  {
+    "id": 23,
+    "conversation_id": 6,
+    "sender": "user",
+    "content": "Is it very math-heavy?",
+    "created_at": "2026-04-14T18:49:26.622Z"
+  },
+  {
+    "id": 24,
+    "conversation_id": 6,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Keyword tags on file: computer, embedded, hardware, software.",
+    "created_at": "2026-04-14T18:49:26.630Z"
+  },
+  {
+    "id": 25,
+    "conversation_id": 6,
+    "sender": "user",
+    "content": "What is the competition level?",
+    "created_at": "2026-04-14T18:49:29.728Z"
+  },
+  {
+    "id": 26,
+    "conversation_id": 6,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T18:49:29.735Z"
+  },
+  {
+    "id": 27,
+    "conversation_id": 6,
+    "sender": "user",
+    "content": "grade ?",
+    "created_at": "2026-04-14T18:49:36.120Z"
+  },
+  {
+    "id": 28,
+    "conversation_id": 6,
+    "sender": "bot",
+    "content": "Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):\n\n• Stored difficulty flag for Computer Science: high.\n• Stored competition flag: high.\n• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.\n• Stored admission band: 80–90.",
+    "created_at": "2026-04-14T18:49:36.126Z"
+  },
+  {
+    "id": 29,
+    "conversation_id": 7,
+    "sender": "user",
+    "content": "hi",
+    "created_at": "2026-04-17T13:50:49.298Z"
+  },
+  {
+    "id": 30,
+    "conversation_id": 7,
+    "sender": "bot",
+    "content": "Welcome! I am your academic advisor for Business Administration. I can help you understand what this programme offers and how it might fit your career goals.",
+    "created_at": "2026-04-17T13:50:49.325Z"
+  },
+  {
+    "id": 31,
+    "conversation_id": 7,
+    "sender": "user",
+    "content": "how are you",
+    "created_at": "2026-04-17T13:50:57.317Z"
+  },
+  {
+    "id": 32,
+    "conversation_id": 7,
+    "sender": "bot",
+    "content": "Here is what I can tell you about Business Administration:\n\nBusiness Administration covers strategy, operations, and leadership skills. For course requirements, check the official faculty page.",
+    "created_at": "2026-04-17T13:50:57.323Z"
+  },
+  {
+    "id": 33,
+    "conversation_id": 7,
+    "sender": "user",
+    "content": "give me course requirements",
+    "created_at": "2026-04-17T13:51:19.212Z"
+  },
+  {
+    "id": 34,
+    "conversation_id": 7,
+    "sender": "bot",
+    "content": "Here is what I can tell you about Business Administration:\n\nI do not have admission average details for Business Administration right now. I would recommend checking with the admissions office for the most up-to-date numbers.",
+    "created_at": "2026-04-17T13:51:19.221Z"
+  },
+  {
+    "id": 35,
+    "conversation_id": 8,
+    "sender": "user",
+    "content": "give me course requerments \\",
+    "created_at": "2026-04-17T13:51:54.337Z"
+  },
+  {
+    "id": 36,
+    "conversation_id": 8,
+    "sender": "bot",
+    "content": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "created_at": "2026-04-17T13:51:54.354Z"
+  },
+  {
+    "id": 37,
+    "conversation_id": 8,
+    "sender": "user",
+    "content": "give me more",
+    "created_at": "2026-04-17T13:52:11.611Z"
+  },
+  {
+    "id": 38,
+    "conversation_id": 8,
+    "sender": "bot",
+    "content": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "created_at": "2026-04-17T13:52:11.618Z"
+  },
+  {
+    "id": 39,
+    "conversation_id": 8,
+    "sender": "user",
+    "content": "what grade needed to study this",
+    "created_at": "2026-04-17T13:52:29.965Z"
+  },
+  {
+    "id": 40,
+    "conversation_id": 8,
+    "sender": "bot",
+    "content": "Here are the admission averages I have on file for this programme:\n\n• هندسة الحاسوب: you would typically need an average of 80–90 (approximate) (scientific stream).\n• هندسة علوم المواد: you would typically need an average of not available at the moment (approximate) (scientific stream).\n\n\nPlease note: some of the figures above are approximate and may differ from the latest official numbers.",
+    "created_at": "2026-04-17T13:52:29.972Z"
+  },
+  {
+    "id": 41,
+    "conversation_id": 8,
+    "sender": "user",
+    "content": "هل هالتخصص صعب؟",
+    "created_at": "2026-04-17T13:52:50.925Z"
+  },
+  {
+    "id": 42,
+    "conversation_id": 8,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "created_at": "2026-04-17T13:52:50.931Z"
+  },
+  {
+    "id": 43,
+    "conversation_id": 8,
+    "sender": "user",
+    "content": "فيه رياضيات كثير؟",
+    "created_at": "2026-04-17T13:54:41.996Z"
+  },
+  {
+    "id": 44,
+    "conversation_id": 8,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "created_at": "2026-04-17T13:54:42.002Z"
+  },
+  {
+    "id": 45,
+    "conversation_id": 9,
+    "sender": "user",
+    "content": "Is it very math-heavy?",
+    "created_at": "2026-04-17T13:58:19.250Z"
+  },
+  {
+    "id": 46,
+    "conversation_id": 9,
+    "sender": "bot",
+    "content": "Here is what I know about Computer Science:\n\nComputer Science is considered quite demanding — it requires strong dedication and consistent hard work.\n\nFor context, the admission average is typically between 80 and 90, which can give you a sense of the academic expectations.",
+    "created_at": "2026-04-17T13:58:19.261Z"
+  },
+  {
+    "id": 47,
+    "conversation_id": 9,
+    "sender": "user",
+    "content": "كيفك",
+    "created_at": "2026-04-17T13:59:36.431Z"
+  },
+  {
+    "id": 48,
+    "conversation_id": 9,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "created_at": "2026-04-17T13:59:36.443Z"
+  },
+  {
+    "id": 49,
+    "conversation_id": 10,
+    "sender": "user",
+    "content": "كم المعدل",
+    "created_at": "2026-04-17T14:01:39.326Z"
+  },
+  {
+    "id": 50,
+    "conversation_id": 10,
+    "sender": "bot",
+    "content": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "created_at": "2026-04-17T14:01:39.337Z"
+  },
+  {
+    "id": 51,
+    "conversation_id": 11,
+    "sender": "user",
+    "content": "hi",
+    "created_at": "2026-04-17T14:02:39.495Z"
+  },
+  {
+    "id": 52,
+    "conversation_id": 11,
+    "sender": "bot",
+    "content": "Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.",
+    "created_at": "2026-04-17T14:02:39.503Z"
+  },
+  {
+    "id": 53,
+    "conversation_id": 12,
+    "sender": "user",
+    "content": "هاي",
+    "created_at": "2026-04-17T14:04:21.381Z"
+  },
+  {
+    "id": 54,
+    "conversation_id": 12,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "created_at": "2026-04-17T14:04:21.388Z"
+  },
+  {
+    "id": 55,
+    "conversation_id": 12,
+    "sender": "user",
+    "content": "هاي",
+    "created_at": "2026-04-17T14:04:31.884Z"
+  },
+  {
+    "id": 56,
+    "conversation_id": 12,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "created_at": "2026-04-17T14:04:31.890Z"
+  },
+  {
+    "id": 57,
+    "conversation_id": 13,
+    "sender": "user",
+    "content": "شو رأيك بالتخصص",
+    "created_at": "2026-04-17T14:04:46.130Z"
+  },
+  {
+    "id": 58,
+    "conversation_id": 13,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "created_at": "2026-04-17T14:04:46.137Z"
+  },
+  {
+    "id": 59,
+    "conversation_id": 13,
+    "sender": "user",
+    "content": "شو مستوى التنافس؟",
+    "created_at": "2026-04-17T14:04:48.792Z"
+  },
+  {
+    "id": 60,
+    "conversation_id": 13,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nمن ناحية التنافس، Computer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nيعني عدد المتقدمين مقارنة بالمقاعد المتاحة ممكن يأثر على صعوبة القبول.",
+    "created_at": "2026-04-17T14:04:48.798Z"
+  },
+  {
+    "id": 61,
+    "conversation_id": 13,
+    "sender": "user",
+    "content": "فيه رياضيات كثير؟",
+    "created_at": "2026-04-17T14:04:53.262Z"
+  },
+  {
+    "id": 62,
+    "conversation_id": 13,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "created_at": "2026-04-17T14:04:53.269Z"
+  },
+  {
+    "id": 63,
+    "conversation_id": 13,
+    "sender": "user",
+    "content": "هل هالتخصص صعب؟",
+    "created_at": "2026-04-17T14:04:54.828Z"
+  },
+  {
+    "id": 64,
+    "conversation_id": 13,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "created_at": "2026-04-17T14:04:54.834Z"
+  },
+  {
+    "id": 65,
+    "conversation_id": 13,
+    "sender": "user",
+    "content": "شو معدل القبول؟",
+    "created_at": "2026-04-17T14:04:56.700Z"
+  },
+  {
+    "id": 66,
+    "conversation_id": 13,
+    "sender": "bot",
+    "content": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "created_at": "2026-04-17T14:04:56.708Z"
+  },
+  {
+    "id": 67,
+    "conversation_id": 14,
+    "sender": "user",
+    "content": "hi",
+    "created_at": "2026-04-17T15:35:28.501Z"
+  },
+  {
+    "id": 68,
+    "conversation_id": 14,
+    "sender": "bot",
+    "content": "Welcome! I am your academic advisor for Civil Engineering. I can tell you about admission, difficulty, career directions, and how this programme compares with other engineering options.",
+    "created_at": "2026-04-17T15:35:28.510Z"
+  },
+  {
+    "id": 69,
+    "conversation_id": 14,
+    "sender": "user",
+    "content": "Is this programme difficult?",
+    "created_at": "2026-04-17T15:35:30.982Z"
+  },
+  {
+    "id": 70,
+    "conversation_id": 14,
+    "sender": "bot",
+    "content": "Here is what I know about Civil Engineering:\n\nCivil Engineering is considered moderately challenging — it requires steady effort, especially in technical subjects.\n\nFor context, the admission average is typically between 70 and 78, which can give you a sense of the academic expectations.",
+    "created_at": "2026-04-17T15:35:30.988Z"
+  },
+  {
+    "id": 71,
+    "conversation_id": 14,
+    "sender": "user",
+    "content": "في فرص عمل ؟",
+    "created_at": "2026-04-17T15:35:45.352Z"
+  },
+  {
+    "id": 72,
+    "conversation_id": 14,
+    "sender": "bot",
+    "content": "هاي المعلومات اللي عندي عن Civil Engineering:\n\nما عندي معلومات تفصيلية عن الوظائف لـ Civil Engineering حالياً. بشكل عام، مكتب الكلية أو خدمات التوظيف بيقدروا يعطوك صورة أوضح.",
+    "created_at": "2026-04-17T15:35:45.357Z"
+  }
+]

@@ -1,0 +1,990 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "conversation_id": 7,
+    "user_message_id": 29,
+    "bot_message_id": 30,
+    "question_text": "hi",
+    "reply_text": "Welcome! I am your academic advisor for Business Administration. I can help you understand what this programme offers and how it might fit your career goals.",
+    "detected_intent": "greet",
+    "raw_intent": "greet",
+    "plan_type": "GREET",
+    "reply_locale": "en",
+    "context_major_id": "bus-mgmt",
+    "context_program_key": null,
+    "context_category": "business",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "greet",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "app_users",
+        "major_chat_context"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "business",
+        "programKey": null,
+        "pageMajorId": "bus-mgmt",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:50:49.337Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 2,
+    "user_id": 1,
+    "conversation_id": 7,
+    "user_message_id": 31,
+    "bot_message_id": 32,
+    "question_text": "how are you",
+    "reply_text": "Here is what I can tell you about Business Administration:\n\nBusiness Administration covers strategy, operations, and leadership skills. For course requirements, check the official faculty page.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "bus-mgmt",
+    "context_program_key": null,
+    "context_category": "business",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "business",
+        "programKey": null,
+        "pageMajorId": "bus-mgmt",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:50:57.328Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "conversation_id": 7,
+    "user_message_id": 33,
+    "bot_message_id": 34,
+    "question_text": "give me course requirements",
+    "reply_text": "Here is what I can tell you about Business Administration:\n\nI do not have admission average details for Business Administration right now. I would recommend checking with the admissions office for the most up-to-date numbers.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "bus-mgmt",
+    "context_program_key": null,
+    "context_category": "business",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "business",
+        "programKey": null,
+        "pageMajorId": "bus-mgmt",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:51:19.231Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 4,
+    "user_id": 1,
+    "conversation_id": 8,
+    "user_message_id": 35,
+    "bot_message_id": 36,
+    "question_text": "give me course requerments \\",
+    "reply_text": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:51:54.362Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 5,
+    "user_id": 1,
+    "conversation_id": 8,
+    "user_message_id": 37,
+    "bot_message_id": 38,
+    "question_text": "give me more",
+    "reply_text": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:52:11.623Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 6,
+    "user_id": 1,
+    "conversation_id": 8,
+    "user_message_id": 39,
+    "bot_message_id": 40,
+    "question_text": "what grade needed to study this",
+    "reply_text": "Here are the admission averages I have on file for this programme:\n\n• هندسة الحاسوب: you would typically need an average of 80–90 (approximate) (scientific stream).\n• هندسة علوم المواد: you would typically need an average of not available at the moment (approximate) (scientific stream).\n\n\nPlease note: some of the figures above are approximate and may differ from the latest official numbers.",
+    "detected_intent": "engineering_acceptance_query",
+    "raw_intent": "engineering_acceptance_query",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "reply_locale": "en",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "engineering_acceptance",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:52:29.977Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 7,
+    "user_id": 1,
+    "conversation_id": 8,
+    "user_message_id": 41,
+    "bot_message_id": 42,
+    "question_text": "هل هالتخصص صعب؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:52:50.936Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 8,
+    "user_id": 1,
+    "conversation_id": 8,
+    "user_message_id": 43,
+    "bot_message_id": 44,
+    "question_text": "فيه رياضيات كثير؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [
+          "رياضيات"
+        ],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:54:42.007Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 9,
+    "user_id": 1,
+    "conversation_id": 9,
+    "user_message_id": 45,
+    "bot_message_id": 46,
+    "question_text": "Is it very math-heavy?",
+    "reply_text": "Here is what I know about Computer Science:\n\nComputer Science is considered quite demanding — it requires strong dedication and consistent hard work.\n\nFor context, the admission average is typically between 80 and 90, which can give you a sense of the academic expectations.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "en",
+        "interestTerms": [
+          "math",
+          "mathematics"
+        ],
+        "pageReference": true,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:58:19.267Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 10,
+    "user_id": 1,
+    "conversation_id": 9,
+    "user_message_id": 47,
+    "bot_message_id": 48,
+    "question_text": "كيفك",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T13:59:36.449Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 11,
+    "user_id": 1,
+    "conversation_id": 10,
+    "user_message_id": 49,
+    "bot_message_id": 50,
+    "question_text": "كم المعدل",
+    "reply_text": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "detected_intent": "engineering_acceptance_query",
+    "raw_intent": "engineering_acceptance_query",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "not_in_database",
+    "outcome": "failed",
+    "weak_reason": "not_in_database",
+    "debug_sources": {
+      "pipelineSources": [
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:01:39.345Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 12,
+    "user_id": 1,
+    "conversation_id": 11,
+    "user_message_id": 51,
+    "bot_message_id": 52,
+    "question_text": "hi",
+    "reply_text": "Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.",
+    "detected_intent": "greet",
+    "raw_intent": "greet",
+    "plan_type": "GREET",
+    "reply_locale": "en",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "greet",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "app_users",
+        "major_chat_context"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:02:39.510Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 13,
+    "user_id": 1,
+    "conversation_id": 12,
+    "user_message_id": 53,
+    "bot_message_id": 54,
+    "question_text": "هاي",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:21.393Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 14,
+    "user_id": 1,
+    "conversation_id": 12,
+    "user_message_id": 55,
+    "bot_message_id": 56,
+    "question_text": "هاي",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:31.895Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 15,
+    "user_id": 1,
+    "conversation_id": 13,
+    "user_message_id": 57,
+    "bot_message_id": 58,
+    "question_text": "شو رأيك بالتخصص",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "unknown",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:46.146Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 16,
+    "user_id": 1,
+    "conversation_id": 13,
+    "user_message_id": 59,
+    "bot_message_id": 60,
+    "question_text": "شو مستوى التنافس؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nمن ناحية التنافس، Computer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nيعني عدد المتقدمين مقارنة بالمقاعد المتاحة ممكن يأثر على صعوبة القبول.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:48.803Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 17,
+    "user_id": 1,
+    "conversation_id": 13,
+    "user_message_id": 61,
+    "bot_message_id": 62,
+    "question_text": "فيه رياضيات كثير؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [
+          "رياضيات"
+        ],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:53.275Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 18,
+    "user_id": 1,
+    "conversation_id": 13,
+    "user_message_id": 63,
+    "bot_message_id": 64,
+    "question_text": "هل هالتخصص صعب؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:54.840Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 19,
+    "user_id": 1,
+    "conversation_id": 13,
+    "user_message_id": 65,
+    "bot_message_id": 66,
+    "question_text": "شو معدل القبول؟",
+    "reply_text": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "detected_intent": "engineering_acceptance_query",
+    "raw_intent": "engineering_acceptance_query",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "reply_locale": "ar",
+    "context_major_id": "eng-cs",
+    "context_program_key": "computer_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "not_in_database",
+    "outcome": "failed",
+    "weak_reason": "not_in_database",
+    "debug_sources": {
+      "pipelineSources": [
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "computer_engineering",
+        "pageMajorId": "eng-cs",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T14:04:56.714Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 20,
+    "user_id": 1,
+    "conversation_id": 14,
+    "user_message_id": 67,
+    "bot_message_id": 68,
+    "question_text": "hi",
+    "reply_text": "Welcome! I am your academic advisor for Civil Engineering. I can tell you about admission, difficulty, career directions, and how this programme compares with other engineering options.",
+    "detected_intent": "greet",
+    "raw_intent": "greet",
+    "plan_type": "GREET",
+    "reply_locale": "en",
+    "context_major_id": "eng-ce",
+    "context_program_key": "civil_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "greet",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "app_users",
+        "major_chat_context"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "civil_engineering",
+        "pageMajorId": "eng-ce",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T15:35:28.515Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 21,
+    "user_id": 1,
+    "conversation_id": 14,
+    "user_message_id": 69,
+    "bot_message_id": 70,
+    "question_text": "Is this programme difficult?",
+    "reply_text": "Here is what I know about Civil Engineering:\n\nCivil Engineering is considered moderately challenging — it requires steady effort, especially in technical subjects.\n\nFor context, the admission average is typically between 70 and 78, which can give you a sense of the academic expectations.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "en",
+    "context_major_id": "eng-ce",
+    "context_program_key": "civil_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "civil_engineering",
+        "pageMajorId": "eng-ce",
+        "replyLocale": "en",
+        "interestTerms": [],
+        "pageReference": true,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T15:35:30.996Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  },
+  {
+    "id": 22,
+    "user_id": 1,
+    "conversation_id": 14,
+    "user_message_id": 71,
+    "bot_message_id": 72,
+    "question_text": "في فرص عمل ؟",
+    "reply_text": "هاي المعلومات اللي عندي عن Civil Engineering:\n\nما عندي معلومات تفصيلية عن الوظائف لـ Civil Engineering حالياً. بشكل عام، مكتب الكلية أو خدمات التوظيف بيقدروا يعطوك صورة أوضح.",
+    "detected_intent": "major_advisor_snapshot",
+    "raw_intent": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "reply_locale": "ar",
+    "context_major_id": "eng-ce",
+    "context_program_key": "civil_engineering",
+    "context_category": "engineering",
+    "user_gpa_hint": null,
+    "user_profile_major": null,
+    "answer_kind": "major_advisor_snapshot",
+    "outcome": "success",
+    "weak_reason": null,
+    "debug_sources": {
+      "pipelineSources": [
+        "majors",
+        "major_chat_context",
+        "engineering_programs"
+      ],
+      "answerValidation": {
+        "ok": true
+      },
+      "extractedEntities": {
+        "stream": null,
+        "average": null,
+        "category": "engineering",
+        "programKey": "civil_engineering",
+        "pageMajorId": "eng-ce",
+        "replyLocale": "ar",
+        "interestTerms": [],
+        "pageReference": false,
+        "comparisonPair": null
+      }
+    },
+    "created_at": "2026-04-17T15:35:45.362Z",
+    "answer_validation_ok": true,
+    "mismatch_blocked": false
+  }
+]

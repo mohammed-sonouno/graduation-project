@@ -1,0 +1,5 @@
+id,university_id,topic_key,title_en,title_ar,summary_en,summary_ar
+1,1,overview,Overview,نبذة عامة,General profile of An-Najah National University.,معلومات عامة عن جامعة النجاح الوطنية.
+2,1,history,History,التاريخ,Major milestones in the university’s development.,محطات رئيسية في تطور الجامعة.
+3,1,facts,Facts and Figures,حقائق وأرقام,High-level statistics (counts only).,إحصاءات عامة (أعداد فقط).
+4,1,mission,Mission,الرسالة,Official mission statement (public).,الرسالة الرسمية (معلنة للجمهور).

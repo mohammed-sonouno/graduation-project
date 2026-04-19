@@ -2,8 +2,6 @@ import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { getColleges } from '../api';
 
-const INITIAL_COLLEGES_COUNT = 6;
-
 function slugify(name) {
   return (name || '').toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-').replace(/&/g, 'and');
 }
@@ -44,7 +42,6 @@ const ICONS = {
 };
 
 const DEFAULT_DESCRIPTION = 'Dedicated to excellence in teaching, research, and innovation.';
-
 const ICON_KEYS = ['engineering', 'medicine', 'arts', 'business', 'law', 'it'];
 
 function getIconKey(name) {
@@ -62,7 +59,6 @@ function Colleges() {
   const [colleges, setColleges] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [showMore, setShowMore] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -87,14 +83,12 @@ function Colleges() {
       .finally(() => setLoading(false));
   }, []);
 
-  const visibleColleges = showMore ? colleges : colleges.slice(0, INITIAL_COLLEGES_COUNT);
-  const hasMore = colleges.length > INITIAL_COLLEGES_COUNT;
   const iconSafe = (college) => ICONS[college.icon] ?? ICONS.arts;
 
   if (loading) {
     return (
       <div className="min-h-[40vh] flex items-center justify-center bg-[#f7f6f3]">
-        <p className="text-slate-500">Loading colleges…</p>
+        <p className="text-slate-500">Loading colleges...</p>
       </div>
     );
   }
@@ -121,6 +115,7 @@ function Colleges() {
             <p className="text-slate-600 leading-relaxed">
               Explore our diverse range of colleges, each dedicated to excellence in teaching, research, and innovation.
             </p>
+            <p className="mt-4 text-sm text-slate-500">Showing all {colleges.length} colleges</p>
           </div>
 
           {colleges.length === 0 ? (
@@ -129,45 +124,31 @@ function Colleges() {
               <p className="mt-2 text-sm">Colleges will appear here when added to the system.</p>
             </div>
           ) : (
-            <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-                {visibleColleges.map((college) => (
-                  <div
-                    key={college.id}
-                    className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col"
-                  >
-                    <div className="w-12 h-12 rounded-lg bg-[#00356b]/10 flex items-center justify-center mb-5 flex-shrink-0">
-                      {iconSafe(college)}
-                    </div>
-                    <h2 className="font-serif text-lg font-semibold text-[#0b2d52] leading-snug mb-3">
-                      {college.name}
-                    </h2>
-                    <p className="text-slate-600 text-sm leading-relaxed mb-5 flex-1">
-                      {college.description}
-                    </p>
-                    <Link
-                      to={`/colleges/${college.id}`}
-                      className="text-sm font-semibold text-[#00356b] hover:underline inline-flex items-center gap-1"
-                    >
-                      View Programs
-                      <span aria-hidden>→</span>
-                    </Link>
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+              {colleges.map((college) => (
+                <div
+                  key={college.id}
+                  className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col"
+                >
+                  <div className="w-12 h-12 rounded-lg bg-[#00356b]/10 flex items-center justify-center mb-5 flex-shrink-0">
+                    {iconSafe(college)}
                   </div>
-                ))}
-              </div>
-
-              {hasMore && (
-                <div className="flex justify-center mt-10">
-                  <button
-                    type="button"
-                    onClick={() => setShowMore((v) => !v)}
-                    className="text-sm font-semibold text-[#00356b] hover:underline"
+                  <h2 className="font-serif text-lg font-semibold text-[#0b2d52] leading-snug mb-3">
+                    {college.name}
+                  </h2>
+                  <p className="text-slate-600 text-sm leading-relaxed mb-5 flex-1">
+                    {college.description}
+                  </p>
+                  <Link
+                    to={`/colleges/${college.id}`}
+                    className="text-sm font-semibold text-[#00356b] hover:underline inline-flex items-center gap-1"
                   >
-                    {showMore ? 'Show less' : 'Show more'}
-                  </button>
+                    View Programs
+                    <span aria-hidden>→</span>
+                  </Link>
                 </div>
-              )}
-            </>
+              ))}
+            </div>
           )}
         </div>
       </section>

@@ -1,0 +1,3 @@
+id,interaction_log_id,outcome,weak_reason,category,created_at
+1,11,failed,not_in_database,failed,"""2026-04-17T14:01:39.356Z"""
+2,19,failed,not_in_database,failed,"""2026-04-17T14:04:56.718Z"""

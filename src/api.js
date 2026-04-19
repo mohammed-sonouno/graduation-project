@@ -1,8 +1,31 @@
 /**
  * Backend API client. All data is read/written via these endpoints (nothing in localStorage/sessionStorage).
  * Auth is via httpOnly cookie; send credentials: 'include' on every request.
+ *
+ * Default to same-origin relative URLs (empty base) so Vite dev *and* `vite preview` proxies
+ * forward /api and /uploads → :2000 (see vite.config.js). That avoids HTML index shells being
+ * parsed as JSON when the API URL is wrong.
+ * Set VITE_API_URL only when the API lives on another origin (production split deploy).
  */
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:2000';
+const envApi = import.meta.env.VITE_API_URL;
+
+function resolveApiBase() {
+  let base =
+    envApi != null && String(envApi).trim() !== '' ? String(envApi).replace(/\/$/, '') : '';
+  if (typeof window !== 'undefined' && base) {
+    try {
+      const resolved = new URL(base, window.location.href);
+      if (resolved.origin === window.location.origin) {
+        return '';
+      }
+    } catch {
+      /* ignore invalid VITE_API_URL */
+    }
+  }
+  return base;
+}
+
+export const API_BASE = resolveApiBase();
 
 export function apiUrl(path) {
   const p = path.startsWith('/') ? path : `/${path}`;
@@ -71,7 +94,30 @@ export async function apiRequest(path, options = {}) {
   const res = await fetch(url, { credentials: 'include', ...options, headers });
   if (options.raw) return res;
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    const trimmed = text.trim();
+    if (trimmed.startsWith('<!') || trimmed.startsWith('<html') || trimmed.startsWith('<HTML')) {
+      const err = new Error(
+        'The app received a web page instead of API data. Start the backend (npm run server:dev on port 2000), run npm run dev or npm run preview on port 3000 so /api is proxied, leave VITE_API_URL empty (or set it only to a different API host—not the same as the UI).'
+      );
+      err.status = res.status;
+      err.nonJson = true;
+      throw err;
+    }
+    try {
+      data = JSON.parse(text);
+    } catch {
+      const err = new Error(
+        res.ok
+          ? 'Server returned non-JSON (check API URL and proxy).'
+          : `Request failed (${res.status}).`
+      );
+      err.status = res.status;
+      err.nonJson = true;
+      throw err;
+    }
+  }
   if (!res.ok) {
     const err = new Error(data?.error || res.statusText || 'Request failed');
     err.status = res.status;
@@ -79,6 +125,18 @@ export async function apiRequest(path, options = {}) {
     throw err;
   }
   return data;
+}
+
+/** Chatbot: persisted on main DB; requires auth cookie. */
+export async function postChat({ message, conversationId, majorId }) {
+  const body = { message };
+  if (conversationId != null && conversationId !== '') {
+    body.conversationId = Number(conversationId);
+  }
+  if (majorId != null && majorId !== '') {
+    body.majorId = String(majorId);
+  }
+  return apiRequest('/api/chat', { method: 'POST', body: JSON.stringify(body) });
 }
 
 // ---------- Colleges & Majors (from DB) ----------
