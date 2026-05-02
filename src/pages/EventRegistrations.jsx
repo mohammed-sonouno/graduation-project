@@ -7,11 +7,13 @@ import {
   getCommunityEventRegistrations,
   getAdminEventRegistrations,
   getColleges,
+  getMajors,
   getCommunities,
   markRegistrationPaid,
   approveRegistration,
   rejectRegistration,
-} from '../api';
+} from '../lib/api';
+import { buildCanonicalCollegeOptions } from '../canonicalCollege';
 
 const STATUS_LABELS = {
   pending_payment: 'Pending approval',
@@ -120,8 +122,20 @@ export default function EventRegistrations() {
 
   useEffect(() => {
     if (!admin) return;
-    getColleges().then((list) => setColleges(Array.isArray(list) ? list : [])).catch(() => setColleges([]));
-    getCommunities().then((list) => setCommunities(Array.isArray(list) ? list : [])).catch(() => setCommunities([]));
+    Promise.all([getColleges(), getMajors(), getCommunities({ kind: 'association', limit: 100 })])
+      .then(([collegeList, majorsList, commList]) => {
+        setColleges(
+          buildCanonicalCollegeOptions(
+            Array.isArray(collegeList) ? collegeList : [],
+            Array.isArray(majorsList) ? majorsList : []
+          )
+        );
+        setCommunities(Array.isArray(commList) ? commList : []);
+      })
+      .catch(() => {
+        setColleges([]);
+        setCommunities([]);
+      });
   }, [admin]);
 
   const communityOptions = useMemo(() => {
@@ -208,16 +222,34 @@ export default function EventRegistrations() {
     });
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900">
-      <section className="bg-[#0b2d52] border-b border-slate-200">
-        <div className="max-w-4xl mx-auto px-6 py-8">
-          <h1 className="text-2xl font-semibold text-white">Event registrations</h1>
-          <p className="mt-1 text-white/80 text-sm">
-            Students submit registration requests. You approve or reject each request. Approved registrations count toward the event capacity.
+    <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
+      <section className="bg-[#f7f6f3] pt-6 pb-2">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
+          <nav className="text-sm" aria-label="Breadcrumb">
+            <Link to="/admin" className="text-slate-500 hover:text-slate-700 transition-colors">
+              Admin Portal
+            </Link>
+            <span className="mx-2 text-slate-400" aria-hidden>&gt;</span>
+            <span className="font-semibold text-[#00356b]">Event Registrations</span>
+          </nav>
+        </div>
+      </section>
+      <section className="bg-[#f7f6f3] pt-10 pb-6">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
+          <div className="text-center max-w-2xl mx-auto mb-6">
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-4">
+              Event Registrations
+            </h1>
+            <p className="text-slate-600 leading-relaxed">
+              Students submit registration requests. You approve or reject each request. Approved registrations count toward the event capacity.
+            </p>
+          </div>
+          <p className="text-center text-sm text-slate-500">
+            <span className="font-semibold text-slate-700">{registrations.length}</span> registration{registrations.length !== 1 ? 's' : ''} loaded
           </p>
         </div>
       </section>
-      <div className="max-w-4xl mx-auto px-6 py-8">
+      <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 py-8">
         {error && (
           <div className="mb-6 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700" role="alert">
             {error}
@@ -355,13 +387,6 @@ export default function EventRegistrations() {
             })}
           </div>
         )}
-        <p className="mt-6 text-sm text-slate-500">
-          {admin ? (
-            <Link to="/admin" className="text-[#00356b] hover:underline">Back to Admin Portal</Link>
-          ) : (
-            <Link to="/profile" className="text-[#00356b] hover:underline">Back to Profile</Link>
-          )}
-        </p>
       </div>
     </div>
   );

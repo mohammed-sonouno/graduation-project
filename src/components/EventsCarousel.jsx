@@ -2,7 +2,7 @@ import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import useEmblaCarousel from 'embla-carousel-react';
 import Autoplay from 'embla-carousel-autoplay';
-import { getEvents, eventImageUrl } from '../api';
+import { getEvents, eventImageUrl } from '../lib/api';
 
 const CAROUSEL_MAX = 6;
 

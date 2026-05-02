@@ -5,10 +5,12 @@ import { isStudent } from "../utils/permissions";
 import {
   getAdminEvents,
   getColleges,
+  getMajors,
   getCommunities,
   getEventAnalytics,
   getEventFeedback,
-} from "../api";
+} from "../lib/api";
+import { buildCanonicalCollegeOptions, eventMatchesCollegeFilter } from "../canonicalCollege";
 
 /* ─── tiny helpers ─────────────────────────────────────────── */
 function StarRow({ value = 0, size = 13 }) {
@@ -270,19 +272,28 @@ function Dashboard() {
     if (isStudent(user)) navigate("/", { replace: true });
   }, [user, loading, navigate]);
 
-  /* load colleges */
+  /* load colleges (canonical faculties only; ids aligned with majors when duplicates exist) */
   useEffect(() => {
-    getColleges()
-      .then((l) => setColleges(Array.isArray(l) ? l : []))
+    Promise.all([getColleges(), getMajors()])
+      .then(([l, m]) => {
+        setColleges(
+          buildCanonicalCollegeOptions(Array.isArray(l) ? l : [], Array.isArray(m) ? m : [])
+        );
+      })
       .catch(() => setColleges([]));
   }, []);
 
-  /* load communities */
+  /* load associations only (event organizers), optionally filtered by college name */
   useEffect(() => {
-    (selectedCollegeId ? getCommunities(selectedCollegeId) : getCommunities())
+    const params = { kind: 'association', limit: 100 };
+    if (selectedCollegeId) {
+      const name = colleges.find((x) => String(x.id) === String(selectedCollegeId))?.name;
+      if (name) params.college = name;
+    }
+    getCommunities(params)
       .then((l) => setCommunities(Array.isArray(l) ? l : []))
       .catch(() => setCommunities([]));
-  }, [selectedCollegeId]);
+  }, [selectedCollegeId, colleges]);
 
   /* load events */
   useEffect(() => {
@@ -313,7 +324,8 @@ function Dashboard() {
   const filteredEvents = useMemo(() => {
     const q = search.trim().toLowerCase();
     return events.filter((ev) => {
-      if (selectedCollegeId && selectedCollegeName && (ev.collegeName || "").trim() !== selectedCollegeName) return false;
+      if (selectedCollegeId && selectedCollegeName && !eventMatchesCollegeFilter(ev, selectedCollegeName))
+        return false;
       if (selectedCommunityId && String(ev.communityId) !== String(selectedCommunityId)) return false;
       if (q && ![ev.title, ev.description, ev.category].filter(Boolean).some((s) => String(s).toLowerCase().includes(q))) return false;
       return true;
@@ -401,41 +413,132 @@ function Dashboard() {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f6fa] text-slate-900">
+    <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
 
-      {/* ── breadcrumb ── */}
-      <div className="px-6 lg:px-10 pt-8">
-        <div className="max-w-screen-2xl mx-auto">
-          <nav className="flex items-center gap-2 text-sm text-slate-600" aria-label="Breadcrumb">
-            <Link to="/admin" className="text-slate-500 hover:text-[#00356b] hover:underline transition">
+      <section className="bg-[#f7f6f3] pt-6 pb-2">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
+          <nav className="text-sm" aria-label="Breadcrumb">
+            <Link to="/admin" className="text-slate-500 hover:text-slate-700 transition-colors">
               Admin Portal
             </Link>
-            <span className="text-slate-300" aria-hidden>›</span>
-            <span className="font-medium text-slate-700">Dashboard</span>
+            <span className="mx-2 text-slate-400" aria-hidden>&gt;</span>
+            <span className="font-semibold text-[#00356b]">Dashboard</span>
           </nav>
         </div>
-      </div>
+      </section>
 
-      <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 py-8 md:py-10">
-
-        {/* ── page header ── */}
-        <div className="mb-8 grid grid-cols-1 xl:grid-cols-[1.35fr_320px] gap-5 items-start">
-          <div className="max-w-3xl">
+      <section className="bg-[#f7f6f3] pt-10 pb-6">
+        <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
+          <div className="text-center max-w-2xl mx-auto mb-6">
             <h1
-              className="text-3xl md:text-[2.9rem] font-semibold text-[#1a2747] leading-tight"
+              className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-4"
               style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}
             >
               Event Performance Analysis
             </h1>
-            <p className="mt-2 max-w-2xl text-sm italic text-slate-500">
-              Analytical insights based on student feedback
+            <p className="text-slate-600 leading-relaxed">
+              Analytical insights based on student feedback and event performance metrics.
             </p>
           </div>
+        </div>
+      </section>
 
-          <div className="rounded-2xl border border-slate-200 bg-white px-5 py-4 shadow-sm">
-            <div className="flex items-center justify-between gap-3">
+      <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 py-8 md:py-10">
+        <div className="grid grid-cols-1 xl:grid-cols-[minmax(0,1fr)_320px] gap-5 mb-10">
+          {/* ── filter toolbar ── */}
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 md:p-5">
+            <div className="flex items-center justify-between gap-3 mb-3">
+              <h2 className="text-sm font-semibold text-[#12355b]">Filters</h2>
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedCollegeId("");
+                  setSelectedCommunityId("");
+                  setSearch("");
+                }}
+                disabled={!hasActiveFilters}
+                className={`h-10 text-sm rounded-full px-4 transition-colors ${
+                  hasActiveFilters
+                    ? "bg-[#0b2d52] text-white border border-[#0b2d52] hover:bg-[#123d67]"
+                    : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
+                }`}
+              >
+                Reset Filters
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">College</label>
+                <select
+                  value={selectedCollegeId}
+                  onChange={(e) => setSelectedCollegeId(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                >
+                  <option value="">All Colleges</option>
+                  {colleges.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Community</label>
+                <select
+                  value={selectedCommunityId}
+                  onChange={(e) => setSelectedCommunityId(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                >
+                  <option value="">All Communities</option>
+                  {communityOptions.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Search</label>
+                <input
+                  type="search"
+                  placeholder="Event title or keyword"
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                  autoComplete="off"
+                />
+              </div>
+
+              <div>
+                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Event Selector</label>
+                {filteredEvents.length === 0 ? (
+                  <div className="h-11 flex items-center px-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-400">
+                    No events found
+                  </div>
+                ) : (
+                  <select
+                    value={selectedEventId ?? ""}
+                    onChange={(e) => setSelectedEventId(e.target.value || null)}
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                  >
+                    {filteredEvents.map((ev) => (
+                      <option key={ev.id} value={ev.id}>
+                        {ev.title}{ev.startDate ? ` — ${formatDate(ev.startDate)}` : ""}
+                      </option>
+                    ))}
+                  </select>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="rounded-xl border border-slate-200 bg-white px-5 py-4 shadow-sm h-fit">
+            <div className="flex flex-wrap items-center justify-between gap-3">
               <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-slate-400">
-                Event Name
+                Selected Event
               </p>
               <span
                 className={`inline-flex items-center rounded-full px-2 py-1 text-[10px] font-semibold uppercase tracking-wide ${
@@ -451,7 +554,7 @@ function Dashboard() {
                 {analytics?.performanceLabel || "No Data"}
               </span>
             </div>
-            <p className="mt-3 text-lg font-semibold text-[#1a2747] leading-snug">
+            <p className="mt-3 text-base font-semibold text-[#1a2747] leading-snug">
               {selectedEvent?.title || "Select an event"}
             </p>
             <p className="mt-1 text-sm text-slate-500">
@@ -462,96 +565,6 @@ function Dashboard() {
                 {selectedEvent.communityName || "Community"} {selectedEvent.collegeName ? `• ${selectedEvent.collegeName}` : ""}
               </p>
             )}
-          </div>
-        </div>
-
-        {/* ── filter toolbar ── */}
-        <div className="bg-white rounded-3xl border border-slate-200 shadow-sm p-4 md:p-5 mb-10">
-          <div className="flex items-center justify-between gap-3 mb-3">
-            <h2 className="text-sm font-semibold text-[#12355b]">Filters</h2>
-            <button
-              type="button"
-              onClick={() => {
-                setSelectedCollegeId("");
-                setSelectedCommunityId("");
-                setSearch("");
-              }}
-              disabled={!hasActiveFilters}
-              className={`h-10 text-sm rounded-full px-4 transition-colors ${
-                hasActiveFilters
-                  ? "bg-[#0b2d52] text-white border border-[#0b2d52] hover:bg-[#123d67]"
-                  : "bg-slate-100 text-slate-400 border border-slate-200 cursor-not-allowed"
-              }`}
-            >
-              Reset Filters
-            </button>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">College</label>
-              <select
-                value={selectedCollegeId}
-                onChange={(e) => setSelectedCollegeId(e.target.value)}
-                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-              >
-                <option value="">All Colleges</option>
-                {colleges.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Community</label>
-              <select
-                value={selectedCommunityId}
-                onChange={(e) => setSelectedCommunityId(e.target.value)}
-                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-              >
-                <option value="">All Communities</option>
-                {communityOptions.map((c) => (
-                  <option key={c.id} value={c.id}>
-                    {c.name}
-                  </option>
-                ))}
-              </select>
-            </div>
-
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Search</label>
-              <input
-                type="search"
-                placeholder="Event title or keyword"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-                autoComplete="off"
-              />
-            </div>
-
-            <div>
-              <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Event Selector</label>
-              {filteredEvents.length === 0 ? (
-                <div className="h-11 flex items-center px-3 rounded-xl border border-dashed border-slate-300 bg-slate-50 text-sm text-slate-400">
-                  No events found
-                </div>
-              ) : (
-                <select
-                  value={selectedEventId ?? ""}
-                  onChange={(e) => setSelectedEventId(e.target.value || null)}
-                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-                >
-                  {filteredEvents.map((ev) => (
-                    <option key={ev.id} value={ev.id}>
-                      {ev.title}{ev.startDate ? ` — ${formatDate(ev.startDate)}` : ""}
-                    </option>
-                  ))}
-                </select>
-              )}
-            </div>
           </div>
         </div>
 

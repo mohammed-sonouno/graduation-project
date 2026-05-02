@@ -1,5 +1,5 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import { apiUrl } from '../api';
+import { apiUrl } from '../lib/api';
 
 const AUTH_USER_CACHE_KEY = 'app_user_cache';
 

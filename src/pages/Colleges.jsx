@@ -1,12 +1,10 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getColleges } from '../api';
+import { getColleges } from '../lib/api';
+import { COLLEGES_CATALOG, descriptionForFaculty } from './collegesCatalog';
+import { collegePathFromFacultySlug } from '../utils/facultySlug';
 
 const INITIAL_COLLEGES_COUNT = 6;
-
-function slugify(name) {
-  return (name || '').toLowerCase().replace(/\s+&\s+/g, '-').replace(/\s+/g, '-').replace(/&/g, 'and');
-}
 
 const ICONS = {
   engineering: (
@@ -36,79 +34,61 @@ const ICONS = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M3 6l3 1m0 0l-3 9a5.002 5.002 0 006.001 0M6 7l3 9M6 7l6-2m6 2l3-1m-3 1l-3 9a5.002 5.002 0 006.001 0M18 7l3 9m-3-9l-6-2m0-2v2m0 16V5m0 16H9m3 0h3" />
     </svg>
   ),
-  it: (
+  sports: (
     <svg className="w-7 h-7 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9.75 17L9 20l-1 1h8l-1-1-.75-3M3 13h18M5 17h14a2 2 0 002-2V5a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M13 10V3L4 14h7v7l9-11h-7z" />
     </svg>
   ),
 };
 
-const DEFAULT_DESCRIPTION = 'Dedicated to excellence in teaching, research, and innovation.';
-
-const ICON_KEYS = ['engineering', 'medicine', 'arts', 'business', 'law', 'it'];
-
 function getIconKey(name) {
   if (!name || typeof name !== 'string') return 'arts';
   const lower = name.toLowerCase();
-  if (lower.includes('engineer') || lower.includes('it ') || lower.includes(' it')) return 'engineering';
-  if (lower.includes('medicine') || lower.includes('health')) return 'medicine';
-  if (lower.includes('business') || lower.includes('commerce')) return 'business';
-  if (lower.includes('law') || lower.includes('legal')) return 'law';
-  if (lower.includes('information') || lower.includes('technology') || lower.includes('comput')) return 'it';
+  if (lower.includes('engineering') || lower.includes('information technology')) return 'engineering';
+  if (lower.includes('medicine') || lower.includes('health') || lower.includes('pharmacy') || lower.includes('nursing')) return 'medicine';
+  if (lower.includes('optometry')) return 'medicine';
+  if (lower.includes('veterinary')) return 'medicine';
+  if (lower.includes('physical education') || lower.includes('sports sciences')) return 'sports';
+  if (lower.includes('economics') || lower.includes('business')) return 'business';
+  if (lower.includes('law')) return 'law';
+  if (lower.includes('science') && !lower.includes('education')) return 'engineering';
+  if (lower.includes('agriculture')) return 'arts';
+  if (lower.includes('sharia')) return 'law';
   return 'arts';
 }
 
 function Colleges() {
-  const [colleges, setColleges] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [listError, setListError] = useState('');
   const [showMore, setShowMore] = useState(false);
 
+  const colleges = useMemo(
+    () =>
+      COLLEGES_CATALOG.map((c) => ({
+        routeId: c.id,
+        name: c.name,
+        description: c.description || descriptionForFaculty(c.name),
+        programCount: (c.majors || []).length,
+        icon: getIconKey(c.name),
+      })),
+    []
+  );
+
   useEffect(() => {
-    setLoading(true);
-    setError(null);
+    let cancelled = false;
+    setListError('');
     getColleges()
-      .then((list) => {
-        const raw = Array.isArray(list) ? list : [];
-        setColleges(
-          raw.map((c) => ({
-            id: c.id,
-            name: c.name ?? '',
-            slug: slugify(c.name),
-            description: (c.description ?? DEFAULT_DESCRIPTION).trim() || DEFAULT_DESCRIPTION,
-            icon: ICON_KEYS.includes(c.icon) ? c.icon : getIconKey(c.name),
-          }))
-        );
+      .then(() => {
+        if (cancelled) return;
       })
-      .catch((err) => {
-        setColleges([]);
-        setError(err?.message ?? 'Failed to load colleges.');
-      })
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) setListError('Could not verify colleges with the server; catalogue listing is shown.');
+      });
+    return () => { cancelled = true; };
   }, []);
 
   const visibleColleges = showMore ? colleges : colleges.slice(0, INITIAL_COLLEGES_COUNT);
   const hasMore = colleges.length > INITIAL_COLLEGES_COUNT;
   const iconSafe = (college) => ICONS[college.icon] ?? ICONS.arts;
-
-  if (loading) {
-    return (
-      <div className="min-h-[40vh] flex items-center justify-center bg-[#f7f6f3]">
-        <p className="text-slate-500">Loading colleges…</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className="min-h-[40vh] flex items-center justify-center bg-[#f7f6f3] px-4">
-        <div className="text-center max-w-md">
-          <p className="text-red-600 font-medium">Unable to load colleges</p>
-          <p className="mt-2 text-slate-600 text-sm">{error}</p>
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="text-gray-900">
@@ -116,24 +96,29 @@ function Colleges() {
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10">
           <div className="text-center max-w-2xl mx-auto mb-14">
             <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-5">
-              Our Colleges
+              Our Faculties
             </h1>
             <p className="text-slate-600 leading-relaxed">
-              Explore our diverse range of colleges, each dedicated to excellence in teaching, research, and innovation.
+              Official faculty names match the university register; programmes shown combine catalogue data with live records.
             </p>
           </div>
 
           {colleges.length === 0 ? (
             <div className="text-center py-16 rounded-xl border border-slate-200 bg-white text-slate-600">
               <p className="font-medium">No colleges found</p>
-              <p className="mt-2 text-sm">Colleges will appear here when added to the system.</p>
+              <p className="mt-2 text-sm">Catalogue data is missing.</p>
             </div>
           ) : (
             <>
+              {listError ? (
+                <div className="mb-8 rounded-xl border border-amber-100 bg-amber-50 text-amber-900 text-sm px-4 py-3 text-center">
+                  {listError}
+                </div>
+              ) : null}
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {visibleColleges.map((college) => (
                   <div
-                    key={college.id}
+                    key={college.routeId}
                     className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 p-6 flex flex-col"
                   >
                     <div className="w-12 h-12 rounded-lg bg-[#00356b]/10 flex items-center justify-center mb-5 flex-shrink-0">
@@ -145,9 +130,12 @@ function Colleges() {
                     <p className="text-slate-600 text-sm leading-relaxed mb-5 flex-1">
                       {college.description}
                     </p>
+                    {college.programCount > 0 && (
+                      <p className="text-xs font-medium text-slate-400 mb-4">{college.programCount} programmes in catalogue</p>
+                    )}
                     <Link
-                      to={`/colleges/${college.id}`}
-                      className="text-sm font-semibold text-[#00356b] hover:underline inline-flex items-center gap-1"
+                      to={collegePathFromFacultySlug(college.routeId)}
+                      className="text-sm font-semibold text-[#00356b] hover:underline inline-flex items-center gap-1 mt-auto"
                     >
                       View Programs
                       <span aria-hidden>→</span>

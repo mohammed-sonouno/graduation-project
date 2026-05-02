@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "dev:all": "concurrently \"npm run dev\" \"npm run server:dev\" \"npm run nlp:dev\"",
+    "dev:all": "concurrently -n FRONTEND,BACKEND,NLP -c blue,green,yellow \"npm run dev\" \"npm run server:dev\" \"npm run nlp:dev\"",
     "build": "vite build",
     "preview": "vite preview",
     "server": "node server/index.js",
@@ -22,9 +22,13 @@
     "seed:supervisor": "node server/seed-supervisor.js",
     "seed:community-leader": "node server/seed-community-leader.js",
     "seed:student": "node server/seed-student.js",
-    "seed:ieee": "node server/seed-ieee.js"
+    "seed:ieee": "node server/seed-ieee.js",
+    "link:ieee-engineering": "node server/scripts/link-ieee-to-engineering-it.mjs",
+    "prisma:generate": "prisma generate",
+    "postinstall": "prisma generate"
   },
   "dependencies": {
+    "@prisma/client": "^5.22.0",
     "@react-oauth/google": "^0.13.4",
     "bcrypt": "^6.0.0",
     "cors": "^2.8.5",
@@ -41,6 +45,7 @@
     "react-router-dom": "^7.13.0"
   },
   "devDependencies": {
+    "prisma": "^5.22.0",
     "@tailwindcss/postcss": "^4.2.0",
     "@vitejs/plugin-react": "^4.2.1",
     "autoprefixer": "^10.4.24",

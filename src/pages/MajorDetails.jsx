@@ -1,7 +1,10 @@
-import { useEffect, useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { apiUrl } from '../api';
+import { useEffect, useMemo, useState } from 'react';
+import { Link, useLocation, useParams } from 'react-router-dom';
 import MajorChat from '../components/MajorChat';
+import { MAJORS_CATALOG } from './majorsCatalog';
+import { catalogCollegeBucketNameForMajorFaculty } from './collegesCatalog';
+import { facultySlug, collegePathFromFacultySlug, COLLEGES_ROUTE_PREFIX } from '../utils/facultySlug';
+import { MAJOR_COURSES_MAP } from './majorCoursesData';
 
 const INFO_CARD_ICONS = {
   gpa: (
@@ -15,42 +18,125 @@ const INFO_CARD_ICONS = {
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l6.16-3.422a12.083 12.083 0 01.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01.665-6.479L12 14z" />
     </svg>
   ),
-  degree: (
-    <svg className="w-5 h-5 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
   duration: (
     <svg className="w-5 h-5 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
     </svg>
   ),
+  degree: (
+    <svg className="w-5 h-5 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 14l9-5-9-5-9 5 9 5zM12 14l6.16 3.422a12.083 12.083 0 01-.665 6.479A11.952 11.952 0 0012 20.055a11.952 11.952 0 00-6.824-2.998 12.078 12.078 0 01-.665-6.479L12 14zm0 0V7" />
+    </svg>
+  ),
+  credits: (
+    <svg className="w-5 h-5 text-[#00356b]" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+    </svg>
+  ),
 };
+
+const slugify = (value = '') =>
+  String(value)
+    .toLowerCase()
+    .replace(/&/g, ' and ')
+    .replace(/\s+/g, '-')
+    .replace(/[^a-z0-9/-]/g, '');
 
 function MajorDetails() {
   const { id } = useParams();
+  const location = useLocation();
   const [major, setMajor] = useState(null);
   const [loading, setLoading] = useState(true);
+  const LEGACY_MAJOR_SLUG_MAP = {
+    'eng-mis': 'management-information-systems',
+    'eng-cs': 'computer-science',
+    'eng-ee': 'electrical-engineering',
+    'eng-ce': 'civil-engineering',
+    'eng-me': 'mechanical-engineering',
+    'eng-it': 'information-technology',
+    'eng-se': 'software-engineering',
+    'arts-econ': 'economics',
+    'arts-psych': 'psychology-psychological-counseling',
+    'arts-bio': 'life-sciences',
+    'bus-mgmt': 'business-administration',
+    'med-nursing': 'nursing',
+    'law-legal': 'law',
+  };
 
   useEffect(() => {
     window.scrollTo(0, 0);
-  }, [id]);
+  }, [id, location.state]);
 
   useEffect(() => {
-    let cancelled = false;
-    setLoading(true);
-    fetch(apiUrl(`/api/programs/${id}`))
-      .then((res) => {
-        if (!res.ok) throw new Error('Not found');
-        return res.json();
-      })
-      .then((data) => {
-        if (!cancelled) setMajor(data);
-      })
-      .catch(() => { if (!cancelled) setMajor(null); })
-      .finally(() => { if (!cancelled) setLoading(false); });
-    return () => { cancelled = true; };
-  }, [id]);
+    const fromState = location.state?.major;
+    if (fromState) {
+      setMajor(fromState);
+      setLoading(false);
+      return;
+    }
+    const mappedSlug = LEGACY_MAJOR_SLUG_MAP[id] || id;
+    const found = MAJORS_CATALOG.find((m) => m.slug === mappedSlug || m.id === id);
+    setMajor(found || null);
+    setLoading(false);
+  }, [id, location.state]);
+
+  const resolvedCourses = useMemo(() => {
+    if (!major) return [];
+    const aliases = {
+      biotechnology: 'biology-major-/-biotechnology-minor',
+      'english-/-american-studies': 'english-language-and-literature',
+      'english-/-french': 'english-language-and-literature',
+      'french-/-english': 'french-language-and-literature',
+      'tourism-/-archaeological-site-management': 'tourism-and-archaeology',
+      'tourism-/-hotel-management': 'tourism-and-archaeology',
+      'tourism-/-reservation--travel': 'tourism-and-archaeology',
+      'psychology-/-psychological-counseling': 'psychology-and-counseling',
+      'islamic-banking': 'sharia-and-islamic-banking',
+      'finance-and-banking': 'financial-and-banking-sciences',
+      'political-sciences': 'political-science',
+      'journalism-and-media': 'written-and-electronic-journalism',
+      'public-relations-and-advertising': 'public-relations-and-communication',
+      'music': 'music-sciences',
+      'materials-science-and-engineering': 'materials-science-engineering',
+      'planning-engineering-and-city-technology': 'urban-planning-engineering',
+      'animal-production-and-veterinary-sciences': 'animal-production-and-animal-health',
+    };
+
+    const primaryKey = slugify(major.name);
+    const fallbackKey = aliases[primaryKey];
+    const match = MAJOR_COURSES_MAP[primaryKey] || (fallbackKey ? MAJOR_COURSES_MAP[fallbackKey] : null);
+    return match?.courses || [];
+  }, [major]);
+
+  const aboutMajorText = useMemo(() => {
+    if (!major) return '';
+    const parts = [
+      `${major.name} is a ${major.duration} undergraduate program in the ${major.facultyName}.`,
+      major.majorType ? `Academic track (major type): ${major.majorType}.` : '',
+      `The program requires ${major.creditHours} credit hours with a minimum admission average of ${major.minAdmission}.`,
+      major.notes ? `Program note: ${major.notes}` : '',
+    ].filter(Boolean);
+    return parts.join(' ');
+  }, [major]);
+
+  const majorChatContext = useMemo(() => {
+    if (!major) return '';
+    const coursesContext = resolvedCourses
+      .slice(0, 120)
+      .map((c) => `${c.code || '—'} - ${c.title || '—'} (${c.creditHours || '—'} cr)`)
+      .join(' ; ');
+    return [
+      `Major: ${major.name}`,
+      `Faculty: ${major.facultyName}`,
+      `Major Type: ${major.majorType || '—'}`,
+      `Credit Hours: ${major.creditHours}`,
+      `Duration: ${major.duration}`,
+      `Minimum Admission Average: ${major.minAdmission}`,
+      `Notes: ${major.notes || '—'}`,
+      `Courses count: ${resolvedCourses.length}`,
+      coursesContext ? `Courses: ${coursesContext}` : '',
+    ].join(' | ');
+  }, [major, resolvedCourses]);
 
   if (loading) {
     return (
@@ -64,7 +150,7 @@ function MajorDetails() {
       <div className="bg-[#f7f6f3] min-h-[50vh] flex items-center justify-center">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 text-center">
           <h1 className="font-serif text-2xl text-[#0b2d52] mb-4">Program not found</h1>
-          <Link to="/colleges" className="text-[#00356b] font-semibold hover:underline">
+          <Link to={COLLEGES_ROUTE_PREFIX} className="text-[#00356b] font-semibold hover:underline">
             ← Back to Colleges
           </Link>
         </div>
@@ -73,45 +159,42 @@ function MajorDetails() {
   }
 
   const infoCards = [
-    { key: 'gpa', label: 'Required GPA', value: major.required_gpa },
-    { key: 'track', label: 'High School Track', value: major.high_school_track },
-    { key: 'degree', label: 'Degree Type', value: major.degree_type },
+    { key: 'gpa', label: 'Minimum Admission Average', value: major.minAdmission },
+    { key: 'track', label: 'Faculty', value: major.facultyName },
+    ...(major.majorType ? [{ key: 'degree', label: 'Major Type', value: major.majorType }] : []),
     { key: 'duration', label: 'Study Duration', value: major.duration },
+    { key: 'credits', label: 'Credit Hours', value: major.creditHours ? `${major.creditHours}` : '' },
   ].filter((c) => c.value);
 
-  const tagline = major.description || major.about_text;
-
+  const tagline = major.notes;
+  const facultyBucketName = catalogCollegeBucketNameForMajorFaculty(major.facultyName);
+  const facultyCollegeHref = collegePathFromFacultySlug(
+    facultyBucketName ? facultySlug(facultyBucketName) : ''
+  );
   return (
     <div className="text-gray-900 bg-white min-h-screen">
       <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 pt-8 pb-20">
         <nav className="flex items-center gap-2 text-sm mb-8" aria-label="Breadcrumb">
-          <Link to="/colleges" className="text-slate-500 hover:text-[#00356b] hover:underline transition">
+          <Link to={COLLEGES_ROUTE_PREFIX} className="text-slate-500 hover:text-[#00356b] hover:underline transition">
             Colleges
           </Link>
           <span className="text-slate-300" aria-hidden>›</span>
-          <Link to={`/colleges/${major.college_id}`} className="text-slate-500 hover:text-[#00356b] hover:underline transition">
-            {major.college_short_name}
+          <Link
+            to={facultyCollegeHref}
+            className="text-slate-500 hover:text-[#00356b] hover:underline transition"
+          >
+            {major.facultyName}
           </Link>
           <span className="text-slate-300" aria-hidden>›</span>
           <span className="font-semibold text-[#00356b]">{major.name}</span>
         </nav>
 
-        {major.image_url && (
-          <div className="rounded-xl overflow-hidden bg-slate-100 mb-10 h-48 md:h-64">
-            <img src={major.image_url} alt="" className="w-full h-full object-cover" />
-          </div>
-        )}
         <div className="text-center mb-12">
-          {major.department && (
-            <p className="text-xs font-semibold text-[#00356b]/80 uppercase tracking-widest mb-2">
-              {major.department}
-            </p>
-          )}
           <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-4">
             {major.name}
           </h1>
           <div className="flex flex-wrap items-center justify-center gap-2 text-slate-600 text-sm">
-            <span>{major.college_name}</span>
+            <span>{major.facultyName}</span>
             {tagline && (
               <>
                 <span className="text-slate-300" aria-hidden>|</span>
@@ -122,11 +205,11 @@ function MajorDetails() {
         </div>
 
         {infoCards.length > 0 && (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-14">
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-3 mb-14">
             {infoCards.map(({ key, label, value }) => (
               <div
                 key={key}
-                className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 p-5 text-center"
+                className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 p-4 text-center"
               >
                 <div className="flex justify-center mb-3">
                   {INFO_CARD_ICONS[key]}
@@ -142,18 +225,22 @@ function MajorDetails() {
           </div>
         )}
 
-        {(major.about_text || major.description) && (
+        {(major.notes || major.majorType) && (
           <section className="mb-14">
             <h2 className="font-serif text-2xl font-semibold text-[#0b2d52] text-center mb-6">
               About the Major
             </h2>
             <p className="text-slate-600 leading-relaxed text-center max-w-3xl mx-auto">
-              {major.about_text || major.description}
+              {aboutMajorText}
             </p>
           </section>
         )}
 
-        <MajorChat majorName={major.name} majorShortName={major.name} />
+        <MajorChat
+          majorName={major.name}
+          majorShortName={major.name}
+          majorFaculty={majorChatContext}
+        />
       </div>
     </div>
   );

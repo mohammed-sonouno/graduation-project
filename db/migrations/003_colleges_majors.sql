@@ -12,14 +12,14 @@ CREATE TABLE IF NOT EXISTS majors (
 
 CREATE INDEX IF NOT EXISTS idx_majors_college_id ON majors(college_id);
 
--- Seed colleges
+-- Seed colleges (canonical English names; ON CONFLICT refreshes names on re-run)
 INSERT INTO colleges (id, name) VALUES
   (1, 'Engineering & IT'),
-  (2, 'Medicine & Health'),
-  (3, 'Arts & Sciences'),
-  (4, 'Business School'),
-  (5, 'Law & Policy')
-ON CONFLICT (id) DO NOTHING;
+  (2, 'Faculty of Medicine and Health Sciences'),
+  (3, 'Faculty of Science'),
+  (4, 'Faculty of Economics and Social Sciences'),
+  (5, 'Faculty of Law')
+ON CONFLICT (id) DO UPDATE SET name = EXCLUDED.name;
 
 -- Seed majors (requires colleges to exist)
 INSERT INTO majors (id, name, college_id) VALUES

@@ -1,8 +1,10 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { isAdmin, isDean, isSupervisor, isCommunityLeader, isStudent } from '../utils/permissions';
-import { getEvents, getColleges, getCommunities, eventImageUrl } from '../api';
+import { isAdmin, isDean, isSupervisor, isCommunityLeader, isStudent, COMMUNITY_LEADER_DISPLAY_NAME } from '../utils/permissions';
+import { getEvents, getColleges, getMajors, eventImageUrl } from '../lib/api';
+import { buildCanonicalCollegeOptions, eventMatchesCollegeFilter } from '../canonicalCollege';
+import { mapEventFromApi } from '../lib/eventListMapping';
 
 const HERO_BG = '/events-hero.png';
 /** Max events shown before "Show more" */
@@ -39,7 +41,7 @@ function EventCard({ event }) {
   const isPast = event.status === 'past';
   const title = event.title ?? '';
   const image = event.image ?? '/event1.jpg';
-  const communityName = event.communityName ?? event.organizer ?? '';
+  const organizerName = event.organizer ?? '';
   const date = event.date ?? '';
   const endDate = event.endDate ?? '';
   const dateDisplay = endDate && endDate !== date ? `${date} – ${endDate}` : date;
@@ -64,9 +66,9 @@ function EventCard({ event }) {
             University Event
           </span>
         </div>
-        {communityName && (
+        {organizerName && (
           <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-widest text-[#00356b] backdrop-blur">
-            {communityName}
+            {organizerName}
           </span>
         )}
       </div>
@@ -109,67 +111,12 @@ function EventCard({ event }) {
   );
 }
 
-/** Build a sortable datetime from date + time strings (ms for newest-first sort). */
-function eventSortKey(startDate, startTime) {
-  if (!startDate) return 0;
-  const timePart = (startTime || '').trim() || '00:00';
-  const combined = startDate.includes('T') ? startDate : `${startDate}T${timePart}`;
-  const d = new Date(combined);
-  return isNaN(d.getTime()) ? 0 : d.getTime();
-}
-
-/** True if event end datetime has passed (used for Past vs Upcoming). */
-function isEventEndPast(endDate, endTime) {
-  if (!endDate) return false;
-  const timePart = (endTime || '').trim() || '23:59';
-  const combined = endDate.includes('T') ? endDate : `${endDate}T${timePart}`;
-  const end = new Date(combined);
-  return !isNaN(end.getTime()) && end.getTime() < Date.now();
-}
-
-function mapEventFromApi(e) {
-  if (!e || e.id == null) return null;
-  const start = e.startDate ? new Date(e.startDate) : null;
-  const end = e.endDate ? new Date(e.endDate) : null;
-  const dateStr = start && !isNaN(start.getTime())
-    ? start.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : '';
-  const endDateStr = end && !isNaN(end.getTime())
-    ? end.toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })
-    : '';
-  const communityName = (e.communityName ?? e.clubName ?? '').trim();
-  const endPast = isEventEndPast(e.endDate, e.endTime);
-  const displayStatus = endPast ? 'past' : 'upcoming';
-  return {
-    id: e.id,
-    title: e.title ?? '',
-    description: e.description ?? '',
-    category: e.category ?? 'Event',
-    date: dateStr,
-    endDate: endDateStr,
-    time: e.startTime ?? '',
-    endTime: e.endTime ?? '',
-    location: e.location ?? '',
-    image: e.image ?? 'event1.jpg',
-    status: displayStatus,
-    featured: Boolean(e.featured),
-    sortKey: eventSortKey(e.startDate, e.startTime),
-    createdAt: e.createdAt ?? null,
-    price: e.price,
-    priceMember: e.priceMember,
-    communityName,
-    collegeName: (e.collegeName ?? '').trim(),
-    organizer: (communityName || e.clubName) ?? '',
-  };
-}
-
 function Events() {
   const location = useLocation();
   const { user, loading } = useAuth();
   const [eventsFromApi, setEventsFromApi] = useState([]);
   const [eventsLoading, setEventsLoading] = useState(true);
   const [collegesFromApi, setCollegesFromApi] = useState([]);
-  const [communitiesFromApi, setCommunitiesFromApi] = useState([]);
 
   useEffect(() => {
     getEvents()
@@ -183,15 +130,13 @@ function Events() {
   }, []);
 
   useEffect(() => {
-    getColleges()
-      .then((list) => setCollegesFromApi(Array.isArray(list) ? list : []))
+    Promise.all([getColleges(), getMajors()])
+      .then(([list, majors]) => {
+        setCollegesFromApi(
+          buildCanonicalCollegeOptions(Array.isArray(list) ? list : [], Array.isArray(majors) ? majors : [])
+        );
+      })
       .catch(() => setCollegesFromApi([]));
-  }, []);
-
-  useEffect(() => {
-    getCommunities()
-      .then((list) => setCommunitiesFromApi(Array.isArray(list) ? list : []))
-      .catch(() => setCommunitiesFromApi([]));
   }, []);
 
   const allEvents = useMemo(() => {
@@ -213,7 +158,7 @@ function Events() {
   }, [allEvents]);
   const [tab, setTab] = useState('all');
   const [college, setCollege] = useState('All Colleges');
-  const [community, setCommunity] = useState('All Communities');
+  const [community, setCommunity] = useState('All Organizers');
   const [showMore, setShowMore] = useState(false);
   const [dismissWelcome, setDismissWelcome] = useState(false);
   const [welcomeExiting, setWelcomeExiting] = useState(false);
@@ -222,36 +167,18 @@ function Events() {
 
   const eventColleges = useMemo(() => {
     const names = (collegesFromApi || []).map((c) => (c && c.name) ?? '').filter(Boolean);
-    return ['All Colleges', ...Array.from(new Set(names)).sort()];
+    return ['All Faculties', ...names];
   }, [collegesFromApi]);
 
-  const selectedCollegeId = useMemo(() => {
-    if (college === 'All Colleges') return null;
-    const c = (collegesFromApi || []).find((x) => (x && x.name) === college);
-    return c && c.id != null ? c.id : null;
-  }, [college, collegesFromApi]);
-
-  const communitiesForFilter = useMemo(() => {
-    const list = (communitiesFromApi || []).filter(Boolean);
-    if (selectedCollegeId == null) return list;
-    return list.filter((c) => Number(c.collegeId) === Number(selectedCollegeId));
-  }, [communitiesFromApi, selectedCollegeId]);
-
-  const eventCommunityOptions = useMemo(() => {
-    const all = { id: 'all-communities', name: 'All Communities' };
-    const byId = communitiesForFilter.filter(
-      (c, i, arr) => arr.findIndex((x) => x.id === c.id) === i
-    );
-    const byName = byId.filter(
-      (c, i, arr) => arr.findIndex((x) => (x.name || '') === (c.name || '')) === i
-    );
-    return [all, ...byName];
-  }, [communitiesForFilter]);
-
-  const eventCommunities = useMemo(
-    () => eventCommunityOptions.map((o) => o.name),
-    [eventCommunityOptions]
-  );
+  const eventOrganizerOptions = useMemo(() => {
+    const names = allEvents
+      .filter(Boolean)
+      .filter((e) => college === 'All Colleges' || eventMatchesCollegeFilter(e, college))
+      .map((e) => (e.organizer || '').trim())
+      .filter(Boolean);
+    const unique = Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
+    return ['All Organizers', ...unique];
+  }, [allEvents, college]);
 
   const startWelcomeExit = () => {
     if (welcomeExiting) return;
@@ -275,9 +202,9 @@ function Events() {
     return allEvents.filter((e) => {
       if (!e || e.id == null) return false;
       const matchTab = tab === 'all' ? true : (e.status || 'upcoming') === tab;
-      const matchCollege = college === 'All Colleges' ? true : (e.collegeName || '') === college;
-      const matchCommunity = community === 'All Communities' ? true : ((e.communityName ?? e.organizer) || '') === community;
-      return matchTab && matchCollege && matchCommunity;
+      const matchCollege = college === 'All Colleges' ? true : eventMatchesCollegeFilter(e, college);
+      const matchOrganizer = community === 'All Organizers' ? true : (e.organizer || '') === community;
+      return matchTab && matchCollege && matchOrganizer;
     });
   }, [allEvents, tab, college, community]);
 
@@ -289,9 +216,14 @@ function Events() {
   }, [tab, college, community]);
 
   useEffect(() => {
-    if (community === 'All Communities') return;
-    if (!eventCommunities.includes(community)) setCommunity('All Communities');
-  }, [college, selectedCollegeId, eventCommunities, community]);
+    if (community === 'All Organizers') return;
+    if (!eventOrganizerOptions.includes(community)) setCommunity('All Organizers');
+  }, [college, eventOrganizerOptions, community]);
+
+  useEffect(() => {
+    if (college === 'All Colleges') return;
+    if (!eventColleges.includes(college)) setCollege('All Colleges');
+  }, [eventColleges, college]);
 
   if (loading || eventsLoading) {
     return (
@@ -318,7 +250,7 @@ function Events() {
     );
   }
 
-  const welcomeText = isAdmin(user) ? 'Welcome, Admin' : isDean(user) ? 'Welcome, Dean' : isSupervisor(user) ? 'Welcome, Supervisor' : isCommunityLeader(user) ? 'Welcome, Community Leader' : isStudent(user) ? 'Welcome, Student' : `Welcome, ${user?.name || user?.email || 'User'}`;
+  const welcomeText = isAdmin(user) ? 'Welcome, Admin' : isDean(user) ? 'Welcome, Dean' : isSupervisor(user) ? 'Welcome, Supervisor' : isCommunityLeader(user) ? `Welcome, ${COMMUNITY_LEADER_DISPLAY_NAME}` : isStudent(user) ? 'Welcome, Student' : `Welcome, ${user?.name || user?.email || 'User'}`;
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
@@ -472,16 +404,14 @@ function Events() {
             </button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-slate-500" htmlFor="event-college">
-                College
-              </label>
+          <div className="flex flex-wrap items-center gap-3">
+            <div className="relative">
+              <label htmlFor="event-college" className="sr-only">College</label>
               <select
                 id="event-college"
                 value={college}
                 onChange={(e) => setCollege(e.target.value)}
-                className="h-[38px] min-w-[200px] rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 transition-[border-color,box-shadow] focus:border-[#00356b] focus:outline-none focus:ring-2 focus:ring-[#00356b]/20"
+                className="h-11 min-w-[220px] rounded-full border border-slate-200 bg-white px-4 pr-9 text-sm font-medium text-slate-700 transition-[border-color,box-shadow] focus:border-[#00356b] focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 appearance-none"
               >
                 {eventColleges.map((name) => (
                   <option key={name} value={name}>
@@ -489,23 +419,27 @@ function Events() {
                   </option>
                 ))}
               </select>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-medium text-slate-500" htmlFor="event-community">
-                Community
-              </label>
+            <div className="relative">
+              <label htmlFor="event-community" className="sr-only">Organizer</label>
               <select
                 id="event-community"
                 value={community}
                 onChange={(e) => setCommunity(e.target.value)}
-                className="h-[38px] min-w-[200px] rounded-lg border border-slate-200 bg-white px-3.5 py-2 text-sm text-slate-800 transition-[border-color,box-shadow] focus:border-[#00356b] focus:outline-none focus:ring-2 focus:ring-[#00356b]/20"
+                className="h-11 min-w-[220px] rounded-full border border-slate-200 bg-white px-4 pr-9 text-sm font-medium text-slate-700 transition-[border-color,box-shadow] focus:border-[#00356b] focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 appearance-none"
               >
-                {eventCommunityOptions.map((opt) => (
-                  <option key={opt.id} value={opt.name}>
-                    {opt.name}
+                {eventOrganizerOptions.map((name) => (
+                  <option key={name} value={name}>
+                    {name}
                   </option>
                 ))}
               </select>
+              <svg className="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2 h-4 w-4 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M19 9l-7 7-7-7" />
+              </svg>
             </div>
           </div>
           

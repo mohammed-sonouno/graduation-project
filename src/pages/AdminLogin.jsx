@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { loginWithPassword } from "../api";
+import { loginWithPassword } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { isStaff, getLoginRedirectPath } from "../utils/permissions";
 

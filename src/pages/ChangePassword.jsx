@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { apiUrl } from "../api";
+import { apiUrl } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { getLoginRedirectPath } from "../utils/permissions";
 import { validatePassword, getPasswordRules } from "../../config/rules.js";

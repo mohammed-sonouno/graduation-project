@@ -2,7 +2,7 @@
  * Backend API client. All data is read/written via these endpoints (nothing in localStorage/sessionStorage).
  * Auth is via httpOnly cookie; send credentials: 'include' on every request.
  */
-export const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:2000';
+export const API_BASE = (import.meta.env.VITE_API_URL ?? '').trim();
 
 export function apiUrl(path) {
   const p = path.startsWith('/') ? path : `/${path}`;
@@ -68,10 +68,31 @@ export async function loginWithPassword(email, password) {
 export async function apiRequest(path, options = {}) {
   const url = apiUrl(path);
   const headers = { ...options.headers, 'Content-Type': 'application/json' };
-  const res = await fetch(url, { credentials: 'include', ...options, headers });
+  const res = await fetch(url, {
+    credentials: 'include',
+    cache: 'no-store',
+    ...options,
+    headers,
+  });
   if (options.raw) return res;
   const text = await res.text();
-  const data = text ? JSON.parse(text) : null;
+  let data = null;
+  if (text) {
+    try {
+      data = JSON.parse(text);
+    } catch {
+      const snippet = res.status;
+      if (!res.ok) {
+        const err = new Error(
+          text.trimStart().startsWith('<!DOCTYPE') || text.trimStart().startsWith('<html')
+            ? `Request failed (${snippet}). The server returned a page instead of JSON — is the API URL correct and the backend running?`
+            : (text.slice(0, 200) || `Request failed (${snippet})`)
+        );
+        err.status = res.status;
+        throw err;
+      }
+    }
+  }
   if (!res.ok) {
     const err = new Error(data?.error || res.statusText || 'Request failed');
     err.status = res.status;
@@ -91,18 +112,133 @@ export async function getMajors(collegeId = null) {
   return apiRequest(`/api/majors${q}`);
 }
 
-// ---------- Communities (dean: only their college's; supervisor: only their one) ----------
-export async function getCommunities(collegeId = null) {
-  const q = collegeId != null ? `?college_id=${encodeURIComponent(collegeId)}` : '';
-  return apiRequest(`/api/communities${q}`);
+// ---------- Communities ----------
+export async function getCommunities(params = {}) {
+  const q = new URLSearchParams();
+  if (params.college) q.set('college', params.college);
+  if (params.kind) q.set('kind', params.kind);
+  if (params.search)  q.set('search',  params.search);
+  if (params.page)    q.set('page',    String(params.page));
+  if (params.limit)   q.set('limit',   String(params.limit));
+  if (params.includeMyRequestCards) q.set('includeMyRequestCards', String(params.includeMyRequestCards));
+  return apiRequest(`/api/communities${q.toString() ? '?' + q.toString() : ''}`);
 }
 
-export async function createCommunity(body) {
-  return apiRequest('/api/communities', { method: 'POST', body: JSON.stringify(body) });
+export async function getCommunity(id) {
+  return apiRequest(`/api/communities/${encodeURIComponent(id)}`);
+}
+
+export async function getCommunityMembers(id) {
+  return apiRequest(`/api/communities/${encodeURIComponent(id)}/members`);
 }
 
 export async function updateCommunity(id, body) {
-  return apiRequest(`/api/communities/${id}`, { method: 'PATCH', body: JSON.stringify(body) });
+  return apiRequest(`/api/communities/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Admin: POST /api/communities — legacy { name, collegeId, leaderId } or direct { name, description, colleges, image_url }. */
+export async function createCommunity(body) {
+  return apiRequest('/api/communities', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+export async function createCommunityDirect(body) {
+  return createCommunity(body);
+}
+
+export async function deleteCommunity(id) {
+  return apiRequest(`/api/communities/${encodeURIComponent(id)}`, {
+    method: 'DELETE',
+  });
+}
+
+export async function removeCommunityMember(communityId, userId) {
+  return apiRequest(
+    `/api/communities/${encodeURIComponent(communityId)}/members/${encodeURIComponent(userId)}`,
+    { method: 'DELETE' }
+  );
+}
+
+// ---------- Community requests ----------
+export async function getCommunityRequests(status = 'pending') {
+  return apiRequest(`/api/community-requests?status=${encodeURIComponent(status)}`);
+}
+
+export async function createCommunityRequest(body) {
+  return apiRequest('/api/community-requests', {
+    method: 'POST',
+    body: JSON.stringify(body),
+  });
+}
+
+/** Current user's pending/rejected community creation requests (for list cards). Optional college / search. */
+export async function getMyCommunityRequestCards(params = {}) {
+  const q = new URLSearchParams();
+  if (params.college) q.set('college', params.college);
+  if (params.search) q.set('search', params.search);
+  return apiRequest(`/api/community-requests/mine${q.toString() ? `?${q.toString()}` : ''}`);
+}
+
+/** Requester hides a pending/rejected request from their list (soft dismiss). */
+export async function dismissCommunityRequest(requestId) {
+  return apiRequest(`/api/community-requests/${encodeURIComponent(requestId)}/dismiss`, {
+    method: 'POST',
+  });
+}
+
+export async function reviewCommunityRequest(id, status) {
+  return apiRequest(`/api/community-requests/${encodeURIComponent(id)}/review`, {
+    method: 'PATCH',
+    body: JSON.stringify({ status }),
+  });
+}
+
+// ---------- Join requests ----------
+export async function requestJoinCommunity(communityId) {
+  return apiRequest(`/api/communities/${encodeURIComponent(communityId)}/join-requests`, {
+    method: 'POST',
+  });
+}
+
+export async function getJoinRequests(communityId, status = 'pending') {
+  return apiRequest(
+    `/api/communities/${encodeURIComponent(communityId)}/join-requests?status=${encodeURIComponent(status)}`
+  );
+}
+
+export async function reviewJoinRequest(communityId, requestId, status) {
+  return apiRequest(
+    `/api/communities/${encodeURIComponent(communityId)}/join-requests/${encodeURIComponent(requestId)}`,
+    { method: 'PATCH', body: JSON.stringify({ status }) }
+  );
+}
+
+// ---------- Community chat ----------
+export async function getChatMessages(communityId, before = null, limit = null) {
+  const params = new URLSearchParams();
+  if (before != null && before !== '') params.set('before', String(before));
+  if (limit != null) params.set('limit', String(limit));
+  const q = params.toString() ? `?${params.toString()}` : '';
+  return apiRequest(`/api/communities/${encodeURIComponent(communityId)}/messages${q}`);
+}
+
+export async function sendChatMessage(communityId, content) {
+  return apiRequest(`/api/communities/${encodeURIComponent(communityId)}/messages`, {
+    method: 'POST',
+    body: JSON.stringify({ content }),
+  });
+}
+
+export async function deleteChatMessage(communityId, messageId) {
+  return apiRequest(
+    `/api/communities/${encodeURIComponent(communityId)}/messages/${encodeURIComponent(messageId)}`,
+    { method: 'DELETE' }
+  );
 }
 
 // ---------- Admin: users and role assignments ----------

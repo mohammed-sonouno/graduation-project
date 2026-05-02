@@ -3,7 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin } from '../utils/permissions';
 import { scrollToTop } from '../utils/scroll';
-import { getEvent, registerForEvent, setEventFeatured, eventImageUrl, getEventReviews, submitEventReview } from '../api';
+import { getEvent, registerForEvent, setEventFeatured, eventImageUrl, getEventReviews, submitEventReview } from '../lib/api';
 import { REVIEW_MAX_CHARS } from '../../config/rules.js';
 
 const REVIEWS_SECTION_ID = 'event-reviews';
@@ -820,7 +820,7 @@ function EventDetails() {
                 </div>
                 {(event.communityName || event.collegeName) && (
                   <div>
-                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">Community & college</dt>
+                    <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500"> Association & Faculty</dt>
                     <dd className="mt-1 text-base text-slate-600">
                       {[event.communityName, event.collegeName].filter(Boolean).join(' · ')}
                     </dd>
@@ -833,7 +833,7 @@ function EventDetails() {
                       ? 'All students (any college and major)'
                       : [
                           event.targetCollegeNames?.length
-                            ? `Colleges: ${event.targetCollegeNames.join(', ')}`
+                            ? ` Faculties: ${event.targetCollegeNames.join(', ')}`
                             : 'Specific colleges',
                           event.targetAllMajors !== false
                             ? ' · All majors'
@@ -865,7 +865,7 @@ function EventDetails() {
               ) : isPending || regSubmitted ? (
                 <div className="rounded-lg bg-amber-50 border border-amber-200 px-4 py-3 text-sm text-amber-800">
                   <p className="font-semibold">Pending approval</p>
-                  <p className="mt-0.5">Your request is waiting for approval from the community leader. You will be notified when it is decided.</p>
+                  <p className="mt-0.5">Your request is waiting for approval from the association leader. You will be notified when it is decided.</p>
                 </div>
               ) : isFull ? (
                 <div className="rounded-lg bg-slate-100 border border-slate-200 px-4 py-3 text-sm text-slate-700">

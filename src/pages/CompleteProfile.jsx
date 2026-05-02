@@ -1,16 +1,17 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import { useNavigate, useLocation, useSearchParams } from "react-router-dom";
-import { apiUrl, getPendingRegistration } from "../api";
+import { apiUrl, getPendingRegistration } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { getLoginRedirectPath } from "../utils/permissions";
 import { validatePassword, getPasswordRules } from "../../config/rules.js";
+import { buildCanonicalCollegeOptions } from "../canonicalCollege";
 
 function CompleteProfile() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const { user: authUser, setUserAndToken } = useAuth();
-  const [colleges, setColleges] = useState([]);
+  const [collegesRaw, setCollegesRaw] = useState([]);
   const [majors, setMajors] = useState([]);
   const [pendingData, setPendingData] = useState(null);
   const [pendingSessionId, setPendingSessionId] = useState(null);
@@ -105,11 +106,16 @@ function CompleteProfile() {
       fetch(apiUrl("/api/majors"), { credentials: "include" }).then((r) => r.json()),
     ])
       .then(([c, m]) => {
-        setColleges(Array.isArray(c) ? c : []);
+        setCollegesRaw(Array.isArray(c) ? c : []);
         setMajors(Array.isArray(m) ? m : []);
       })
       .catch(() => {});
   }, []);
+
+  const colleges = useMemo(
+    () => buildCanonicalCollegeOptions(collegesRaw, majors),
+    [collegesRaw, majors]
+  );
 
   const availableMajors = form.collegeId
     ? majors.filter((m) => String(m.collegeId) === String(form.collegeId)).map((m) => m.name)

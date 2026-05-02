@@ -2,7 +2,8 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin } from '../utils/permissions';
-import { getAdminUsers, getColleges, getCommunities, assignDeanToCollege, assignSupervisorToCommunity } from '../api';
+import { getAdminUsers, getColleges, getMajors, getCommunities, assignDeanToCollege, assignSupervisorToCommunity } from '../lib/api';
+import { buildCanonicalCollegeOptions } from '../canonicalCollege';
 
 export default function AdminAssignments() {
   const navigate = useNavigate();
@@ -27,8 +28,16 @@ export default function AdminAssignments() {
     getAdminUsers('dean').then((list) => setDeans(Array.isArray(list) ? list : [])).catch(() => setDeans([]));
     getAdminUsers('supervisor').then((list) => setSupervisors(Array.isArray(list) ? list : [])).catch(() => setSupervisors([]));
     getAdminUsers('community_leader').then((list) => setLeaders(Array.isArray(list) ? list : [])).catch(() => setLeaders([]));
-    getColleges().then((list) => setColleges(Array.isArray(list) ? list : [])).catch(() => setColleges([]));
-    getCommunities().then((list) => setCommunities(Array.isArray(list) ? list : [])).catch(() => setCommunities([]));
+    Promise.all([getColleges(), getMajors()])
+      .then(([list, majors]) => {
+        setColleges(
+          buildCanonicalCollegeOptions(Array.isArray(list) ? list : [], Array.isArray(majors) ? majors : [])
+        );
+      })
+      .catch(() => setColleges([]));
+    getCommunities({ kind: 'association', limit: 100 })
+      .then((list) => setCommunities(Array.isArray(list) ? list : []))
+      .catch(() => setCommunities([]));
   }, [user]);
 
   const onAssignDean = (userId, collegeId) => {
@@ -78,13 +87,24 @@ export default function AdminAssignments() {
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
-      <section className="bg-[#0b2d52] border-b border-[#0b2d52]/80">
-        <div className="max-w-7xl mx-auto px-6 lg:px-10 py-6">
-          <Link to="/admin" className="text-sm text-white/80 hover:text-white">← Admin Portal</Link>
-          <h1 className="mt-2 text-2xl font-semibold text-white" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+      <section className="bg-[#f7f6f3] pt-6 pb-2">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <nav className="text-sm" aria-label="Breadcrumb">
+            <Link to="/admin" className="text-slate-500 hover:text-slate-700 transition-colors">
+              Admin Portal
+            </Link>
+            <span className="mx-2 text-slate-400" aria-hidden>&gt;</span>
+            <span className="font-semibold text-[#00356b]">Dean & Supervisor Assignments</span>
+          </nav>
+        </div>
+      </section>
+
+      <section className="bg-[#f7f6f3] pt-10 pb-6">
+        <div className="max-w-7xl mx-auto px-6 lg:px-10">
+          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-4" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
             Dean & Supervisor assignments
           </h1>
-          <p className="mt-1 text-sm text-white/80">Each dean is connected with one college; each college has one dean. Each community has one leader; each leader leads one community.</p>
+          <p className="mt-2 text-slate-600">Each dean is connected with one college; each college has one dean. Each community has one leader; each leader leads one community.</p>
         </div>
       </section>
 
@@ -158,7 +178,7 @@ export default function AdminAssignments() {
           </div>
           <div className="divide-y divide-slate-100">
             {leaders.length === 0 ? (
-              <div className="p-6 text-slate-500 text-sm">No users with role Community Leader.</div>
+              <div className="p-6 text-slate-500 text-sm">No users with role Association Leader.</div>
             ) : (
               leaders.map((l) => (
                 <div key={l.id} className="p-4 flex flex-wrap items-center gap-3">

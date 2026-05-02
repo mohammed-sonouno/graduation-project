@@ -3,10 +3,9 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin, isCommunityLeader, isSupervisor, canCreateEvents, canAccessManageEvents } from '../utils/permissions';
 import { scrollToTop } from '../utils/scroll';
-import { getAdminEvents, getEvent, createEvent, updateEvent, deleteEvent, getCommunities, getColleges, getMajors, eventImageUrl, uploadEventImage } from '../api';
+import { getAdminEvents, getEvent, createEvent, updateEvent, deleteEvent, getCommunities, getColleges, getMajors, eventImageUrl, uploadEventImage } from '../lib/api';
+import { buildCanonicalCollegeOptions } from '../canonicalCollege';
 import SmallApprovalStepper from '../components/SmallApprovalStepper';
-
-const HERO_BG = '/manage-events-hero.png';
 
 const STATUS_LABELS = {
   draft: 'DRAFT',
@@ -194,6 +193,7 @@ function ManageEvents() {
   const [events, setEvents] = useState([]);
   const [selectedId, setSelectedId] = useState(null);
   const [feedbackEvent, setFeedbackEvent] = useState(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [communities, setCommunities] = useState([]);
   const [form, setForm] = useState({
     title: '',
@@ -314,10 +314,13 @@ function ManageEvents() {
     if (!accessAllowed) return;
     if (fetchedRef.current) return;
     fetchedRef.current = true;
-    Promise.all([getCommunities(), getColleges()])
-      .then(([commList, collegeList]) => {
+    Promise.all([getCommunities({ kind: 'association', limit: 100 }), getColleges(), getMajors()])
+      .then(([commList, collegeList, majorList]) => {
         setCommunities(Array.isArray(commList) ? commList : []);
-        setColleges(Array.isArray(collegeList) ? collegeList : []);
+        const majorsAll = Array.isArray(majorList) ? majorList : [];
+        setColleges(
+          buildCanonicalCollegeOptions(Array.isArray(collegeList) ? collegeList : [], majorsAll)
+        );
       })
       .catch(() => {});
   }, [accessAllowed]);
@@ -431,7 +434,7 @@ function ManageEvents() {
       <div className="min-h-screen flex items-center justify-center bg-[#f7f6f3] px-4">
         <div className="max-w-md w-full text-center rounded-2xl border border-slate-200 bg-white shadow-sm p-8">
           <h1 className="text-xl font-semibold text-slate-900">Access restricted</h1>
-          <p className="mt-2 text-slate-600">Manage Events is available to administrators and community leaders only.</p>
+          <p className="mt-2 text-slate-600">Manage Events is available to administrators and association leaders only.</p>
           <Link
             to="/admin"
             className="mt-6 inline-block rounded-full bg-[#00356b] px-5 py-2.5 text-sm font-semibold text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30"
@@ -451,7 +454,9 @@ function ManageEvents() {
     if (!form.title?.trim()) err.title = 'Event title is required';
     if (!form.description?.trim()) err.description = 'Description is required';
     const hasCommunity = (form.communityId !== '' && form.communityId != null) || (isLeader && user?.community_id != null);
-    if (!hasCommunity) err.communityId = 'Club / Association is required (each event is connected to a community).';
+    if (!hasCommunity) err.communityId = communityLeader
+      ? 'Your account is not linked to any association. Contact the admin to assign your community.'
+      : 'Association (club/society) is required — pick an association that organizes events, not a student-only community.';
     if (!form.forAllColleges && (!Array.isArray(form.targetCollegeIds) || form.targetCollegeIds.length === 0)) {
       err.audience = 'Select at least one college when event is for specific colleges.';
     }
@@ -506,6 +511,7 @@ function ManageEvents() {
       targetAllMajors: form.targetAllMajors !== false,
       targetMajorIds: form.targetAllMajors ? [] : (form.targetMajorIds || []).map(Number).filter((n) => !Number.isNaN(n)),
     };
+    setIsSubmitting(true);
     try {
       if (selectedEvent) {
         await updateEvent(selectedEvent.id, payload);
@@ -526,10 +532,11 @@ function ManageEvents() {
         scrollToTop();
       }
     } catch (err) {
-      console.warn('Save event failed', err);
-      setFormErrors({ submit: err.data?.error || 'Failed to save event' });
+      console.error('Save event failed', err);
+      setFormErrors((prev) => ({ ...prev, submit: err.message || 'Failed to save event. Please try again.' }));
+    } finally {
+      setIsSubmitting(false);
     }
-    setFormErrors((prev) => ({ ...prev, submit: undefined }));
   };
 
   const handleAddNewEvent = () => {
@@ -567,81 +574,77 @@ function ManageEvents() {
 
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
-      {/* Hero with breadcrumb on picture */}
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#0b2d52]">
-        <div
-          className="absolute inset-0 opacity-90"
-          style={{
-            backgroundImage: `url(${HERO_BG})`,
-            backgroundSize: 'cover',
-            backgroundPosition: 'center 40%',
-            filter: 'brightness(0.85) contrast(1.05) saturate(1.1)',
-          }}
-          aria-hidden
-        />
-        <div
-          className="absolute inset-0"
-          style={{
-            background: 'linear-gradient(to right, rgba(11,45,82,0.82) 0%, rgba(11,45,82,0.5) 45%, rgba(11,45,82,0.2) 75%, transparent 100%)',
-          }}
-          aria-hidden
-        />
-        <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pt-6 pb-10">
-          {/* Breadcrumb on picture — light text for contrast */}
-          <nav className="text-sm mb-6" aria-label="Breadcrumb">
-            <Link to="/admin" className="text-white/80 hover:text-white transition-colors">
+      <section className="bg-[#f7f6f3] pt-6 pb-2">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <nav className="text-sm" aria-label="Breadcrumb">
+            <Link to="/admin" className="text-slate-500 hover:text-slate-700 transition-colors">
               Admin Portal
             </Link>
-            <span className="mx-2 text-white/60" aria-hidden>&gt;</span>
-            <span className="font-semibold text-white">Manage Events</span>
+            <span className="mx-2 text-slate-400" aria-hidden>&gt;</span>
+            <span className="font-semibold text-[#00356b]">Manage Events</span>
           </nav>
-        <div className="pt-4">
-          <div className="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-6">
-            <div>
-              <h1 className="font-serif text-3xl md:text-4xl font-semibold text-white leading-tight drop-shadow-[0_1px_2px_rgba(0,0,0,0.2)]">
-                Club Event Management
-              </h1>
-              <p className="mt-3 text-white/90 text-sm max-w-xl">
-                Oversee, approve, and manage all university club activities.
-              </p>
-            </div>
-            <div className="flex flex-col items-end gap-4 shrink-0 w-full sm:w-auto sm:min-w-[320px] lg:min-w-[360px]">
-              {allowCreateEvents && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    if (showForm) {
-                      setShowForm(false);
-                    } else {
-                      handleAddNewEvent();
-                      setShowForm(true);
-                    }
-                  }}
-                  className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-[#0b2d52] ${
-                    showForm
-                      ? 'border-2 border-white/80 bg-white/10 text-white hover:bg-white/20 focus:ring-white/50'
-                      : 'bg-white text-[#00356b] shadow-sm hover:bg-slate-50 focus:ring-[#00356b]/30'
-                  }`}
-                >
-                  {showForm ? (
-                    <>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                      Close form
-                    </>
-                  ) : (
-                    <>
-                      <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-                      </svg>
-                      Add new event
-                    </>
-                  )}
-                </button>
+        </div>
+      </section>
+
+      <section className="bg-[#f7f6f3] pt-10 pb-6">
+        <div className="max-w-6xl mx-auto px-6 lg:px-10">
+          <div className="text-center max-w-2xl mx-auto mb-6">
+            <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-4">
+              Manage Events
+            </h1>
+            <p className="text-slate-600 leading-relaxed">
+              Create, edit, and review university event submissions with the same workflow and quality standards across the admin portal.
+            </p>
+          </div>
+          <p className="text-center text-sm text-slate-500">
+            <span className="font-semibold text-slate-700">{events.length}</span> event{events.length !== 1 ? 's' : ''} in your list
+          </p>
+        </div>
+      </section>
+
+      <section className="max-w-6xl mx-auto px-6 lg:px-10 pb-2">
+        <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-5 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div>
+            <p className="text-sm font-semibold text-[#0b2d52]">Event management tools</p>
+            <p className="mt-1 text-sm text-slate-600">Use this page to add new events or update existing drafts and submissions.</p>
+          </div>
+          {allowCreateEvents && (
+            <button
+              type="button"
+              onClick={() => {
+                if (showForm) {
+                  setShowForm(false);
+                } else {
+                  handleAddNewEvent();
+                  setShowForm(true);
+                }
+              }}
+              className={`inline-flex items-center justify-center gap-2 rounded-full px-5 py-2.5 text-sm font-semibold transition-colors focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 ${
+                showForm
+                  ? 'border border-slate-300 bg-white text-slate-700 hover:bg-slate-50'
+                  : 'bg-[#00356b] text-white hover:bg-[#002a54]'
+              }`}
+            >
+              {showForm ? (
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                  </svg>
+                  Close form
+                </>
+              ) : (
+                <>
+                  <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+                  </svg>
+                  Add new event
+                </>
               )}
-              {showForm && (
-              <div className="w-full rounded-2xl border border-slate-200 bg-white shadow-lg p-6 max-h-[85vh] overflow-y-auto">
+            </button>
+          )}
+        </div>
+        {showForm && (
+          <div className="mt-6 rounded-2xl border border-slate-200 bg-white shadow-lg p-6 max-h-[85vh] overflow-y-auto">
                 <h2 className="font-serif text-xl font-semibold text-slate-900 border-b-2 border-[#00356b] pb-2 w-fit mb-4">
                   {selectedEvent ? 'Edit event' : 'Create / Edit event'}
                 </h2>
@@ -682,11 +685,11 @@ function ManageEvents() {
                     {admin && (
                       <div>
                         <label htmlFor="me-club" className="block text-sm font-semibold text-slate-700 mb-1.5">
-                          Club / Association name <span className="text-red-500">*</span>
+                          Association (club / society) <span className="text-red-500">*</span>
                         </label>
                         {communities.length === 0 ? (
                           <p className="w-full rounded-xl border border-slate-200 bg-slate-50 px-4 py-2.5 text-sm text-slate-500">
-                            No associations available.
+                            No associations registered. Create an association via Manage Communities (admin) before linking events.
                           </p>
                         ) : (
                           <select
@@ -695,7 +698,7 @@ function ManageEvents() {
                             onChange={(e) => setFormField('communityId', e.target.value)}
                             className={`w-full rounded-xl border bg-white px-4 py-2.5 text-sm text-slate-800 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] ${formErrors.communityId ? 'border-red-500' : 'border-slate-200'}`}
                           >
-                            <option value="">Select association (event is linked to community and its college)</option>
+                            <option value="">Select association — student communities are listed separately under Browse Communities</option>
                             {[...communities]
                               .sort((a, b) => (a.collegeName || '').localeCompare(b.collegeName || '') || (a.name || '').localeCompare(b.name || ''))
                               .map((c) => (
@@ -709,6 +712,9 @@ function ManageEvents() {
                           <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.communityId}</p>
                         )}
                       </div>
+                    )}
+                    {!admin && formErrors.communityId && (
+                      <p className="mt-1 text-sm text-red-600" role="alert">{formErrors.communityId}</p>
                     )}
                   </div>
                   <div className="rounded-xl border border-slate-200 bg-slate-50/50 p-4 space-y-4">
@@ -762,48 +768,7 @@ function ManageEvents() {
                         </div>
                       )}
                     </div>
-                    {!form.forAllColleges && form.targetCollegeIds.length > 0 && (
-                      <div>
-                        <span className="block text-xs font-medium text-slate-600 mb-2">Majors</span>
-                        <div className="flex flex-wrap gap-3">
-                          <label className="inline-flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="audience-majors"
-                              checked={form.targetAllMajors === true}
-                              onChange={() => setForm((prev) => ({ ...prev, targetAllMajors: true, targetMajorIds: [] }))}
-                              className="text-[#00356b] border-slate-300 focus:ring-[#00356b]"
-                            />
-                            <span className="text-sm text-slate-700">All majors</span>
-                          </label>
-                          <label className="inline-flex items-center gap-2 cursor-pointer">
-                            <input
-                              type="radio"
-                              name="audience-majors"
-                              checked={form.targetAllMajors === false}
-                              onChange={() => setFormField('targetAllMajors', false)}
-                              className="text-[#00356b] border-slate-300 focus:ring-[#00356b]"
-                            />
-                            <span className="text-sm text-slate-700">Specific majors</span>
-                          </label>
-                        </div>
-                        {!form.targetAllMajors && (
-                          <div className="mt-2">
-                            <select
-                              multiple
-                              value={form.targetMajorIds}
-                              onChange={(e) => setFormField('targetMajorIds', Array.from(e.target.selectedOptions, (o) => o.value))}
-                              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2 text-sm min-h-[80px]"
-                            >
-                              {majors.map((m) => (
-                                <option key={m.id} value={String(m.id)}>{m.name}</option>
-                              ))}
-                            </select>
-                            <p className="mt-1 text-xs text-slate-500">Hold Ctrl/Cmd to select multiple.</p>
-                          </div>
-                        )}
-                      </div>
-                    )}
+
                     {formErrors.audience && (
                       <p className="text-sm text-red-600" role="alert">{formErrors.audience}</p>
                     )}
@@ -938,16 +903,21 @@ function ManageEvents() {
                       </ul>
                     )}
                   </div>
-                  <button type="submit" className="w-full rounded-xl bg-[#00356b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 transition-colors">
-                    Submit for approval
+                  {formErrors.submit && (
+                    <p className="rounded-lg bg-red-50 border border-red-200 px-4 py-3 text-sm text-red-700" role="alert">
+                      {formErrors.submit}
+                    </p>
+                  )}
+                  <button
+                    type="submit"
+                    disabled={isSubmitting}
+                    className="w-full rounded-xl bg-[#00356b] px-6 py-3 text-sm font-semibold text-white hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 transition-colors disabled:opacity-60 disabled:cursor-not-allowed"
+                  >
+                    {isSubmitting ? 'Submitting…' : 'Submit for approval'}
                   </button>
                 </form>
               </div>
             )}
-            </div>
-          </div>
-        </div>
-        </div>
       </section>
 
       {/* Main: 3-column cards grid */}

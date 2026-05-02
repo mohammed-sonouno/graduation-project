@@ -3,7 +3,15 @@
  * The website reads user.role (and user.permissions derived from it) to decide what to show each user.
  * Values: admin, student, dean, supervisor, community_leader. Role 'user' is treated as Student in the UI.
  */
-import { isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole } from '../../config/rules.js';
+import {
+  isAdminRole,
+  isDeanRole,
+  isSupervisorRole,
+  isCommunityLeaderRole,
+  isStudentRole,
+  FACULTY_ENGINEERING_CANONICAL,
+} from '../../config/rules.js';
+import { normalizeCollege } from '../canonicalCollege';
 
 export {
   isAdminRole,
@@ -20,7 +28,20 @@ export {
   isStudentRole,
   STUDENT_ROLE,
   STUDENT_DISPLAY_NAME,
+  FACULTY_ENGINEERING_CANONICAL,
 } from '../../config/rules.js';
+
+/** Dean whose assigned college resolves to Faculty of Engineering (IEEE governance UI gate). */
+export function isFacultyOfEngineeringDean(user) {
+  if (!user || !isDean(user)) return false;
+  const label = user.collegeName || user.college || '';
+  return normalizeCollege(String(label)) === FACULTY_ENGINEERING_CANONICAL;
+}
+
+/** Association/community name IEEE (case-insensitive). */
+export function isIeeeCommunityEvent(ev) {
+  return String(ev?.communityName ?? '').trim().toLowerCase() === 'ieee';
+}
 
 /** True if user has full admin access (from API permissions or role). */
 export function isAdmin(user) {

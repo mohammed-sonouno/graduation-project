@@ -8,7 +8,27 @@ import jwt from 'jsonwebtoken';
 import path from 'path';
 import fs from 'fs';
 import { fileURLToPath } from 'url';
-import { isEmailAllowed, MIN_PASSWORD_LENGTH, validatePassword as validatePasswordRules, isAdminRole, isDeanRole, isSupervisorRole, isCommunityLeaderRole, isStudentRole, EVENT_REQUIRED_FIELDS } from '../config/rules.js';
+import {
+  isEmailAllowed,
+  MIN_PASSWORD_LENGTH,
+  validatePassword as validatePasswordRules,
+  isAdminRole,
+  isDeanRole,
+  isSupervisorRole,
+  isCommunityLeaderRole,
+  isStudentRole,
+  EVENT_REQUIRED_FIELDS,
+  FACULTY_ENGINEERING_CANONICAL,
+} from '../config/rules.js';
+import communitiesRouter from './routes/communities.js';
+import communityChatRouter from './routes/communityChat.js';
+import chatbotRouter from '../backend/src/routes/chatbot.js';
+import {
+  createGetMineHandler,
+  createPostDismissHandler,
+  fetchMineRequestRows,
+  mapCommunityRequestRow,
+} from './routes/communityRequestMineHandlers.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -74,6 +94,263 @@ const pool = new Pool({
   connectionString: process.env.DATABASE_URL || DEFAULT_DATABASE_URL,
 });
 
+/** True when `communities.college_id` exists (legacy). False when only `communities.colleges` text[] (migration 004). */
+let communitiesHasCollegeIdColumn = true;
+/** True when `communities.kind` exists (migration 041): student community vs association for events. */
+let communitiesHasKindColumn = false;
+/** Join fragment: events e → communities c → colleges col (resolved id + display name). */
+let COMMUNITIES_COLLEGE_JOIN_SQL = 'LEFT JOIN colleges col ON col.id = c.college_id';
+/** Join fragment: admin user list → community co → colleges cc (faculty name for supervisors/leaders). */
+let ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = 'LEFT JOIN colleges cc ON cc.id = co.college_id';
+let EVENTS_SELECT;
+let EVENTS_SELECT_LEGACY;
+let EVENTS_LIST_SELECT;
+let ADMIN_EVENTS_LIST_SELECT;
+let ADMIN_EVENTS_LIST_SELECT_LEGACY;
+let ADMIN_EVENTS_APPROVAL_SELECT;
+let ADMIN_EVENTS_APPROVAL_SELECT_LEGACY;
+
+function rebuildCommunitiesDependentSelects() {
+  const j = COMMUNITIES_COLLEGE_JOIN_SQL;
+  EVENTS_SELECT = `SELECT e.id, e.title, e.description, e.category, e.image, e.club_name AS "clubName", e.location,
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
+  e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember", e.featured, e.status, e.feedback,
+  e.approval_step AS "approvalStep", e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep", e.custom_sections AS "customSections", e.created_at AS "createdAt",
+  e.community_id AS "communityId", c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName",
+  COALESCE(e.for_all_colleges, true) AS "forAllColleges",
+  COALESCE(e.target_college_ids, '[]'::jsonb) AS "targetCollegeIds",
+  COALESCE(e.target_all_majors, true) AS "targetAllMajors",
+  COALESCE(e.target_major_ids, '[]'::jsonb) AS "targetMajorIds"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  EVENTS_SELECT_LEGACY = `SELECT e.id, e.title, e.description, e.category, e.image, e.club_name AS "clubName", e.location,
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
+  e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember", e.featured, e.status, e.feedback,
+  e.approval_step AS "approvalStep", e.rejected_at_step AS "rejectedAtStep", e.custom_sections AS "customSections", e.created_at AS "createdAt",
+  e.community_id AS "communityId", c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName",
+  COALESCE(e.for_all_colleges, true) AS "forAllColleges",
+  COALESCE(e.target_college_ids, '[]'::jsonb) AS "targetCollegeIds",
+  COALESCE(e.target_all_majors, true) AS "targetAllMajors",
+  COALESCE(e.target_major_ids, '[]'::jsonb) AS "targetMajorIds"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  EVENTS_LIST_SELECT = `SELECT e.id, e.title, e.description, e.image, e.start_date AS "startDate", e.start_time AS "startTime",
+  e.end_date AS "endDate", e.end_time AS "endTime", e.location, e.featured, e.status, e.category,
+  e.club_name AS "clubName", e.price, e.price_member AS "priceMember", e.created_at AS "createdAt",
+  c.name AS "communityName", col.name AS "collegeName"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  ADMIN_EVENTS_LIST_SELECT = `SELECT e.id, e.title, e.status,
+  COALESCE(e.approval_step, 0) AS "approvalStep",
+  e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep",
+  e.start_date AS "startDate", e.start_time AS "startTime",
+  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
+  e.feedback, e.community_id AS "communityId",
+  c.name AS "communityName", col.name AS "collegeName"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  ADMIN_EVENTS_LIST_SELECT_LEGACY = `SELECT e.id, e.title, e.status,
+  COALESCE(e.approval_step, 0) AS "approvalStep",
+  e.start_date AS "startDate", e.start_time AS "startTime",
+  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
+  e.feedback, e.community_id AS "communityId",
+  c.name AS "communityName", col.name AS "collegeName"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  ADMIN_EVENTS_APPROVAL_SELECT = `SELECT e.id, e.title, e.description, e.status,
+  COALESCE(e.approval_step, 0) AS "approvalStep",
+  e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep",
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
+  e.location, e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember",
+  e.category, e.club_name AS "clubName",
+  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
+  e.feedback, e.community_id AS "communityId",
+  e.custom_sections AS "customSections",
+  c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+
+  ADMIN_EVENTS_APPROVAL_SELECT_LEGACY = `SELECT e.id, e.title, e.description, e.status,
+  COALESCE(e.approval_step, 0) AS "approvalStep",
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
+  e.location, e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember",
+  e.category, e.club_name AS "clubName",
+  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
+  e.feedback, e.community_id AS "communityId",
+  e.custom_sections AS "customSections",
+  c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName"
+  FROM events e
+  LEFT JOIN communities c ON c.id = e.community_id
+  ${j}`;
+}
+
+async function detectCommunitiesCollegeSchema() {
+  try {
+    const r = await pool.query(
+      `SELECT column_name FROM information_schema.columns
+       WHERE table_schema = 'public' AND table_name = 'communities' AND column_name IN ('college_id', 'colleges', 'kind')`
+    );
+    const cols = new Set(r.rows.map((row) => row.column_name));
+    const hasCollegeId = cols.has('college_id');
+    const hasCollegesArr = cols.has('colleges');
+    communitiesHasCollegeIdColumn = hasCollegeId;
+    communitiesHasKindColumn = cols.has('kind');
+    if (hasCollegeId && hasCollegesArr) {
+      COMMUNITIES_COLLEGE_JOIN_SQL = `
+LEFT JOIN LATERAL (
+  SELECT COALESCE(
+    (SELECT id FROM colleges WHERE id = c.college_id LIMIT 1),
+    (
+      SELECT cl.id FROM colleges cl
+      WHERE cl.name = ANY(COALESCE(c.colleges, '{}'::text[]))
+      ORDER BY cl.id ASC
+      LIMIT 1
+    )
+  ) AS resolved_college_id
+) _community_college_resolve ON true
+LEFT JOIN colleges col ON col.id = _community_college_resolve.resolved_college_id`;
+      ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = `
+LEFT JOIN LATERAL (
+  SELECT COALESCE(
+    (SELECT id FROM colleges WHERE id = co.college_id LIMIT 1),
+    (
+      SELECT cl.id FROM colleges cl
+      WHERE cl.name = ANY(COALESCE(co.colleges, '{}'::text[]))
+      ORDER BY cl.id ASC
+      LIMIT 1
+    )
+  ) AS resolved_comm_college_id
+) _admin_u_cc ON co.id IS NOT NULL
+LEFT JOIN colleges cc ON cc.id = _admin_u_cc.resolved_comm_college_id`;
+    } else if (hasCollegeId) {
+      COMMUNITIES_COLLEGE_JOIN_SQL = 'LEFT JOIN colleges col ON col.id = c.college_id';
+      ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = 'LEFT JOIN colleges cc ON cc.id = co.college_id';
+    } else {
+      COMMUNITIES_COLLEGE_JOIN_SQL = `LEFT JOIN LATERAL (
+        SELECT (MIN(cl.id))::int AS id, string_agg(cl.name, ', ' ORDER BY cl.name) AS name
+        FROM colleges cl
+        WHERE cl.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+      ) col ON true`;
+      ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = `
+LEFT JOIN LATERAL (
+  SELECT (MIN(cl.id))::int AS id FROM colleges cl
+  WHERE cl.name = ANY(COALESCE(co.colleges, '{}'::text[]))
+) _admin_u_cc ON co.id IS NOT NULL
+LEFT JOIN colleges cc ON cc.id = _admin_u_cc.id`;
+    }
+    rebuildCommunitiesDependentSelects();
+    console.log(
+      `[schema] communities college link: ${
+        hasCollegeId && hasCollegesArr ? 'college_id+colleges[] (COALESCE)' : hasCollegeId ? 'college_id' : 'colleges[]'
+      }; kind column: ${communitiesHasKindColumn}`
+    );
+  } catch (err) {
+    console.warn('[schema] communities detection failed; using college_id join', err?.message || err);
+    communitiesHasCollegeIdColumn = true;
+    communitiesHasKindColumn = false;
+    COMMUNITIES_COLLEGE_JOIN_SQL = 'LEFT JOIN colleges col ON col.id = c.college_id';
+    ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = 'LEFT JOIN colleges cc ON cc.id = co.college_id';
+    rebuildCommunitiesDependentSelects();
+  }
+}
+
+rebuildCommunitiesDependentSelects();
+
+/** Whether this community is under the given college id (legacy: college_id column; new: college name in colleges[]). */
+async function communityBelongsToCollege(communityId, collegeId) {
+  if (communityId == null || collegeId == null) return false;
+  if (communitiesHasCollegeIdColumn) {
+    const r = await pool.query('SELECT college_id FROM communities WHERE id = $1', [communityId]);
+    return r.rows.length > 0 && Number(r.rows[0].college_id) === Number(collegeId);
+  }
+  const r = await pool.query(
+    `SELECT 1 FROM communities c
+     WHERE c.id = $1
+       AND EXISTS (
+         SELECT 1 FROM colleges col
+         WHERE col.id = $2 AND col.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+       )`,
+    [communityId, collegeId]
+  );
+  return r.rows.length > 0;
+}
+
+/** Load community row for linking an event; rejects student-only communities when `kind` exists. */
+async function fetchCommunityRowForEvent(communityId) {
+  const id = Number(communityId);
+  if (Number.isNaN(id)) return { error: 'Invalid community' };
+  const kindFrag = communitiesHasKindColumn ? ', kind' : '';
+  const cr = await pool.query(
+    communitiesHasCollegeIdColumn
+      ? `SELECT id, name, college_id${kindFrag} FROM communities WHERE id = $1`
+      : `SELECT id, name${kindFrag} FROM communities WHERE id = $1`,
+    [id]
+  );
+  const community = cr.rows[0];
+  if (!community) return { error: 'Community not found' };
+  if (communitiesHasKindColumn && community.kind !== 'association') {
+    return {
+      error:
+        'Events must be linked to an association (club/society), not a student-only community. Ask an admin to mark the organization as an association or pick another organizer.',
+    };
+  }
+  return { community };
+}
+
+/** In event+community queries, expose a numeric college id for dean approval checks (legacy column or resolved from colleges[]). */
+function sqlEventCommunityCollegeIdSelect() {
+  const collegeExpr = communitiesHasCollegeIdColumn
+    ? 'c.college_id AS college_id'
+    : '(SELECT MIN(cl.id) FROM colleges cl WHERE cl.name = ANY (COALESCE(c.colleges, \'{}\'::text[]))) AS college_id';
+  return `${collegeExpr}, c.name AS community_name`;
+}
+
+/** IEEE association events: dean approval step is restricted to Faculty of Engineering dean (server-enforced). */
+function eventRowIsIeeeGoverned(eventRow) {
+  const n = String(eventRow?.community_name ?? '').trim().toLowerCase();
+  return n === 'ieee';
+}
+
+async function userIsFacultyOfEngineeringDean(user) {
+  if (!user || !isDeanRole(user.role) || user.college_id == null) return false;
+  const r = await pool.query(
+    `SELECT 1 FROM colleges WHERE id = $1 AND lower(trim(name)) = lower(trim($2)) LIMIT 1`,
+    [user.college_id, FACULTY_ENGINEERING_CANONICAL]
+  );
+  return r.rows.length > 0;
+}
+
+/** Resolved numeric college id for notifications / dean routing (first match from colleges[]). */
+async function getResolvedCollegeIdForCommunity(communityId) {
+  if (communityId == null) return null;
+  if (communitiesHasCollegeIdColumn) {
+    const r = await pool.query('SELECT college_id AS cid FROM communities WHERE id = $1', [communityId]);
+    const cid = r.rows[0]?.cid;
+    return cid != null ? Number(cid) : null;
+  }
+  const r = await pool.query(
+    `SELECT (
+       SELECT MIN(cl.id) FROM colleges cl
+       WHERE cl.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+     ) AS cid
+     FROM communities c WHERE c.id = $1`,
+    [communityId]
+  );
+  const cid = r.rows[0]?.cid;
+  return cid != null ? Number(cid) : null;
+}
+
 const ADMIN_EMAIL = 'admin@najah.edu';
 const ADMIN_PASSWORD = '123';
 
@@ -113,6 +390,27 @@ async function ensureAdminUser() {
     return false;
   } finally {
     client.release();
+  }
+}
+
+/**
+ * Safety check: warn if staff roles that require a community are missing community_id.
+ * This should never crash the server; it's a data integrity warning only.
+ */
+async function ensureRoleAssignments() {
+  try {
+    const r = await pool.query(
+      `SELECT id, email, role
+       FROM app_users
+       WHERE role IN ('community_leader', 'supervisor')
+         AND community_id IS NULL
+       ORDER BY id`
+    );
+    for (const row of r.rows || []) {
+      console.warn(`WARNING: User ${row.email} has role ${row.role} but no community assigned.`);
+    }
+  } catch (err) {
+    console.warn('ensureRoleAssignments warning (non-fatal):', err?.message || err);
   }
 }
 
@@ -1111,11 +1409,16 @@ app.post('/api/auth/complete-profile', optionalAuth, requireAuth, async (req, re
   if (!first_name || !last_name || !student_number) {
     return res.status(400).json({ error: 'First name, family name, and student number are required.' });
   }
-  const collegeVal = body.college ? String(body.college).trim() : null;
+  const collegeRaw = body.college ? String(body.college).trim() : null;
   const majorVal = body.major ? String(body.major).trim() : null;
-  if (!collegeVal || !majorVal) {
+  if (!collegeRaw || !majorVal) {
     return res.status(400).json({ error: 'College and major are required for every student.' });
   }
+  const collegeCanon = await pool.query(
+    'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
+    [collegeRaw]
+  );
+  const collegeVal = collegeCanon.rows[0]?.name ?? collegeRaw;
   let hash = null;
   if (password) {
     const pwdCheck = validatePasswordRules(password);
@@ -1187,108 +1490,103 @@ app.get('/api/colleges', async (req, res) => {
   }
 });
 
-/** GET /api/communities — list communities. Dean: only their college's; Supervisor: only their one community; Admin/unauthenticated: all (or ?college_id= filter). */
+/** GET /api/communities — list all communities (no role-based filtering); optionalAuth for membership_status. */
 app.get('/api/communities', optionalAuth, async (req, res) => {
   try {
-    const user = req.user;
-    const collegeId = req.query.college_id != null ? req.query.college_id : (user?.role === 'dean' && user?.college_id != null ? String(user.college_id) : null);
+    const page   = Math.max(1, Number(req.query.page)  || 1);
+    const limit  = Math.max(1, Math.min(100, Number(req.query.limit) || 12));
+    const offset = (page - 1) * limit;
+    const search  = req.query.search  ? String(req.query.search).trim()  : null;
+    const college = req.query.college ? String(req.query.college).trim() : null;
+    const kindFilter = req.query.kind ? String(req.query.kind).trim() : null;
+    const userId  = req.user?.id || null;
 
-    const leaderSelect = `, leader.id AS "leaderId", leader.email AS "leaderEmail",
-      COALESCE(NULLIF(TRIM(leader.first_name || ' ' || COALESCE(leader.last_name, '')), ''), leader.email) AS "leaderName"`;
-    const leaderJoin = ` LEFT JOIN app_users leader ON leader.community_id = c.id AND leader.role IN ('supervisor', 'community_leader')`;
-
-    if ((user?.role === 'supervisor' || user?.role === 'community_leader') && user?.community_id != null) {
-      const r = await pool.query(
-        `SELECT c.id, c.name, c.college_id AS "collegeId", col.name AS "collegeName"${leaderSelect}
-         FROM communities c JOIN colleges col ON col.id = c.college_id${leaderJoin}
-         WHERE c.id = $1`,
-        [user.community_id]
-      );
-      return res.json(r.rows.length ? [r.rows[0]] : []);
-    }
-
-    let q = `SELECT c.id, c.name, c.college_id AS "collegeId", col.name AS "collegeName"${leaderSelect}
-      FROM communities c JOIN colleges col ON col.id = c.college_id${leaderJoin} WHERE 1=1`;
     const params = [];
-    if (collegeId) {
-      params.push(collegeId);
-      q += ` AND c.college_id = $${params.length}`;
+    let where = 'WHERE 1=1';
+
+    if (search) {
+      params.push(`%${search}%`);
+      where += ` AND (c.name ILIKE $${params.length} OR c.description ILIKE $${params.length})`;
     }
-    q += ' ORDER BY col.name, c.name';
-    const r = await pool.query(q, params);
-    res.json(r.rows);
+    if (college) {
+      params.push(college);
+      where += ` AND $${params.length} = ANY(c.colleges)`;
+    }
+    if (communitiesHasKindColumn && (kindFilter === 'community' || kindFilter === 'association')) {
+      params.push(kindFilter);
+      where += ` AND c.kind = $${params.length}`;
+    }
+
+    params.push(userId);
+    const mp = params.length;
+    params.push(limit, offset);
+
+    const kindSelect = communitiesHasKindColumn ? 'c.kind,' : '';
+    const result = await pool.query(
+      `SELECT c.id, c.name, c.description, c.colleges, c.image_url,
+              ${kindSelect}
+              c.chat_enabled, c.owner_id, c.created_at,
+              (SELECT COALESCE(NULLIF(TRIM(au.first_name || ' ' || COALESCE(au.last_name, '')), ''), au.email)
+               FROM app_users au WHERE au.id = c.owner_id) AS owner_name,
+              COUNT(DISTINCT cm.user_id)::int AS member_count,
+              CASE
+                WHEN c.owner_id = $${mp} THEN 'owner'
+                WHEN EXISTS (
+                  SELECT 1 FROM community_members
+                  WHERE community_id = c.id AND user_id = $${mp}
+                ) THEN 'member'
+                WHEN EXISTS (
+                  SELECT 1 FROM join_requests
+                  WHERE community_id = c.id AND user_id = $${mp} AND status = 'pending'
+                ) THEN 'pending'
+                ELSE 'none'
+              END AS membership_status
+       FROM communities c
+       LEFT JOIN community_members cm ON cm.community_id = c.id
+       ${where}
+       GROUP BY c.id
+       ORDER BY member_count DESC
+       LIMIT $${params.length - 1} OFFSET $${params.length}`,
+      params
+    );
+    const includeMy =
+      (req.query.includeMyRequestCards === '1' || req.query.includeMyRequestCards === 'true') &&
+      userId &&
+      page === 1;
+    let outRows = result.rows;
+    if (includeMy) {
+      try {
+        const mineDbRows = await fetchMineRequestRows(pool, userId, search, college);
+        outRows = [...mineDbRows.map(mapCommunityRequestRow), ...result.rows];
+      } catch (e) {
+        console.warn('includeMyRequestCards merge skipped:', e?.message || e);
+      }
+    }
+    res.set('Cache-Control', 'no-store, no-cache, must-revalidate');
+    res.json(outRows);
   } catch (err) {
-    console.error('communities list error:', err);
+    console.error('GET /api/communities error:', err);
     res.status(500).json({ error: 'Failed to load communities' });
   }
 });
 
-/** POST /api/communities — admin only. Body: { name, collegeId, leaderId }. Each community must have a supervisor. */
-app.post('/api/communities', optionalAuth, requireAuth, requireAdmin, async (req, res) => {
-  try {
-    const { name, collegeId, leaderId } = req.body || {};
-    if (!name || collegeId == null) return res.status(400).json({ error: 'name and collegeId are required' });
-    if (leaderId == null || leaderId === '') return res.status(400).json({ error: 'leaderId is required. Each community must have a supervisor.' });
-    const leaderIdNum = Number(leaderId);
-    if (Number.isNaN(leaderIdNum)) return res.status(400).json({ error: 'Invalid leaderId' });
-    const userCheck = await pool.query('SELECT id, role FROM app_users WHERE id = $1', [leaderIdNum]);
-    if (userCheck.rows.length === 0) return res.status(404).json({ error: 'Leader user not found' });
-    const role = userCheck.rows[0].role;
-    if (role !== 'supervisor' && role !== 'community_leader') return res.status(400).json({ error: 'Leader must have role supervisor or community_leader' });
-    const r = await pool.query(
-      'INSERT INTO communities (name, college_id) VALUES ($1, $2) RETURNING id, name, college_id AS "collegeId"',
-      [String(name).trim(), Number(collegeId)]
-    );
-    const newId = r.rows[0].id;
-    await pool.query('UPDATE app_users SET community_id = $1 WHERE id = $2', [newId, leaderIdNum]);
-    res.status(201).json(r.rows[0]);
-  } catch (err) {
-    if (err?.code === '23503') return res.status(400).json({ error: 'Invalid college' });
-    if (err?.code === '23505') return res.status(409).json({ error: 'A community with this name already exists in this college' });
-    console.error('communities create error:', err);
-    res.status(500).json({ error: 'Failed to create community' });
-  }
-});
+/** My pending/rejected community creation requests + dismiss (registered here so the route is not missed). */
+app.get(
+  '/api/community-requests/mine',
+  optionalAuth,
+  requireAuth,
+  createGetMineHandler(pool)
+);
+app.post(
+  '/api/community-requests/:id/dismiss',
+  optionalAuth,
+  requireAuth,
+  createPostDismissHandler(pool)
+);
 
-/** PATCH /api/communities/:id — admin: any community; dean: only communities of their college. Body: { name }. */
-app.patch('/api/communities/:id', optionalAuth, requireAuth, async (req, res) => {
-  try {
-    const communityId = Number(req.params.id);
-    const { name } = req.body || {};
-    if (!name || !String(name).trim()) return res.status(400).json({ error: 'name is required' });
-    const existing = await pool.query(
-      'SELECT c.id, c.name, c.college_id FROM communities c WHERE c.id = $1',
-      [communityId]
-    );
-    if (existing.rows.length === 0) return res.status(404).json({ error: 'Community not found' });
-    const row = existing.rows[0];
-    const isAdmin = isAdminRole(req.user.role);
-    const isDean = isDeanRole(req.user.role);
-    const isCommunityLeader = isCommunityLeaderRole(req.user.role);
-    if (!isAdmin && !isDean && !isCommunityLeader) return res.status(403).json({ error: 'Only admin, dean, or community leader can edit communities' });
-    if (isDean && !isAdmin) {
-      if (req.user.college_id == null || Number(row.college_id) !== Number(req.user.college_id)) {
-        return res.status(403).json({ error: 'You can only edit communities of your college' });
-      }
-    }
-    if (isCommunityLeader && !isAdmin) {
-      if (req.user.community_id == null || Number(row.id) !== Number(req.user.community_id)) {
-        return res.status(403).json({ error: 'You can only edit the community you lead' });
-      }
-    }
-    const r = await pool.query(
-      'UPDATE communities SET name = $1 WHERE id = $2 RETURNING id, name, college_id AS "collegeId"',
-      [String(name).trim(), communityId]
-    );
-    const updated = r.rows[0];
-    const collegeName = (await pool.query('SELECT name FROM colleges WHERE id = $1', [updated.collegeId])).rows[0]?.name;
-    res.json({ ...updated, collegeName });
-  } catch (err) {
-    if (err?.code === '23505') return res.status(409).json({ error: 'A community with this name already exists in this college' });
-    console.error('communities update error:', err);
-    res.status(500).json({ error: 'Failed to update community' });
-  }
-});
+/** POST /api/communities — handled by communitiesRouter (admin: direct create or legacy leader assignment). */
+
+/** PATCH /api/communities/:id — handled by communitiesRouter (owner/admin profile + staff rename). */
 
 /** GET /api/majors?collegeId= (optional) */
 app.get('/api/majors', async (req, res) => {
@@ -1337,93 +1635,6 @@ async function getMajorById(req, res) {
 app.get('/api/majors/:id', getMajorById);
 /** GET /api/programs/:id — alias for MajorDetails page. */
 app.get('/api/programs/:id', getMajorById);
-
-const EVENTS_SELECT = `SELECT e.id, e.title, e.description, e.category, e.image, e.club_name AS "clubName", e.location,
-  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
-  e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember", e.featured, e.status, e.feedback,
-  e.approval_step AS "approvalStep", e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep", e.custom_sections AS "customSections", e.created_at AS "createdAt",
-  e.community_id AS "communityId", c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName",
-  COALESCE(e.for_all_colleges, true) AS "forAllColleges",
-  COALESCE(e.target_college_ids, '[]'::jsonb) AS "targetCollegeIds",
-  COALESCE(e.target_all_majors, true) AS "targetAllMajors",
-  COALESCE(e.target_major_ids, '[]'::jsonb) AS "targetMajorIds"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-/** Same as EVENTS_SELECT but without requested_changes_at_step (for DBs before migration 034). */
-const EVENTS_SELECT_LEGACY = `SELECT e.id, e.title, e.description, e.category, e.image, e.club_name AS "clubName", e.location,
-  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
-  e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember", e.featured, e.status, e.feedback,
-  e.approval_step AS "approvalStep", e.rejected_at_step AS "rejectedAtStep", e.custom_sections AS "customSections", e.created_at AS "createdAt",
-  e.community_id AS "communityId", c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName",
-  COALESCE(e.for_all_colleges, true) AS "forAllColleges",
-  COALESCE(e.target_college_ids, '[]'::jsonb) AS "targetCollegeIds",
-  COALESCE(e.target_all_majors, true) AS "targetAllMajors",
-  COALESCE(e.target_major_ids, '[]'::jsonb) AS "targetMajorIds"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-const EVENTS_LIST_SELECT = `SELECT e.id, e.title, e.description, e.image, e.start_date AS "startDate", e.start_time AS "startTime",
-  e.end_date AS "endDate", e.end_time AS "endTime", e.location, e.featured, e.status, e.category,
-  e.club_name AS "clubName", e.price, e.price_member AS "priceMember", e.created_at AS "createdAt",
-  c.name AS "communityName", col.name AS "collegeName"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-/** Minimal fields for Manage Events list only. No description, customSections, or JSONB arrays.
- * Image: return NULL when stored as base64 data URL to avoid huge payloads; frontend uses default image. */
-const ADMIN_EVENTS_LIST_SELECT = `SELECT e.id, e.title, e.status,
-  COALESCE(e.approval_step, 0) AS "approvalStep",
-  e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep",
-  e.start_date AS "startDate", e.start_time AS "startTime",
-  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
-  e.feedback, e.community_id AS "communityId",
-  c.name AS "communityName", col.name AS "collegeName"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-/** Same as above but without rejected_at_step (for DBs that have not run migration 032). */
-const ADMIN_EVENTS_LIST_SELECT_LEGACY = `SELECT e.id, e.title, e.status,
-  COALESCE(e.approval_step, 0) AS "approvalStep",
-  e.start_date AS "startDate", e.start_time AS "startTime",
-  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
-  e.feedback, e.community_id AS "communityId",
-  c.name AS "communityName", col.name AS "collegeName"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-/** Full fields for Event Approval page cards (description, customSections, etc.). */
-const ADMIN_EVENTS_APPROVAL_SELECT = `SELECT e.id, e.title, e.description, e.status,
-  COALESCE(e.approval_step, 0) AS "approvalStep",
-  e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep",
-  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
-  e.location, e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember",
-  e.category, e.club_name AS "clubName",
-  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
-  e.feedback, e.community_id AS "communityId",
-  e.custom_sections AS "customSections",
-  c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
-
-const ADMIN_EVENTS_APPROVAL_SELECT_LEGACY = `SELECT e.id, e.title, e.description, e.status,
-  COALESCE(e.approval_step, 0) AS "approvalStep",
-  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
-  e.location, e.available_seats AS "availableSeats", e.price, e.price_member AS "priceMember",
-  e.category, e.club_name AS "clubName",
-  (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
-  e.feedback, e.community_id AS "communityId",
-  e.custom_sections AS "customSections",
-  c.name AS "communityName", col.id AS "collegeId", col.name AS "collegeName"
-  FROM events e
-  LEFT JOIN communities c ON c.id = e.community_id
-  LEFT JOIN colleges col ON col.id = c.college_id`;
 
 /** GET /api/events — public list (approved). Returns minimal fields for cards; use GET /api/events/:id for full details. */
 app.get('/api/events', optionalAuth, async (req, res) => {
@@ -1556,21 +1767,23 @@ app.post('/api/events', optionalAuth, requireAuth, async (req, res) => {
     if (isAdminUser) {
       const bodyCommunityId = b.communityId != null && b.communityId !== '' ? Number(b.communityId) : null;
       if (bodyCommunityId == null || Number.isNaN(bodyCommunityId)) {
-        return res.status(400).json({ error: 'Admin must provide a community (Club / Association) for the event.' });
+        return res.status(400).json({ error: 'Admin must choose an association (club/society) as the event organizer.' });
       }
       communityId = bodyCommunityId;
-      const cr = await pool.query('SELECT id, name, college_id FROM communities WHERE id = $1', [communityId]);
-      const community = cr.rows[0];
-      if (!community) return res.status(400).json({ error: 'Community not found' });
-      clubName = community.name || 'University';
+      const resolved = await fetchCommunityRowForEvent(communityId);
+      if (resolved.error) return res.status(400).json({ error: resolved.error });
+      clubName = resolved.community.name || 'University';
     } else if (isLeaderUser) {
       communityId = Number(user.community_id);
-      const cr = await pool.query('SELECT id, name, college_id FROM communities WHERE id = $1', [communityId]);
-      const community = cr.rows[0];
-      if (!community) return res.status(400).json({ error: 'Community not found' });
-      clubName = community.name || 'University';
+      const resolved = await fetchCommunityRowForEvent(communityId);
+      if (resolved.error) return res.status(400).json({
+        error: resolved.error === 'Community not found'
+          ? 'Your account is linked to a community that no longer exists. Ask an admin to re-assign your community.'
+          : resolved.error,
+      });
+      clubName = resolved.community.name || 'University';
     } else {
-      return res.status(403).json({ error: 'Only community leaders or admin can create events.' });
+      return res.status(403).json({ error: 'Only association leaders or admin can create events.' });
     }
 
     const validationError = validateRequiredEventFields(b);
@@ -1725,20 +1938,20 @@ app.put('/api/events/:id', optionalAuth, requireAuth, async (req, res) => {
         return res.status(400).json({ error: 'Your account is not linked to a community. Contact an administrator.' });
       }
       communityId = Number(user.community_id);
-      const cr = await pool.query('SELECT id, name, college_id FROM communities WHERE id = $1', [communityId]);
-      const community = cr.rows[0];
-      if (!community) return res.status(400).json({ error: 'Community not found' });
-      clubName = community.name || 'University';
+      const resolvedLeader = await fetchCommunityRowForEvent(communityId);
+      if (resolvedLeader.error) return res.status(400).json({ error: resolvedLeader.error });
+      clubName = resolvedLeader.community.name || 'University';
     } else {
       if (b.communityId == null || b.communityId === '') {
         return res.status(400).json({ error: 'communityId is required. Each event must be connected to a community.' });
       }
       communityId = Number(b.communityId);
-      const cr = await pool.query('SELECT id, name, college_id FROM communities WHERE id = $1', [communityId]);
-      const community = cr.rows[0];
-      if (!community) return res.status(400).json({ error: 'Community not found' });
+      const resolvedPut = await fetchCommunityRowForEvent(communityId);
+      if (resolvedPut.error) return res.status(400).json({ error: resolvedPut.error });
+      const community = resolvedPut.community;
       if (isDean && !isAdmin) {
-        if (user.college_id == null || Number(community.college_id) !== Number(user.college_id)) {
+        const okCollege = await communityBelongsToCollege(communityId, user.college_id);
+        if (user.college_id == null || !okCollege) {
           return res.status(403).json({ error: 'You can assign events only to communities in your college' });
         }
       }
@@ -1826,8 +2039,7 @@ app.put('/api/events/:id', optionalAuth, requireAuth, async (req, res) => {
     } else if (finalStatus === 'pending_dean' || finalStatus === 'pending_admin') {
       const eventAfter = await pool.query('SELECT community_id FROM events WHERE id = $1', [id]);
       const communityIdForNotif = eventAfter.rows[0]?.community_id;
-      const cRow = communityIdForNotif ? (await pool.query('SELECT college_id FROM communities WHERE id = $1', [communityIdForNotif])).rows[0] : null;
-      const collegeIdForNotif = cRow?.college_id;
+      const collegeIdForNotif = communityIdForNotif != null ? await getResolvedCollegeIdForCommunity(communityIdForNotif) : null;
       if (finalStatus === 'pending_dean' && collegeIdForNotif != null) {
         const deanIds = await getUserIdsByRoleForNotification('dean', { collegeId: collegeIdForNotif });
         for (const uid of deanIds) {
@@ -1886,7 +2098,7 @@ app.patch('/api/events/:id/request-changes', optionalAuth, requireAuth, async (r
     const er = await pool.query(
       `SELECT e.id, e.status, COALESCE(e.approval_step, 0) AS approval_step,
               e.community_id, e.created_by,
-              c.college_id AS college_id
+              ${sqlEventCommunityCollegeIdSelect()}
        FROM events e
        LEFT JOIN communities c ON c.id = e.community_id
        WHERE e.id = $1`,
@@ -1904,7 +2116,11 @@ app.patch('/api/events/:id/request-changes', optionalAuth, requireAuth, async (r
     if (isPendingSupervisor && isSupervisor && user?.community_id != null && event.community_id != null) {
       allowed = Number(user.community_id) === Number(event.community_id);
     } else if (isPendingDean && isDean && user?.college_id != null && event.college_id != null) {
-      allowed = Number(user.college_id) === Number(event.college_id);
+      if (eventRowIsIeeeGoverned(event)) {
+        allowed = await userIsFacultyOfEngineeringDean(user);
+      } else {
+        allowed = Number(user.college_id) === Number(event.college_id);
+      }
     } else if (isPendingAdmin && isAdmin) {
       allowed = true;
     }
@@ -1976,7 +2192,7 @@ app.patch('/api/events/:id/approve', optionalAuth, requireAuth, async (req, res)
     const er = await pool.query(
       `SELECT e.id, e.status, COALESCE(e.approval_step, 0) AS approval_step,
               e.community_id, e.created_by,
-              c.college_id AS college_id
+              ${sqlEventCommunityCollegeIdSelect()}
        FROM events e
        LEFT JOIN communities c ON c.id = e.community_id
        WHERE e.id = $1`,
@@ -2010,13 +2226,24 @@ app.patch('/api/events/:id/approve', optionalAuth, requireAuth, async (req, res)
       nextStep = 1;
       newStatus = 'pending_dean';
     } else if (isPendingDean) {
-      const isCollegeDean =
-        isDean &&
-        user?.college_id != null &&
-        event.college_id != null &&
-        Number(user.college_id) === Number(event.college_id);
-      if (!isCollegeDean) {
-        return res.status(403).json({ error: 'Only the dean of this college can approve at this step. Admin cannot approve before dean.' });
+      let deanOk = false;
+      if (eventRowIsIeeeGoverned(event)) {
+        deanOk = await userIsFacultyOfEngineeringDean(user);
+        if (!deanOk) {
+          return res.status(403).json({
+            error:
+              'IEEE events must be approved at this step by the Dean of Faculty of Engineering only.',
+          });
+        }
+      } else {
+        deanOk =
+          isDean &&
+          user?.college_id != null &&
+          event.college_id != null &&
+          Number(user.college_id) === Number(event.college_id);
+        if (!deanOk) {
+          return res.status(403).json({ error: 'Only the dean of this college can approve at this step. Admin cannot approve before dean.' });
+        }
       }
       nextStep = 2;
       newStatus = 'pending_admin';
@@ -2077,7 +2304,7 @@ app.patch('/api/events/:id/reject', optionalAuth, requireAuth, async (req, res) 
     const er = await pool.query(
       `SELECT e.id, e.status, COALESCE(e.approval_step, 0) AS approval_step,
               e.community_id, e.created_by,
-              c.college_id AS college_id
+              ${sqlEventCommunityCollegeIdSelect()}
        FROM events e
        LEFT JOIN communities c ON c.id = e.community_id
        WHERE e.id = $1`,
@@ -2095,7 +2322,11 @@ app.patch('/api/events/:id/reject', optionalAuth, requireAuth, async (req, res) 
     if (isPendingSupervisor && isSupervisor && user?.community_id != null && event.community_id != null) {
       allowed = Number(user.community_id) === Number(event.community_id);
     } else if (isPendingDean && isDean && user?.college_id != null && event.college_id != null) {
-      allowed = Number(user.college_id) === Number(event.college_id);
+      if (eventRowIsIeeeGoverned(event)) {
+        allowed = await userIsFacultyOfEngineeringDean(user);
+      } else {
+        allowed = Number(user.college_id) === Number(event.college_id);
+      }
     } else if (isPendingAdmin && isAdmin) {
       allowed = true;
     }
@@ -2394,7 +2625,7 @@ app.get('/api/admin/event-registrations', optionalAuth, requireAuth, requireAdmi
                FROM event_registrations er
                JOIN events e ON e.id = er.event_id
                LEFT JOIN communities c ON c.id = e.community_id
-               LEFT JOIN colleges col ON col.id = c.college_id
+               ${COMMUNITIES_COLLEGE_JOIN_SQL}
                JOIN app_users u ON u.id = er.user_id
                ${where}
                ORDER BY er.created_at DESC, er.id DESC`;
@@ -3145,6 +3376,14 @@ app.put('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
       const saved = saveBase64ImageToUploads(pictureVal, `avatar-${req.user.id}`);
       if (saved) pictureVal = saved;
     }
+    let collegeToStore = b.college || null;
+    if (collegeToStore) {
+      const canon = await pool.query(
+        'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
+        [String(collegeToStore).trim()]
+      );
+      if (canon.rows[0]?.name) collegeToStore = canon.rows[0].name;
+    }
     await pool.query(
       `INSERT INTO student_profiles (user_id, college, major, gpa, credits_earned, credits_total, picture, updated_at)
        VALUES ($1,$2,$3,$4,$5,$6,$7,NOW())
@@ -3156,7 +3395,7 @@ app.put('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
          credits_total=COALESCE(EXCLUDED.credits_total, student_profiles.credits_total),
          picture=COALESCE(EXCLUDED.picture, student_profiles.picture),
          updated_at=NOW()`,
-      [req.user.id, b.college || null, b.major || null, b.gpa ?? null, b.creditsEarned ?? null, b.creditsTotal ?? null, pictureVal || null]
+      [req.user.id, collegeToStore, b.major || null, b.gpa ?? null, b.creditsEarned ?? null, b.creditsTotal ?? null, pictureVal || null]
     );
     const r = await pool.query('SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture FROM student_profiles WHERE user_id = $1', [req.user.id]);
     res.json(r.rows[0] || {});
@@ -3234,8 +3473,15 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
           q += ` AND e.status = 'pending_supervisor' AND e.community_id = $1`;
           params.push(user.community_id);
         } else if (isDean && !isAdmin && user?.college_id != null) {
-          q += ` AND e.status IN ('pending_supervisor','pending_dean') AND c.college_id = $1`;
           params.push(user.college_id);
+          if (communitiesHasCollegeIdColumn) {
+            q += ` AND e.status IN ('pending_supervisor','pending_dean') AND c.college_id = $1`;
+          } else {
+            q += ` AND e.status IN ('pending_supervisor','pending_dean') AND EXISTS (
+              SELECT 1 FROM colleges col_dean
+              WHERE col_dean.id = $1::int AND col_dean.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+            )`;
+          }
         } else if (isAdmin) {
           q += ` AND e.status IN ('pending_supervisor','pending_dean','pending_admin')`;
         } else if (isLeader) {
@@ -3249,7 +3495,14 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
           q += ` AND e.community_id = $${params.length}`;
         } else if (isDean && !isAdmin) {
           params.push(user.college_id);
-          q += ` AND c.college_id = $${params.length}`;
+          if (communitiesHasCollegeIdColumn) {
+            q += ` AND c.college_id = $${params.length}`;
+          } else {
+            q += ` AND EXISTS (
+              SELECT 1 FROM colleges col_dean
+              WHERE col_dean.id = $${params.length}::int AND col_dean.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+            )`;
+          }
         }
         if (pastOnly) {
           // Only include completed events: end date/time strictly before now.
@@ -3305,13 +3558,22 @@ app.get('/api/admin/users', optionalAuth, requireAuth, async (req, res) => {
     if (!isAdmin && !isDean) return res.status(403).json({ error: 'Only admin or dean can list users. Community leaders cannot view or edit user information.' });
 
     const roleFilter = req.query.role;
-    const baseSelect = 'SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", u.college AS "collegeText", c.name AS "collegeName", co.name AS "communityName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id';
+    const baseSelect = `SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", u.college AS "collegeText", c.name AS "collegeName", co.name AS "communityName", cc.name AS "assignedCollegeName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id ${ADMIN_USERS_COMMUNITY_COLLEGE_JOIN}`;
     let q = baseSelect + ' WHERE 1=1';
     const params = [];
 
     if (isDean && !isAdmin && user?.college_id != null) {
       params.push(user.college_id);
-      q += ` AND (u.college_id = $${params.length} OR u.community_id IN (SELECT id FROM communities WHERE college_id = $${params.length}) OR (u.role = 'student' AND TRIM(COALESCE(u.college, '')) = (SELECT TRIM(name) FROM colleges WHERE id = $${params.length})))`;
+      const communityInDeanCollege = communitiesHasCollegeIdColumn
+        ? `u.community_id IN (SELECT id FROM communities WHERE college_id = $${params.length})`
+        : `u.community_id IN (
+             SELECT c.id FROM communities c
+             WHERE EXISTS (
+               SELECT 1 FROM colleges col
+               WHERE col.id = $${params.length}::int AND col.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+             )
+           )`;
+      q += ` AND (u.college_id = $${params.length} OR ${communityInDeanCollege} OR (u.role = 'student' AND TRIM(COALESCE(u.college, '')) = (SELECT TRIM(name) FROM colleges WHERE id = $${params.length})))`;
     }
     if (roleFilter) {
       params.push(roleFilter);
@@ -3359,10 +3621,19 @@ app.patch('/api/admin/users/:id', optionalAuth, requireAuth, async (req, res) =>
       const deanCollegeId = editor.college_id;
       if (deanCollegeId == null) return res.status(403).json({ error: 'You must be assigned to a college to edit users.' });
       const deanCollegeName = (await pool.query('SELECT name FROM colleges WHERE id = $1', [deanCollegeId])).rows[0]?.name || '';
+      const communityMatch = targetUser.community_id != null
+        ? communitiesHasCollegeIdColumn
+          ? (await pool.query('SELECT 1 FROM communities WHERE id = $1 AND college_id = $2', [targetUser.community_id, deanCollegeId])).rows.length > 0
+          : (await pool.query(
+              `SELECT 1 FROM communities c WHERE c.id = $1
+               AND EXISTS (SELECT 1 FROM colleges col WHERE col.id = $2 AND col.name = ANY (COALESCE(c.colleges, '{}'::text[])))`,
+              [targetUser.community_id, deanCollegeId]
+            )).rows.length > 0
+        : false;
       const targetInCollege =
         Number(targetUser.college_id) === Number(deanCollegeId) ||
-        (targetUser.community_id != null && (await pool.query('SELECT 1 FROM communities WHERE id = $1 AND college_id = $2', [targetUser.community_id, deanCollegeId])).rows.length > 0) ||
-        (targetUser.role === 'student' && targetUser.college_text != null && String(targetUser.college_text).trim() === String(deanCollegeName).trim());
+        communityMatch ||
+        (targetUser.role === 'student' && targetUser.college_text != null && String(targetUser.college_text).trim().toLowerCase() === String(deanCollegeName).trim().toLowerCase());
       if (!targetInCollege) return res.status(403).json({ error: 'You can only edit users in your college.' });
     }
 
@@ -3378,10 +3649,18 @@ app.patch('/api/admin/users/:id', optionalAuth, requireAuth, async (req, res) =>
     } else if (newRole === 'supervisor' || newRole === 'community_leader') {
       const communityIdNum = body.communityId != null ? Number(body.communityId) : NaN;
       if (Number.isNaN(communityIdNum)) return res.status(400).json({ error: 'communityId is required when setting role to supervisor or community_leader' });
-      const comm = await pool.query('SELECT id, college_id FROM communities WHERE id = $1', [communityIdNum]);
+      const comm = await pool.query(
+        communitiesHasCollegeIdColumn ? 'SELECT id, college_id FROM communities WHERE id = $1' : 'SELECT id FROM communities WHERE id = $1',
+        [communityIdNum]
+      );
       if (comm.rows.length === 0) return res.status(400).json({ error: 'Community not found' });
-      if (isDean && !isAdmin && Number(comm.rows[0].college_id) !== Number(editor.college_id)) {
-        return res.status(403).json({ error: 'You can only assign users to communities in your college.' });
+      if (isDean && !isAdmin) {
+        const ok = communitiesHasCollegeIdColumn
+          ? Number(comm.rows[0].college_id) === Number(editor.college_id)
+          : await communityBelongsToCollege(communityIdNum, editor.college_id);
+        if (!ok) {
+          return res.status(403).json({ error: 'You can only assign users to communities in your college.' });
+        }
       }
       newCommunityId = communityIdNum;
       newCollegeId = null;
@@ -3397,7 +3676,10 @@ app.patch('/api/admin/users/:id', optionalAuth, requireAuth, async (req, res) =>
         await client.query('UPDATE app_users SET college_id = NULL WHERE role = $1 AND college_id = $2 AND id != $3', ['dean', newCollegeId, userId]);
       }
       if (newRole === 'supervisor' || newRole === 'community_leader') {
-        await client.query('UPDATE app_users SET community_id = NULL WHERE community_id = $1 AND id != $2', [newCommunityId, userId]);
+        await client.query(
+          "UPDATE app_users SET community_id = NULL, role = 'student' WHERE community_id = $1 AND id != $2",
+          [newCommunityId, userId]
+        );
       }
       await client.query(
         'UPDATE app_users SET role = $1, college_id = $2, community_id = $3 WHERE id = $4',
@@ -3412,7 +3694,7 @@ app.patch('/api/admin/users/:id', optionalAuth, requireAuth, async (req, res) =>
     }
 
     const r = await pool.query(
-      'SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", c.name AS "collegeName", co.name AS "communityName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id WHERE u.id = $1',
+      `SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", c.name AS "collegeName", co.name AS "communityName", cc.name AS "assignedCollegeName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id ${ADMIN_USERS_COMMUNITY_COLLEGE_JOIN} WHERE u.id = $1`,
       [userId]
     );
     res.json(r.rows[0]);
@@ -3468,7 +3750,10 @@ app.patch('/api/admin/users/:id/assign-community', optionalAuth, requireAuth, re
     const client = await pool.connect();
     try {
       await client.query('BEGIN');
-      await client.query('UPDATE app_users SET community_id = NULL WHERE community_id = $1 AND id != $2', [communityIdNum, userId]);
+      await client.query(
+        "UPDATE app_users SET community_id = NULL, role = 'student' WHERE community_id = $1 AND id != $2",
+        [communityIdNum, userId]
+      );
       await client.query('UPDATE app_users SET community_id = $1 WHERE id = $2', [communityIdNum, userId]);
       await client.query('COMMIT');
     } catch (e) {
@@ -3486,18 +3771,34 @@ app.patch('/api/admin/users/:id/assign-community', optionalAuth, requireAuth, re
   }
 });
 
-const server = app.listen(PORT, async () => {
-  const adminOk = await ensureAdminUser();
-  if (!adminOk) {
-    console.warn('Admin user not in DB yet. Run "npm run migrate" then restart, or log in with admin@najah.edu to create it.');
-  }
-  console.log(`Backend server at http://localhost:${PORT}`);
-});
+// Populate req.user from auth_token (cookie / Bearer) before community routes — router-local requireAuth
+// does not run optionalAuth; without this, POST /api/community-requests always sees req.user === null → 401.
+app.use('/api', optionalAuth, communitiesRouter(pool));
+app.use('/api/communities/:id/messages', optionalAuth, communityChatRouter(pool));
+app.use('/api/chatbot', chatbotRouter);
 
-server.on('error', (err) => {
-  if (err?.code === 'EADDRINUSE') {
-    console.error(`Port ${PORT} is already in use. Stop the other process or set PORT in .env (e.g. PORT=3001).`);
+async function startServer() {
+  try {
+    await detectCommunitiesCollegeSchema();
+    const adminOk = await ensureAdminUser();
+    if (!adminOk) {
+      console.warn('Admin user not in DB yet. Run "npm run migrate" then restart, or log in with admin@najah.edu to create it.');
+    }
+    await ensureRoleAssignments();
+    const server = app.listen(PORT, () => {
+      console.log(`Backend server at http://localhost:${PORT}`);
+    });
+    server.on('error', (err) => {
+      if (err?.code === 'EADDRINUSE') {
+        console.error(`Port ${PORT} is already in use. Stop the other process or set PORT in .env (e.g. PORT=3001).`);
+        process.exit(1);
+      }
+      throw err;
+    });
+  } catch (err) {
+    console.error('Server failed to start:', err?.message || err);
     process.exit(1);
   }
-  throw err;
-});
+}
+
+startServer();

@@ -1,29 +1,12 @@
 import { useState, useRef, useEffect } from 'react';
 
-function generateMockReply(userText, majorName) {
-  const lower = userText.toLowerCase();
-  const shortName = majorName.replace(/\s*\([^)]*\)\s*$/, '').trim() || majorName;
-
-  if (lower.includes('difficult') || lower.includes('hard') || lower.includes('easy')) {
-    return `${shortName} balances theory and practice. With consistent effort and interest in the subject, most students do well. Office hours and study groups help a lot.`;
-  }
-  if (lower.includes('career') || lower.includes('job') || lower.includes('work')) {
-    return `Graduates in ${shortName} often work as analysts, consultants, developers, or in IT and business roles. Internships and projects during your degree will strengthen your profile.`;
-  }
-  if (lower.includes('business') || lower.includes('technology') || lower.includes('tech')) {
-    return `${shortName} sits at the intersection of business and technology. You’ll learn both how systems work and how they support organizational goals.`;
-  }
-  if (lower.includes('suitable') || lower.includes('right for me') || lower.includes('fit')) {
-    return `If you enjoy problem-solving, working with systems or data, and connecting technology to real needs, ${shortName} could be a good fit. Talking to current students or advisors can help you decide.`;
-  }
-  return `Thanks for your question about ${shortName}. The program covers both foundational concepts and practical skills. For more specific details, you can check the curriculum or reach out to the department.`;
-}
-
 function ChatMessage({ role, content }) {
   const isUser = role === 'user';
+  const isArabic = /[\u0600-\u06FF]/.test(content);
   return (
     <div className={`flex ${isUser ? 'justify-end' : 'justify-start'}`}>
       <div
+        dir={isArabic ? 'rtl' : 'ltr'}
         className={`max-w-[85%] rounded-lg px-4 py-2.5 text-sm ${
           isUser
             ? 'bg-[#00356b] text-white rounded-br-sm'
@@ -53,17 +36,17 @@ function SuggestionsRow({ suggestions, onSelect }) {
   );
 }
 
-const SUGGESTED_QUESTIONS = [
-  'Is this major difficult?',
-  'What careers does this major lead to?',
-  'Is this major more business or technology?',
-  'Is this major suitable for me?',
-];
-
-export default function MajorChat({ majorName, majorShortName }) {
+export default function MajorChat({ majorName, majorShortName, majorFaculty = '' }) {
+  const [sessionId, setSessionId] = useState(() => crypto.randomUUID());
   const [messages, setMessages] = useState([]);
   const [inputValue, setInputValue] = useState('');
   const [isTyping, setIsTyping] = useState(false);
+  const [suggestions, setSuggestions] = useState([
+    'Is this major difficult?',
+    'What careers does this major lead to?',
+    'Is this major more business or technology?',
+    'Is this major suitable for me?',
+  ]);
   const scrollContainerRef = useRef(null);
 
   useEffect(() => {
@@ -73,7 +56,7 @@ export default function MajorChat({ majorName, majorShortName }) {
     }
   }, [messages, isTyping]);
 
-  const sendMessage = (textOrEvent) => {
+  const sendMessage = async (textOrEvent) => {
     const text = typeof textOrEvent === 'string'
       ? textOrEvent.trim()
       : inputValue.trim();
@@ -89,28 +72,55 @@ export default function MajorChat({ majorName, majorShortName }) {
     setInputValue('');
 
     setIsTyping(true);
-    const timer = setTimeout(() => {
-      const reply = generateMockReply(text, majorName);
-      const aiMessage = {
-        id: `ai-${Date.now()}`,
-        role: 'ai',
-        content: reply,
-        createdAt: new Date(),
-      };
-      setMessages((prev) => [...prev, aiMessage]);
+    try {
+      const res = await fetch('/api/chatbot/ask', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          sessionId,
+          message: text,
+          majorName: majorName || '',
+          majorFaculty: typeof majorFaculty === 'string' ? majorFaculty : '',
+        }),
+      });
+      let data;
+      try {
+        data = await res.json();
+      } catch {
+        data = {};
+      }
+      const reply =
+        (typeof data?.answer === 'string' && data.answer) ||
+        (typeof data?.reply === 'string' && data.reply) ||
+        (typeof data?.error === 'string' && data.error) ||
+        (!res.ok
+          ? `Request failed (${res.status}). ${data?.error || ''}`.trim()
+          : 'Sorry, no response received.');
+      if (data.sessionId) setSessionId(data.sessionId);
+      if (data.suggestions && data.suggestions.length > 0) {
+        setSuggestions(data.suggestions);
+      }
+      setMessages((prev) => [
+        ...prev,
+        { id: `ai-${Date.now()}`, role: 'ai', content: reply, createdAt: new Date() },
+      ]);
+    } catch (err) {
+      setMessages((prev) => [
+        ...prev,
+        { id: `ai-${Date.now()}`, role: 'ai', content: 'Sorry, failed to reach the server. Please try again.', createdAt: new Date() },
+      ]);
+    } finally {
       setIsTyping(false);
-    }, 600);
-
-    return () => clearTimeout(timer);
+    }
   };
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    sendMessage(inputValue);
+    void sendMessage(inputValue);
   };
 
   const handleSuggestionClick = (question) => {
-    sendMessage(question);
+    void sendMessage(question);
   };
 
   const isEmpty = !inputValue.trim();
@@ -146,21 +156,22 @@ export default function MajorChat({ majorName, majorShortName }) {
           {isTyping && (
             <div className="flex justify-start">
               <div className="bg-slate-100 text-slate-500 rounded-lg rounded-bl-sm px-4 py-2.5 text-sm italic">
-                AI is typing…
+                جاري الكتابة... / Typing...
               </div>
             </div>
           )}
         </div>
       )}
 
-      <SuggestionsRow suggestions={SUGGESTED_QUESTIONS} onSelect={handleSuggestionClick} />
+      <SuggestionsRow suggestions={suggestions} onSelect={handleSuggestionClick} />
 
       <form onSubmit={handleSubmit} className="flex gap-2 mt-5">
         <input
           type="text"
-          placeholder="Type your question here..."
+          placeholder="Type your question here... / اكتب سؤالك هنا"
           value={inputValue}
           onChange={(e) => setInputValue(e.target.value)}
+          dir={/[\u0600-\u06FF]/.test(inputValue) ? 'rtl' : 'ltr'}
           className="flex-1 min-w-0 text-sm border border-slate-200 rounded-lg px-4 py-2.5 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
           aria-label="Your question"
         />

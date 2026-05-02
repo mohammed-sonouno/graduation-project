@@ -1,49 +1,23 @@
-import { useState, useMemo, useEffect } from 'react';
+import { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { getColleges, getMajors } from '../api';
+import { MAJORS_CATALOG } from './majorsCatalog';
 
 const INITIAL_VISIBLE = 6;
-
-const DEGREE_FILTERS = [
-  { id: 'B.Sc.', label: 'Bachelor of Science (B.Sc.)' },
-  { id: 'B.A.', label: 'Bachelor of Arts (B.A.)' },
-  { id: 'Associate', label: 'Associate Degree' },
-];
-
-function slugify(name) {
-  return (name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-};
 
 const getMajorImage = (slug) => `/majors/${slug || 'placeholder'}.jpg`;
 
 function Majors() {
-  const [colleges, setColleges] = useState([]);
-  const [majors, setMajors] = useState([]);
   const [search, setSearch] = useState('');
   const [collegeIds, setCollegeIds] = useState([]);
   const [showMore, setShowMore] = useState(false);
 
-  useEffect(() => {
-    getColleges().then((list) => setColleges(Array.isArray(list) ? list : [])).catch(() => setColleges([]));
-  }, []);
-  useEffect(() => {
-    getMajors()
-      .then((list) => setMajors(Array.isArray(list) ? list : []))
-      .catch(() => setMajors([]));
-  }, []);
-
-  const collegeFilters = useMemo(() => colleges.map((c) => ({ id: c.id, label: c.name })), [colleges]);
-
-  const majorsWithMeta = useMemo(
+  const collegeFilters = useMemo(
     () =>
-      majors.map((m) => ({
-        ...m,
-        collegeName: colleges.find((c) => String(c.id) === String(m.collegeId))?.name || '',
-        slug: slugify(m.name),
-        degreeType: 'B.Sc.',
-        description: '',
-      })),
-    [majors, colleges]
+      Array.from(new Set(MAJORS_CATALOG.map((m) => m.facultyName)))
+        .filter(Boolean)
+        .sort()
+        .map((name) => ({ id: name, label: name })),
+    []
   );
 
   const toggleCollege = (id) => {
@@ -52,16 +26,16 @@ function Majors() {
 
   const filteredMajors = useMemo(() => {
     const query = search.trim().toLowerCase();
-    return majorsWithMeta.filter((m) => {
+    return MAJORS_CATALOG.filter((m) => {
       const matchSearch =
         !query ||
-        [m.name, m.collegeName, m.description, m.slug, m.degreeType]
+        [m.name, m.facultyName, m.majorType, m.notes, m.slug, m.duration, m.minAdmission]
           .filter(Boolean)
           .some((s) => String(s).toLowerCase().includes(query));
-      const matchCollege = collegeIds.length === 0 || collegeIds.includes(String(m.collegeId));
+      const matchCollege = collegeIds.length === 0 || collegeIds.includes(m.facultyName);
       return matchSearch && matchCollege;
     });
-  }, [majorsWithMeta, search, collegeIds]);
+  }, [search, collegeIds]);
 
   const visibleMajors = showMore ? filteredMajors : filteredMajors.slice(0, INITIAL_VISIBLE);
   const hasMore = filteredMajors.length > INITIAL_VISIBLE;
@@ -73,7 +47,7 @@ function Majors() {
         {/* Header */}
         <div className="text-center mb-10">
           <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-[#0b2d52] leading-tight tracking-tight mb-5">
-            Academic Majors
+            Academic Programs
           </h1>
           <p className="text-slate-600 max-w-2xl mx-auto mb-8 leading-relaxed">
             Explore our diverse range of undergraduate and graduate programs designed to inspire intellectual curiosity and professional growth.
@@ -90,7 +64,7 @@ function Majors() {
             </span>
             <input
               type="search"
-              placeholder="Search for a major, department, or keyword..."
+              placeholder="Search for a Programs, department, or keyword..."
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               className="w-full pl-12 pr-4 py-3 text-sm border border-slate-200 rounded-lg bg-white focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
@@ -136,8 +110,8 @@ function Majors() {
               {visibleMajors.map((major) => (
                 <Link
                   key={major.id}
-                  to={`/majors/${major.id}`}
-                  state={{ from: 'majors' }}
+                  to={`/majors/${major.slug || major.id}`}
+                  state={{ from: 'majors', major }}
                   className="group bg-white rounded-lg shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 overflow-hidden flex"
                 >
                   <div className="relative w-24 h-24 flex-shrink-0 bg-slate-100">
@@ -156,14 +130,16 @@ function Majors() {
                     </div>
                   </div>
                   <div className="p-4 flex flex-col flex-1 min-w-0">
-                    <p className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-1">
-                      {major.degreeType}
-                    </p>
+                    {major.majorType ? (
+                      <p className="text-[11px] font-semibold text-[#00356b]/85 uppercase tracking-wide mb-1">
+                        {major.majorType}
+                      </p>
+                    ) : null}
                     <h2 className="font-serif text-lg font-semibold text-[#0b2d52] leading-snug mb-2 group-hover:underline">
                       {major.name}
                     </h2>
                     <p className="text-sm text-slate-600 leading-relaxed line-clamp-2 flex-1">
-                      {major.description}
+                      {major.notes || `${major.duration} • ${major.creditHours} credit hours • Min ${major.minAdmission}`}
                     </p>
                     <span className="text-sm font-semibold text-[#00356b] mt-2 inline-flex items-center gap-1">
                       View Details

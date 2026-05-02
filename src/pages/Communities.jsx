@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { getCommunities, getColleges, createCommunity, updateCommunity, getAdminUsers } from '../api';
+import { getCommunities, getColleges, getMajors, createCommunity, updateCommunity, getAdminUsers } from '../lib/api';
+import { buildCanonicalCollegeOptions } from '../canonicalCollege';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin, isDean, isSupervisor, isCommunityLeader } from '../utils/permissions';
 import { scrollToTop } from '../utils/scroll';
@@ -45,8 +46,12 @@ function Communities() {
 
   useEffect(() => {
     if (admin) {
-      getColleges()
-        .then((list) => setColleges(Array.isArray(list) ? list : []))
+      Promise.all([getColleges(), getMajors()])
+        .then(([list, majors]) => {
+          setColleges(
+            buildCanonicalCollegeOptions(Array.isArray(list) ? list : [], Array.isArray(majors) ? majors : [])
+          );
+        })
         .catch(() => setColleges([]));
     }
   }, [admin]);
@@ -189,7 +194,7 @@ function Communities() {
               <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
               </svg>
-              {showCreate ? 'Cancel' : 'Add community'}
+              {showCreate ? 'Cancel' : 'Add association'}
             </button>
           </div>
         )}
@@ -197,9 +202,11 @@ function Communities() {
         {showCreate && admin && (
           <div className="rounded-xl border border-slate-200 bg-white shadow-sm p-6 mb-8 border-l-4 border-l-[#00356b]">
             <h2 className="text-lg font-semibold text-[#0b2d52] mb-4" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
-              New community
+              New association
             </h2>
-            <p className="text-sm text-slate-600 mb-4">Each community belongs to one college and must have a supervisor (or community leader).</p>
+            <p className="text-sm text-slate-600 mb-4">
+              Register a formal club or society (جمعية) with a supervisor or association leader — this is what appears when creating events. Student interest groups (مجتمعات) come from approved student requests, not from this form.
+            </p>
             <form onSubmit={handleCreate} className="space-y-4 max-w-md">
               <div>
                 <label htmlFor="community-name" className="block text-sm font-medium text-slate-700 mb-1">
@@ -245,7 +252,7 @@ function Communities() {
                   required
                   className="w-full px-4 py-2 border border-slate-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
                 >
-                  <option value="">Select a supervisor or community leader by email</option>
+                  <option value="">Select a supervisor or association leader by email</option>
                   {leaderOptions.map((u) => (
                     <option key={u.id} value={u.id}>
                       {u.email}{u.communityName ? ` (currently: ${u.communityName})` : ''}
@@ -264,7 +271,7 @@ function Communities() {
                 disabled={createLoading}
                 className="rounded-lg bg-[#00356b] px-4 py-2 text-sm font-semibold text-white hover:bg-[#002a54] disabled:opacity-70"
               >
-                {createLoading ? 'Creating…' : 'Create community'}
+                {createLoading ? 'Creating…' : 'Create association'}
               </button>
             </form>
           </div>
@@ -340,9 +347,20 @@ function Communities() {
                                 </svg>
                               </div>
                               <div className="min-w-0 flex-1">
-                                <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
-                                  {c.name}
-                                </h3>
+                                <div className="flex flex-wrap items-center gap-2">
+                                  <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                                    {c.name}
+                                  </h3>
+                                  {c.kind && (
+                                    <span
+                                      className={`text-[10px] font-semibold uppercase tracking-wide px-2 py-0.5 rounded-full ${
+                                        c.kind === 'association' ? 'bg-amber-50 text-amber-800' : 'bg-violet-50 text-violet-800'
+                                      }`}
+                                    >
+                                      {c.kind === 'association' ? 'Association' : 'Community'}
+                                    </span>
+                                  )}
+                                </div>
                                 <p className="mt-1 text-sm text-slate-500">College: {c.collegeName || '—'}</p>
                                 {c.leaderEmail && (
                                   <p className="mt-0.5 text-xs text-slate-500">Leader: {c.leaderName || c.leaderEmail}</p>

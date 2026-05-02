@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { isAdmin, isDean, isSupervisor, isCommunityLeader, DEAN_DISPLAY_NAME, SUPERVISOR_DISPLAY_NAME, COMMUNITY_LEADER_DISPLAY_NAME } from "../utils/permissions";
-import { getEventRegistrations, getStudentProfile, saveStudentProfile as saveProfileApi, eventImageUrl } from "../api";
+import { getEventRegistrations, getStudentProfile, saveStudentProfile as saveProfileApi, eventImageUrl, getCommunities } from "../lib/api";
+import { normalizeCollege } from "../canonicalCollege";
 
 
 function IconId(props) {
@@ -95,6 +96,8 @@ function Profile() {
   const [studentProfile, setStudentProfile] = useState({});
   const [viewMode, setViewMode] = useState("grid");
   const [pictureImageError, setPictureImageError] = useState(false);
+  const [activeTab, setActiveTab] = useState("events");
+  const [userCommunities, setUserCommunities] = useState([]);
   const photoInputRef = useRef(null);
 
   const saveStudentProfile = async (updates) => {
@@ -133,6 +136,19 @@ function Profile() {
     getStudentProfile()
       .then((data) => setStudentProfile(data || {}))
       .catch(() => setStudentProfile({}));
+    getCommunities({ limit: 100, kind: 'community', includeMyRequestCards: '1' })
+      .then((list) => {
+        const base = Array.isArray(list) ? list : [];
+        setUserCommunities(
+          base.filter(
+            (c) =>
+              c.is_community_request
+                ? c.request_status === 'pending' || c.request_status === 'rejected'
+                : c.membership_status === 'member' || c.membership_status === 'owner'
+          )
+        );
+      })
+      .catch(() => setUserCommunities([]));
   }, [user?.id]);
 
   useEffect(() => {
@@ -163,7 +179,8 @@ function Profile() {
   const displayName = user.name || user.email || "User";
   const initial = (displayName[0] || "?").toUpperCase();
   const studentUniNumber = user.student_number ?? (user.email ? user.email.split("@")[0] : null) ?? "—";
-  const college = studentProfile.college || user.college || "—";
+  const collegeRaw = studentProfile.college || user.college || "";
+  const college = collegeRaw ? normalizeCollege(collegeRaw) || collegeRaw : "—";
   const major = studentProfile.major || user.major || "—";
   return (
     <div className="min-h-screen bg-slate-50/80 text-slate-900">
@@ -231,7 +248,11 @@ function Profile() {
                 <span className="inline-flex mt-2 rounded-md bg-[#0b2d52]/10 px-2.5 py-1 text-xs font-medium text-[#0b2d52]">
                   {DEAN_DISPLAY_NAME}
                 </span>
-                {user.collegeName && <p className="mt-2 text-sm text-slate-600">College: {user.collegeName}</p>}
+                {user.collegeName && (
+                  <p className="mt-2 text-sm text-slate-600">
+                    College: {normalizeCollege(user.collegeName) || user.collegeName}
+                  </p>
+                )}
               </div>
             </div>
           </div>
@@ -372,42 +393,148 @@ function Profile() {
               </div>
             </div>
 
-            {/* Right: My Registered Events — header + grid/list toggle + event cards grid + Discover card */}
+            {/* Right: Events & Communities tabs */}
             <div className="min-w-0 order-1 lg:order-2">
               <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
                 <div className="px-6 py-4 border-b border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="flex items-center justify-center w-9 h-9 rounded-lg bg-[#00356b]/10 text-[#00356b]">
-                      <IconCalendar className="w-5 h-5" />
-                    </span>
-                    <div>
-                      <h3 className="text-lg font-semibold text-slate-900" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
-                        My Registered Events
-                      </h3>
-                      <p className="text-xs text-slate-500">{registrations.filter((r) => r.status !== 'rejected').length} event{registrations.filter((r) => r.status !== 'rejected').length !== 1 ? "s" : ""} (approved + pending)</p>
+                  <div className="flex items-center gap-1 rounded-lg border border-slate-200 p-0.5 bg-slate-50/50">
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("events")}
+                      className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === "events" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                    >
+                      <IconCalendar className="w-4 h-4" />
+                      Events
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setActiveTab("communities")}
+                      className={`flex items-center gap-2 px-4 py-1.5 rounded-md text-sm font-medium transition-colors ${activeTab === "communities" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                    >
+                      <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+                      </svg>
+                      Communities
+                    </button>
+                  </div>
+                  {activeTab === "events" && (
+                    <div className="flex items-center gap-3">
+                      <p className="text-xs text-slate-500">{registrations.filter((r) => r.status !== 'rejected').length} event{registrations.filter((r) => r.status !== 'rejected').length !== 1 ? "s" : ""}</p>
+                      <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50/50">
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("grid")}
+                          className={`p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                          aria-label="Grid view"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => setViewMode("list")}
+                          className={`p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
+                          aria-label="List view"
+                        >
+                          <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
+                        </button>
+                      </div>
                     </div>
-                  </div>
-                  <div className="flex rounded-lg border border-slate-200 p-0.5 bg-slate-50/50">
-                    <button
-                      type="button"
-                      onClick={() => setViewMode("grid")}
-                      className={`p-2 rounded-md transition-colors ${viewMode === "grid" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                      aria-label="Grid view"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z" /></svg>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => setViewMode("list")}
-                      className={`p-2 rounded-md transition-colors ${viewMode === "list" ? "bg-white text-slate-900 shadow-sm" : "text-slate-500 hover:text-slate-700"}`}
-                      aria-label="List view"
-                    >
-                      <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 6h16M4 10h16M4 14h16M4 18h16" /></svg>
-                    </button>
-                  </div>
+                  )}
+                  {activeTab === "communities" && (
+                    <p className="text-xs text-slate-500">{userCommunities.length} communit{userCommunities.length !== 1 ? "ies" : "y"}</p>
+                  )}
                 </div>
                 <div className="p-6">
-                  {viewMode === "grid" ? (
+                  {activeTab === "communities" && (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
+                      {userCommunities.map((c) => {
+                        const initials = c.name.split(' ').slice(0, 2).map((w) => w[0]).join('').toUpperCase();
+                        const isOwner = c.membership_status === 'owner';
+                        const isReq = c.is_community_request;
+                        const isPending = isReq && c.request_status === 'pending';
+                        const isRejected = isReq && c.request_status === 'rejected';
+                        const cardInner = (
+                          <>
+                            <div className={`relative h-32 bg-slate-100 overflow-hidden ${isReq ? 'grayscale-[0.4] opacity-80' : ''}`}>
+                              {c.image_url ? (
+                                <img src={eventImageUrl(c.image_url)} alt="" className={`h-full w-full object-cover ${isReq ? 'opacity-60' : 'group-hover:scale-105 transition-transform duration-200'}`} />
+                              ) : (
+                                <div className="h-full w-full flex items-center justify-center bg-gradient-to-br from-slate-100 to-slate-200">
+                                  <span className="text-3xl font-bold text-slate-400 tracking-widest select-none">{initials}</span>
+                                </div>
+                              )}
+                              <span
+                                className={`absolute top-2 right-2 rounded-full px-2.5 py-0.5 text-[10px] font-semibold border shadow-sm ${
+                                  isReq
+                                    ? isRejected
+                                      ? 'bg-red-50 text-red-800 border-red-200'
+                                      : 'bg-amber-50 text-amber-900 border-amber-200'
+                                    : isOwner
+                                      ? 'bg-violet-50 text-violet-700 border-violet-200'
+                                      : 'bg-emerald-50 text-emerald-700 border-emerald-200'
+                                }`}
+                              >
+                                {isReq
+                                  ? isPending
+                                    ? 'Pending approval'
+                                    : 'Rejected'
+                                  : isOwner
+                                    ? 'Owner'
+                                    : 'Member'}
+                              </span>
+                            </div>
+                            <div className="p-4">
+                              <h4 className="font-semibold text-slate-900 line-clamp-1">{c.name}</h4>
+                              <p className="mt-1 text-xs text-slate-500 line-clamp-2">{c.description || 'No description provided.'}</p>
+                              {isReq && (
+                                <p className="mt-1 text-[10px] text-slate-500">
+                                  {isPending ? 'Awaiting admin review' : 'This request was not approved'}
+                                </p>
+                              )}
+                              <p className="mt-2 flex items-center gap-1.5 text-xs text-slate-400">
+                                <svg className="w-3.5 h-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+                                  <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0" />
+                                </svg>
+                                {isReq ? '—' : `${c.member_count} ${c.member_count === 1 ? 'member' : 'members'}`}
+                              </p>
+                            </div>
+                          </>
+                        );
+                        if (isReq) {
+                          return (
+                            <div
+                              key={`rq-${c.request_id}`}
+                              className={`block rounded-xl border overflow-hidden ${
+                                isRejected ? 'border-red-200/70 bg-red-50/30' : 'border-amber-200/60 bg-amber-50/25'
+                              }`}
+                            >
+                              {cardInner}
+                            </div>
+                          );
+                        }
+                        return (
+                          <Link
+                            key={c.id}
+                            to={`/communities/${c.id}`}
+                            className="group block rounded-xl border border-slate-200 bg-white overflow-hidden hover:border-[#00356b]/30 hover:shadow-md transition-all"
+                          >
+                            {cardInner}
+                          </Link>
+                        );
+                      })}
+                      <Link
+                        to="/communities"
+                        className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-slate-200 bg-slate-50/50 p-8 hover:border-[#00356b]/40 hover:bg-slate-50 transition-colors min-h-[200px]"
+                      >
+                        <span className="flex items-center justify-center w-14 h-14 rounded-full bg-slate-200 text-slate-500 mb-3">
+                          <svg className="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" /></svg>
+                        </span>
+                        <span className="font-semibold text-slate-700">Browse Communities</span>
+                        <span className="mt-1 text-xs text-slate-500 text-center">Discover and join new communities</span>
+                      </Link>
+                    </div>
+                  )}
+                  {activeTab === "events" && (viewMode === "grid" ? (
                     <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-4">
                       {registrations.filter((reg) => reg.status !== 'rejected').map((reg) => {
                         const completed = isEventCompleted(reg);
@@ -533,7 +660,7 @@ function Profile() {
                         </div>
                       </Link>
                     </ul>
-                  )}
+                  ))}
                 </div>
               </div>
             </div>

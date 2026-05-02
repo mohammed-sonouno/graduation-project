@@ -5,7 +5,7 @@
  *   - REQUIRE_NAJAH_EMAIL = false  → allow any email (no domain check)
  *   - ALLOWED_EMAIL_DOMAINS = []   → same if REQUIRE_NAJAH_EMAIL is true
  *   - MIN_PASSWORD_LENGTH = 1      → relax password length (e.g. for dev)
- * Server and frontend (Login, Register) read from this file only.
+ * Server and frontend (Login) read from this file only.
  *
  * Roles: stored per user in app_users.role in the DB; the website reads the user's role (via /api/auth/me)
  * to decide what to show (admin panel, communities, profile, etc.).
@@ -27,8 +27,8 @@ export const SUPERVISOR_DISPLAY_NAME = 'Supervisor';
 
 /** The role value for Community Leader. Stored as 'community_leader' in DB; display as COMMUNITY_LEADER_DISPLAY_NAME in UI. */
 export const COMMUNITY_LEADER_ROLE = 'community_leader';
-/** Display name for the community leader role in the UI. */
-export const COMMUNITY_LEADER_DISPLAY_NAME = 'Community Leader';
+/** Display name for the community_leader role (قائد جمعية): organizes association events, distinct from student communities. */
+export const COMMUNITY_LEADER_DISPLAY_NAME = 'Association Leader';
 
 /** The role value for Student. Stored as 'student' in DB; display as STUDENT_DISPLAY_NAME in UI. Role 'user' is also treated as student in the UI. */
 export const STUDENT_ROLE = 'student';
@@ -59,6 +59,19 @@ export function isCommunityLeaderRole(role) {
 export function isStudentRole(role) {
   return role === STUDENT_ROLE;
 }
+
+// --- Canonical faculties (Engineering vs IT/AI split — DB `colleges.name`, migrations, RBAC)
+/** Canonical name for the Faculty of Engineering row (IEEE governance owner). */
+export const FACULTY_ENGINEERING_CANONICAL = 'Faculty of Engineering';
+
+/** Canonical name for the IT & Artificial Intelligence faculty row. */
+export const FACULTY_IT_AI_CANONICAL = 'Faculty of Information Technology & Artificial Intelligence';
+
+/** The two faculties used for Engineering-domain normalization and IEEE governance checks. */
+export const ENGINEERING_SCOPE_CANONICAL_FACULTIES = Object.freeze([
+  FACULTY_ENGINEERING_CANONICAL,
+  FACULTY_IT_AI_CANONICAL,
+]);
 
 // --- Auth / registration
 /** Allowed email domains for sign-up and login. Empty array = allow any email when REQUIRE_NAJAH_EMAIL is false. */

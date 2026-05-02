@@ -133,46 +133,47 @@ function AdminPortal() {
 
         {/* Action cards */}
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+
           {canAccessManageEvents(user) && (
-          <Link
-            to="/manage-events"
-            className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-                </svg>
+            <Link
+              to="/manage-events"
+              className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                    Manage Events
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">Create, edit, and submit events for approval.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
-                  Manage Events
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">Create, edit, and submit events for approval.</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
           )}
 
           {!isCommunityLeader(user) && (
-          <Link
-            to="/event-approval"
-            className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
-          >
-            <div className="flex items-start gap-4">
-              <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
+            <Link
+              to="/event-approval"
+              className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                    Event Approval
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">Review and approve pending events.</p>
+                </div>
               </div>
-              <div>
-                <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
-                  Event Approval
-                </h3>
-                <p className="mt-1 text-sm text-slate-500">Review and approve pending events.</p>
-              </div>
-            </div>
-          </Link>
+            </Link>
           )}
 
           <Link
@@ -210,6 +211,49 @@ function AdminPortal() {
                     Event Registrations
                   </h3>
                   <p className="mt-1 text-sm text-slate-500">Approve or reject student registration requests for your community events.</p>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {/* ✅ Manage Users — admin only */}
+          {isAdmin(user) && (
+            <Link
+              to="/manage-users"
+              className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                    Manage Users
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">Assign and change roles for all platform users.</p>
+                </div>
+              </div>
+            </Link>
+          )}
+
+          {isAdmin(user) && (
+            <Link
+              to="/admin-community-requests"
+              className="group block rounded-xl border border-slate-200 bg-white p-6 shadow-sm transition-all duration-200 hover:border-[#00356b]/40 hover:shadow-md"
+            >
+              <div className="flex items-start gap-4">
+                <div className="flex-shrink-0 w-12 h-12 rounded-xl bg-[#00356b]/10 flex items-center justify-center text-[#00356b] group-hover:bg-[#00356b]/15 transition-colors">
+                  <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.8} d="M8 12h8m-8 4h8M8 8h8M5 20h14a2 2 0 002-2V6a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                  </svg>
+                </div>
+                <div>
+                  <h3 className="font-semibold text-[#0b2d52] group-hover:text-[#00356b]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+                    Community Requests
+                  </h3>
+                  <p className="mt-1 text-sm text-slate-500">Review and approve or reject community creation requests.</p>
                 </div>
               </div>
             </Link>

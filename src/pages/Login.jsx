@@ -1,7 +1,7 @@
 import { useState } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
-import { apiUrl, requestLoginCode, verifyLoginCode, verifyGoogleNewCode } from "../api";
+import { apiUrl, requestLoginCode, verifyLoginCode, verifyGoogleNewCode } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
 import { isEmailAllowed, getEmailRuleMessage, getAllowedDomains } from "../../config/rules.js";
 import { getLoginRedirectPath } from "../utils/permissions";
@@ -49,8 +49,13 @@ function GoogleSignInButton({ onSuccess, onError, disabled }) {
   );
 }
 
+function safeInternalPath(p) {
+  return typeof p === "string" && p.startsWith("/") && !p.startsWith("//") ? p : null;
+}
+
 function Login() {
   const navigate = useNavigate();
+  const location = useLocation();
   const { setUserAndToken, logout } = useAuth();
   const rawClientId = (import.meta.env.VITE_GOOGLE_CLIENT_ID || '').trim();
   const hasGoogleClientId = Boolean(rawClientId && rawClientId !== 'your-google-client-id.apps.googleusercontent.com');
@@ -125,13 +130,11 @@ function Login() {
       const user = data.user;
       if (user) {
         setUserAndToken(user);
+        const returnTo = safeInternalPath(location.state?.from);
+        const target = returnTo || getLoginRedirectPath(user);
         const loginState = { replace: true, state: { fromLogin: true } };
         setTimeout(() => {
-          if (user.must_complete_profile) {
-            navigate("/complete-profile", loginState);
-          } else {
-            navigate(getLoginRedirectPath(user), loginState);
-          }
+          navigate(target, loginState);
         }, 0);
       } else {
         setLoginError("Invalid response. Please try again.");

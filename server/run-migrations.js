@@ -17,6 +17,7 @@ const migrations = [
   '002_app_users.sql',
   '003_student_fields.sql',
   '003_colleges_majors.sql',
+  '004_community_system.sql',
   '004_rename_role_user_to_student.sql',
   '004_events.sql',
   '005_event_registrations.sql',
@@ -48,6 +49,14 @@ const migrations = [
   '034_events_requested_changes_at_step.sql',
   '035_events_approval_columns.sql',
   '036_delete_seed_events.sql',
+  '037_fix_duplicate_communities.sql',
+  '038_remove_mock_communities.sql',
+  '039_fix_user_community_assignments.sql',
+  '040_community_request_dismissed.sql',
+  '041_communities_kind.sql',
+  '042_faculties_normalize_final.sql',
+  '048_split_engineering_and_it_faculties.sql',
+  '049_ieee_faculty_engineering_only.sql',
 ];
 
 async function run() {

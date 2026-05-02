@@ -1,0 +1,56 @@
+// Maps to existing PostgreSQL tables `events` and `event_reviews` in this project.
+// Logical field `date` maps to the `start_date` column on `events`.
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Event {
+  id        String    @id
+  title     String
+  /// Primary schedule date; backed by `start_date` in the database.
+  date      DateTime? @map("start_date") @db.Date
+  location  String?
+  createdAt DateTime  @map("created_at")
+  updatedAt DateTime  @map("updated_at")
+  reviews   Review[]
+
+  @@map("events")
+}
+
+model Review {
+  id                String  @id
+  eventId           String  @map("event_id")
+  event             Event   @relation(fields: [eventId], references: [id], onDelete: Cascade)
+  rating            Int
+  comment           String?
+  sentiment         String  @default("neutral")
+  overrideSentiment String? @map("override_sentiment")
+  sentimentScore    Float   @default(0) @map("sentiment_score")
+  sentimentRaw      Json?   @map("sentiment_raw")
+  language          String  @default("unknown")
+  createdAt         DateTime @map("created_at")
+  updatedAt         DateTime @map("updated_at")
+
+  @@map("event_reviews")
+}
+
+model Major {
+  id           String   @id @default(uuid())
+  name         String
+  facultyName  String   @map("faculty_name")
+  creditHours  Int      @map("credit_hours")
+  duration     String
+  majorType    String   @map("major_type")
+  minAdmission String   @map("min_admission")
+  notes        String?
+  courses      String?  // JSON array stored as string
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  @@map("majors")
+}

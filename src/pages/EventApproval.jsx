@@ -1,9 +1,16 @@
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { isAdmin, isDean, isSupervisor, canAccessManageEvents } from "../utils/permissions";
+import {
+  isAdmin,
+  isDean,
+  isSupervisor,
+  canAccessManageEvents,
+  isFacultyOfEngineeringDean,
+  isIeeeCommunityEvent,
+} from "../utils/permissions";
 import { scrollToTop } from "../utils/scroll";
-import { getAdminEvents, approveEvent, rejectEvent, requestChangesEvent, eventImageUrl } from "../api";
+import { getAdminEvents, approveEvent, rejectEvent, requestChangesEvent, eventImageUrl } from "../lib/api";
 import SmallApprovalStepper from "../components/SmallApprovalStepper";
 
 function formatDate(dateStr) {
@@ -58,6 +65,9 @@ function EventApproval() {
       return isSupervisor(user) && user.community_id != null && ev.communityId != null && Number(user.community_id) === Number(ev.communityId);
     }
     if (ev.status === "pending_dean") {
+      if (isIeeeCommunityEvent(ev)) {
+        return isFacultyOfEngineeringDean(user);
+      }
       return isDean(user) && user.college_id != null && ev.collegeId != null && Number(user.college_id) === Number(ev.collegeId);
     }
     if (ev.status === "pending_admin") {

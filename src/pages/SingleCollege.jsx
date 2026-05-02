@@ -1,14 +1,19 @@
 import { useState, useMemo, useEffect } from 'react';
-import { Link, useParams } from 'react-router-dom';
-import { getColleges, getMajors } from '../api';
+import { Link, Navigate, useParams } from 'react-router-dom';
+import { getColleges } from '../lib/api';
+import { normalizeCollege } from '../canonicalCollege';
+import {
+  facultySlug,
+  resolveCollegeCatalogSlug,
+  collegePathFromFacultySlug,
+  shouldRedirectFacultySlugToCanonical,
+  COLLEGES_ROUTE_PREFIX,
+} from '../utils/facultySlug';
+import { COLLEGES_CATALOG, descriptionForFaculty, resolveApiCollegeRow } from './collegesCatalog';
 
 const INITIAL_MAJORS_COUNT = 6;
 
 const getMajorImage = (slug) => `/majors/${slug || 'placeholder'}.jpg`;
-
-function slugify(name) {
-  return (name || '').toLowerCase().replace(/\s+/g, '-').replace(/[^a-z0-9-]/g, '');
-}
 
 function SingleCollege() {
   const { id } = useParams();
@@ -21,32 +26,87 @@ function SingleCollege() {
       setLoading(false);
       return;
     }
-    Promise.all([getColleges(), getMajors(id)])
-      .then(([collegesList, majorsList]) => {
-        const c = (Array.isArray(collegesList) ? collegesList : []).find((x) => String(x.id) === String(id));
-        if (!c) {
+
+    if (shouldRedirectFacultySlugToCanonical(id)) {
+      setCollege(null);
+      setLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setLoading(true);
+
+    getColleges()
+      .then((list) => {
+        if (cancelled) return;
+        const rows = Array.isArray(list) ? list : [];
+        const idStr = String(id);
+        const slug = resolveCollegeCatalogSlug(id);
+
+        let catalogEntry =
+          COLLEGES_CATALOG.find((c) => c.id === slug) ||
+          COLLEGES_CATALOG.find((c) => facultySlug(c.name) === slug);
+
+        let row = catalogEntry ? resolveApiCollegeRow(catalogEntry.name, rows) : null;
+
+        const numericId = Number(idStr);
+        if (!catalogEntry && idStr !== '' && Number.isFinite(numericId)) {
+          row = rows.find((c) => Number(c.id) === numericId);
+          if (row) {
+            const canon = normalizeCollege(row.name);
+            catalogEntry = COLLEGES_CATALOG.find((c) => normalizeCollege(c.name) === canon);
+          }
+        }
+
+        if (!catalogEntry && !row) {
+          row = rows.find((c) => facultySlug(c.name) === slug);
+          if (row) {
+            const canon = normalizeCollege(row.name);
+            catalogEntry = COLLEGES_CATALOG.find((c) => normalizeCollege(c.name) === canon);
+          }
+        }
+
+        if (!catalogEntry) {
           setCollege(null);
+          setLoading(false);
           return;
         }
-        const majors = (Array.isArray(majorsList) ? majorsList : []).map((m) => ({
+
+        if (!row) row = resolveApiCollegeRow(catalogEntry.name, rows);
+
+        const majors = (catalogEntry.majors || []).map((m) => ({
           id: m.id,
-          slug: slugify(m.name),
+          slug: m.slug || facultySlug(m.name),
           name: m.name,
-          credits: 120,
-          description: '',
+          facultyName: m.facultyName,
+          majorType: m.majorType,
+          credits: m.creditHours,
+          creditHours: m.creditHours,
+          duration: m.duration,
+          minAdmission: m.minAdmission,
+          notes: m.notes,
+          description: [m.majorType, m.notes || `${m.duration} • Min ${m.minAdmission}`].filter(Boolean).join(' • '),
         }));
+
         setCollege({
-          id: c.id,
-          shortName: c.name,
-          name: c.name,
+          dbId: row?.id ?? null,
+          shortName: catalogEntry.name,
+          name: catalogEntry.name,
           tagline: 'EXCELLENCE IN EDUCATION',
-          description: 'Dedicated to excellence in teaching, research, and innovation.',
+          description: catalogEntry.description || descriptionForFaculty(catalogEntry.name),
           badges: [],
           majors,
         });
+        setLoading(false);
       })
-      .catch(() => setCollege(null))
-      .finally(() => setLoading(false));
+      .catch(() => {
+        if (!cancelled) {
+          setCollege(null);
+          setLoading(false);
+        }
+      });
+
+    return () => { cancelled = true; };
   }, [id]);
 
   const [sortOrder, setSortOrder] = useState('asc'); // 'asc' | 'desc' (name A→Z / Z→A)
@@ -65,6 +125,12 @@ function SingleCollege() {
   const visibleMajors = showMoreMajors ? sortedMajors : sortedMajors.slice(0, INITIAL_MAJORS_COUNT);
   const hasMoreMajors = sortedMajors.length > INITIAL_MAJORS_COUNT;
 
+  if (id != null && String(id).trim() !== '' && shouldRedirectFacultySlugToCanonical(id)) {
+    return (
+      <Navigate to={collegePathFromFacultySlug(resolveCollegeCatalogSlug(id))} replace />
+    );
+  }
+
   if (loading) {
     return (
       <div className="bg-[#f7f6f3] min-h-[50vh] flex items-center justify-center">
@@ -77,7 +143,7 @@ function SingleCollege() {
       <div className="bg-[#f7f6f3] min-h-[50vh] flex items-center justify-center">
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 text-center">
           <h1 className="font-serif text-2xl text-[#0b2d52] mb-4">College not found</h1>
-          <Link to="/colleges" className="text-[#00356b] font-semibold hover:underline">
+          <Link to={COLLEGES_ROUTE_PREFIX} className="text-[#00356b] font-semibold hover:underline">
             ← Back to Colleges
           </Link>
         </div>
@@ -92,7 +158,7 @@ function SingleCollege() {
         <div className="max-w-screen-2xl mx-auto px-6 lg:px-10 pt-8 pb-16">
           {/* Breadcrumbs — Colleges only (no Home) */}
           <nav className="flex items-center gap-2 text-sm mb-10" aria-label="Breadcrumb">
-            <Link to="/colleges" className="text-slate-500 hover:text-[#00356b] hover:underline transition">
+            <Link to={COLLEGES_ROUTE_PREFIX} className="text-slate-500 hover:text-[#00356b] hover:underline transition">
               Colleges
             </Link>
             <span className="text-slate-300" aria-hidden>›</span>
@@ -163,8 +229,8 @@ function SingleCollege() {
             {visibleMajors.map((major) => (
               <Link
                 key={major.id}
-                to={`/majors/${major.id}`}
-                state={{ from: 'college' }}
+                to={`/majors/${major.slug || major.id}`}
+                state={{ from: 'college', major }}
                 className="bg-white border border-slate-100 rounded-lg shadow-sm hover:shadow-xl hover:-translate-y-1 transition-all duration-300 overflow-hidden flex flex-col group"
               >
                 <div className="h-40 rounded-t-lg overflow-hidden bg-slate-100 relative flex">
@@ -183,6 +249,11 @@ function SingleCollege() {
                   </div>
                 </div>
                 <div className="p-5 flex flex-col flex-1">
+                  {major.majorType ? (
+                    <p className="text-[11px] font-semibold text-[#00356b]/85 uppercase tracking-wide mb-1">
+                      {major.majorType}
+                    </p>
+                  ) : null}
                   <h3 className="font-serif text-lg font-semibold text-[#0b2d52] leading-snug mb-2 group-hover:underline">
                     {major.name}
                   </h3>

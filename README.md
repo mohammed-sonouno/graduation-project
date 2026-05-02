@@ -37,4 +37,4 @@ Smart platform for majors, events, and AI academic guidance at An-Najah Universi
 
 ## Authors
 
-Sameer Masri, Sami Tuffaha
+mohammed snono ,Sameer Masri, Sami Tuffaha
