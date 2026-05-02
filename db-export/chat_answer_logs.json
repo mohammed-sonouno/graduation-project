@@ -1,0 +1,389 @@
+[
+  {
+    "id": 1,
+    "interaction_log_id": 1,
+    "bot_message_id": 30,
+    "reply_text": "Welcome! I am your academic advisor for Business Administration. I can help you understand what this programme offers and how it might fit your career goals.",
+    "answer_kind": "greet",
+    "plan_type": "GREET",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "app_users",
+      "major_chat_context"
+    ],
+    "created_at": "2026-04-17T13:50:49.349Z"
+  },
+  {
+    "id": 2,
+    "interaction_log_id": 2,
+    "bot_message_id": 32,
+    "reply_text": "Here is what I can tell you about Business Administration:\n\nBusiness Administration covers strategy, operations, and leadership skills. For course requirements, check the official faculty page.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:50:57.332Z"
+  },
+  {
+    "id": 3,
+    "interaction_log_id": 3,
+    "bot_message_id": 34,
+    "reply_text": "Here is what I can tell you about Business Administration:\n\nI do not have admission average details for Business Administration right now. I would recommend checking with the admissions office for the most up-to-date numbers.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:51:19.246Z"
+  },
+  {
+    "id": 4,
+    "interaction_log_id": 4,
+    "bot_message_id": 36,
+    "reply_text": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:51:54.375Z"
+  },
+  {
+    "id": 5,
+    "interaction_log_id": 5,
+    "bot_message_id": 38,
+    "reply_text": "Here is what I know about Computer Science:\n\nHardware-software systems, embedded computing, and computer architecture.\n\nIn terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.\n\nThe admission average is typically between 80 and 90.\n\nThis programme is ABET accredited.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:52:11.631Z"
+  },
+  {
+    "id": 6,
+    "interaction_log_id": 6,
+    "bot_message_id": 40,
+    "reply_text": "Here are the admission averages I have on file for this programme:\n\n• هندسة الحاسوب: you would typically need an average of 80–90 (approximate) (scientific stream).\n• هندسة علوم المواد: you would typically need an average of not available at the moment (approximate) (scientific stream).\n\n\nPlease note: some of the figures above are approximate and may differ from the latest official numbers.",
+    "answer_kind": "engineering_acceptance",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:52:29.986Z"
+  },
+  {
+    "id": 7,
+    "interaction_log_id": 7,
+    "bot_message_id": 42,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:52:50.944Z"
+  },
+  {
+    "id": 8,
+    "interaction_log_id": 8,
+    "bot_message_id": 44,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:54:42.015Z"
+  },
+  {
+    "id": 9,
+    "interaction_log_id": 9,
+    "bot_message_id": 46,
+    "reply_text": "Here is what I know about Computer Science:\n\nComputer Science is considered quite demanding — it requires strong dedication and consistent hard work.\n\nFor context, the admission average is typically between 80 and 90, which can give you a sense of the academic expectations.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:58:19.277Z"
+  },
+  {
+    "id": 10,
+    "interaction_log_id": 10,
+    "bot_message_id": 48,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T13:59:36.459Z"
+  },
+  {
+    "id": 11,
+    "interaction_log_id": 11,
+    "bot_message_id": 50,
+    "reply_text": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "answer_kind": "not_in_database",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "fallback_used": true,
+    "weak_or_offtopic": true,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:01:39.356Z"
+  },
+  {
+    "id": 12,
+    "interaction_log_id": 12,
+    "bot_message_id": 52,
+    "reply_text": "Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.",
+    "answer_kind": "greet",
+    "plan_type": "GREET",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "app_users",
+      "major_chat_context"
+    ],
+    "created_at": "2026-04-17T14:02:39.521Z"
+  },
+  {
+    "id": 13,
+    "interaction_log_id": 13,
+    "bot_message_id": 54,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:21.401Z"
+  },
+  {
+    "id": 14,
+    "interaction_log_id": 14,
+    "bot_message_id": 56,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:31.903Z"
+  },
+  {
+    "id": 15,
+    "interaction_log_id": 15,
+    "bot_message_id": 58,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nأنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.\n\nمن ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.\n\nمعدل القبول عادةً بين 80 و 90.\n\nهالبرنامج حاصل على اعتماد ABET.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:46.156Z"
+  },
+  {
+    "id": 16,
+    "interaction_log_id": 16,
+    "bot_message_id": 60,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nمن ناحية التنافس، Computer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nيعني عدد المتقدمين مقارنة بالمقاعد المتاحة ممكن يأثر على صعوبة القبول.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:48.806Z"
+  },
+  {
+    "id": 17,
+    "interaction_log_id": 17,
+    "bot_message_id": 62,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:53.279Z"
+  },
+  {
+    "id": 18,
+    "interaction_log_id": 18,
+    "bot_message_id": 64,
+    "reply_text": "هاي المعلومات اللي عندي عن Computer Science:\n\nComputer Science صعب — بتطلب التزام قوي وجهد مستمر.\n\nللعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:54.844Z"
+  },
+  {
+    "id": 19,
+    "interaction_log_id": 19,
+    "bot_message_id": 66,
+    "reply_text": "ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.\n\nبما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.\n\nممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",
+    "answer_kind": "not_in_database",
+    "plan_type": "ENGINEERING_ACCEPTANCE_QUERY",
+    "fallback_used": true,
+    "weak_or_offtopic": true,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T14:04:56.718Z"
+  },
+  {
+    "id": 20,
+    "interaction_log_id": 20,
+    "bot_message_id": 68,
+    "reply_text": "Welcome! I am your academic advisor for Civil Engineering. I can tell you about admission, difficulty, career directions, and how this programme compares with other engineering options.",
+    "answer_kind": "greet",
+    "plan_type": "GREET",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "app_users",
+      "major_chat_context"
+    ],
+    "created_at": "2026-04-17T15:35:28.524Z"
+  },
+  {
+    "id": 21,
+    "interaction_log_id": 21,
+    "bot_message_id": 70,
+    "reply_text": "Here is what I know about Civil Engineering:\n\nCivil Engineering is considered moderately challenging — it requires steady effort, especially in technical subjects.\n\nFor context, the admission average is typically between 70 and 78, which can give you a sense of the academic expectations.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T15:35:30.999Z"
+  },
+  {
+    "id": 22,
+    "interaction_log_id": 22,
+    "bot_message_id": 72,
+    "reply_text": "هاي المعلومات اللي عندي عن Civil Engineering:\n\nما عندي معلومات تفصيلية عن الوظائف لـ Civil Engineering حالياً. بشكل عام، مكتب الكلية أو خدمات التوظيف بيقدروا يعطوك صورة أوضح.",
+    "answer_kind": "major_advisor_snapshot",
+    "plan_type": "MAJOR_ADVISOR_SNAPSHOT",
+    "fallback_used": false,
+    "weak_or_offtopic": false,
+    "validation_ok": true,
+    "mismatch_blocked": false,
+    "pipeline_sources": [
+      "majors",
+      "major_chat_context",
+      "engineering_programs"
+    ],
+    "created_at": "2026-04-17T15:35:45.371Z"
+  }
+]

@@ -1,0 +1,44 @@
+[
+  {
+    "id": 1,
+    "faculty_id": 1,
+    "name_en": "Electrical and Computer Engineering Department",
+    "name_ar": "قسم الهندسة الكهربائية وهندسة الحاسوب",
+    "description_en": "Department covering electrical engineering and computer engineering fields (high-level).",
+    "description_ar": "قسم يغطي تخصصات الهندسة الكهربائية وهندسة الحاسوب (وصف عام).",
+    "degree_levels": [
+      "BSc",
+      "MSc"
+    ],
+    "source_id": 2,
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "faculty_id": 1,
+    "name_en": "Industrial and Mechanical Engineering Department",
+    "name_ar": "قسم الهندسة الصناعية والميكانيكية",
+    "description_en": "Department covering industrial and mechanical engineering fields (high-level).",
+    "description_ar": "قسم يغطي تخصصات الهندسة الصناعية والميكانيكية (وصف عام).",
+    "degree_levels": [
+      "BSc",
+      "MSc"
+    ],
+    "source_id": 2,
+    "sort_order": 2
+  },
+  {
+    "id": 3,
+    "faculty_id": 1,
+    "name_en": "Architectural and Civil Engineering Department",
+    "name_ar": "قسم الهندسة المعمارية والمدنية",
+    "description_en": "Department covering architectural and civil engineering fields (high-level).",
+    "description_ar": "قسم يغطي تخصصات الهندسة المعمارية والمدنية (وصف عام).",
+    "degree_levels": [
+      "BSc",
+      "MSc"
+    ],
+    "source_id": 2,
+    "sort_order": 3
+  }
+]

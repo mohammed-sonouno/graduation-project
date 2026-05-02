@@ -1,0 +1,2 @@
+id,faculty_id,as_of_label,departments_count,programs_count,students_count,faculty_members_count,labs_count,facilities_note_en,facilities_note_ar,source_id,created_at,updated_at
+1,1,public faculty home page,3,15,5200,150,,Public pages mention workshops and several laboratories (no official counts provided).,تذكر الصفحات العامة وجود ورش ومختبرات متعددة دون أعداد رسمية دقيقة.,1,"""2026-04-14T15:06:23.887Z""","""2026-04-14T18:28:30.778Z"""

@@ -25,11 +25,14 @@ Smart platform for majors, events, and AI academic guidance at An-Najah Universi
    ```bash
    npm run dev:all
    ```
-   This starts the backend (default port 2000) and the frontend dev server (Vite). Open the URL shown in the terminal (e.g. http://localhost:5173).
+   This starts the backend (port 2000), the frontend (Vite on port 3000), and the NLP service. Open **http://localhost:3000**.
+
+   For frontend + backend only (no NLP): `npm run dev:web`.
 
 ## Scripts
 
-- `npm run dev:all` — run backend and frontend together
+- `npm run dev:all` — run backend, frontend, and NLP together
+- `npm run dev:web` — run backend and frontend only (ports 2000 and 3000)
 - `npm run dev` — frontend only (Vite)
 - `npm run server` — backend only
 - `npm run migrate` — run database migrations

@@ -1,0 +1,2 @@
+id,university_id,as_of_label,faculties_count,bachelor_programs_count,master_programs_count,phd_programs_count,programs_total,students_count,campuses_count,scholarships_count,research_papers_count,source_id,created_at,updated_at,books_count,ebooks_count,ejournals_count
+1,1,2022/2023,11,128,78,13,219,25000,5,11452,552,3,"""2026-04-14T15:02:18.315Z""","""2026-04-14T18:28:30.778Z""",250071,308568,81735

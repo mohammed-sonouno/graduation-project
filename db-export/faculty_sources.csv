@@ -1,0 +1,9 @@
+id,source_name,source_url,fetched_at,confidence,notes
+1,Faculty of Engineering and Information Technology - Home,http://eng.najah.edu/,"""2026-04-14T15:07:35.169Z""",0.90,Official faculty home page with overview and key figures.
+2,Faculty of Engineering and Information Technology - Departments,https://eng.najah.edu/en/study/departments/,"""2026-04-14T15:07:35.169Z""",0.95,Official departments listing page (high-level).
+3,Faculty of Engineering (archived) - About,http://eng-old.najah.edu/node/18,"""2026-04-14T15:07:35.169Z""",0.85,Archived official page containing establishment year and facilities description; treat numeric claims cautiously.
+4,An-Najah National University - ABET accreditation (Engineering programmes),https://www.najah.edu/en/about/annu-facts/abet/,"""2026-04-14T15:07:35.169Z""",0.95,Official university page listing ABET-accredited engineering programmes.
+5,Faculty of Engineering - ABET Accredited Programs,https://eng.najah.edu/en/quality-unit/abet-accredited-engineering-programs/,"""2026-04-14T17:18:18.525Z""",0.95,Official ABET accreditation listing page.
+6,Faculty of Engineering - Welcome / About,https://eng.najah.edu/en/about/,"""2026-04-14T17:18:18.525Z""",0.95,Official faculty about page.
+9,An-Najah official faculties page,https://www.najah.edu/en/academic/faculties/,"""2026-04-17T14:30:16.513Z""",0.95,Baseline faculty list used for faculty chat coverage.
+10,An-Najah official undergraduate programs by faculty,https://www.najah.edu/en/academic/undergraduate-programs/by-faculty/,"""2026-04-17T14:30:16.513Z""",0.95,Baseline faculty-program mapping used for faculty and major chat coverage.

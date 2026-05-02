@@ -1,0 +1,4 @@
+id,faculty_id,name_en,name_ar,description_en,description_ar,degree_levels,source_id,sort_order
+1,1,Electrical and Computer Engineering Department,قسم الهندسة الكهربائية وهندسة الحاسوب,Department covering electrical engineering and computer engineering fields (high-level).,قسم يغطي تخصصات الهندسة الكهربائية وهندسة الحاسوب (وصف عام).,"[""BSc"",""MSc""]",2,1
+2,1,Industrial and Mechanical Engineering Department,قسم الهندسة الصناعية والميكانيكية,Department covering industrial and mechanical engineering fields (high-level).,قسم يغطي تخصصات الهندسة الصناعية والميكانيكية (وصف عام).,"[""BSc"",""MSc""]",2,2
+3,1,Architectural and Civil Engineering Department,قسم الهندسة المعمارية والمدنية,Department covering architectural and civil engineering fields (high-level).,قسم يغطي تخصصات الهندسة المعمارية والمدنية (وصف عام).,"[""BSc"",""MSc""]",2,3

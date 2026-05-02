@@ -1,0 +1,4 @@
+id,source_name,source_url,fetched_at,confidence,notes
+1,Estimated acceptance thresholds (NOT official),estimated://engineering-programs-v1,"""2026-04-14T15:12:49.099Z""",0.35,Estimated min acceptance averages used for recommendation guidance only. Replace with official admission data when available.
+2,Faculty of Engineering - Official Programs Overview,https://eng.najah.edu/en/study/,"""2026-04-14T17:18:18.525Z""",0.90,Official study page listing undergraduate programs.
+3,Faculty of Engineering (archived) - Programs list,http://eng-old.najah.edu/node/1,"""2026-04-14T17:18:18.525Z""",0.85,Archived official page listing all programme names.

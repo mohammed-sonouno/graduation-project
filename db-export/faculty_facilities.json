@@ -1,0 +1,22 @@
+[
+  {
+    "id": 1,
+    "faculty_id": 1,
+    "facility_type": "facility",
+    "name_en": "Engineering workshops",
+    "name_ar": "الورش الهندسية",
+    "description_en": "Workshops in the engineering building (publicly described on official pages).",
+    "description_ar": null,
+    "source_id": 3
+  },
+  {
+    "id": 2,
+    "faculty_id": 1,
+    "facility_type": "lab",
+    "name_en": "Engineering laboratories",
+    "name_ar": "المختبرات الهندسية",
+    "description_en": "Several laboratories equipped for teaching and research (no official count provided).",
+    "description_ar": null,
+    "source_id": 3
+  }
+]

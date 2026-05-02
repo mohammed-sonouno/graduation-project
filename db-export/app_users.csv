@@ -1,0 +1,7 @@
+id,email,password_hash,role,created_at,first_name,middle_name,last_name,student_number,college,major,phone,must_change_password,must_complete_profile,college_id,community_id
+3,s12115813@stu.najah.edu,,student,"""2026-03-09T14:34:39.896Z""",سامي,مهند خالد,تفاحة,s12115813,Engineering & IT,Management Information Systems,+970 595305090,false,false,,
+4,ieee@najah.edu,$2b$10$bh5P9MW5MkCrReEwy.qAlehs6QRNcEEaB1OVf2U5A7yDJD/51XVxS,community_leader,"""2026-03-09T20:45:14.097Z""",,,,,,,,false,false,,91
+5,ieee.sup@najah.edu,$2b$10$bh5P9MW5MkCrReEwy.qAlehs6QRNcEEaB1OVf2U5A7yDJD/51XVxS,supervisor,"""2026-03-09T20:45:14.218Z""",,,,,,,,false,false,,91
+6,eng.dean@najah.edu,$2b$10$bh5P9MW5MkCrReEwy.qAlehs6QRNcEEaB1OVf2U5A7yDJD/51XVxS,dean,"""2026-03-09T20:45:14.439Z""",,,,,,,,false,false,1,
+1,admin@najah.edu,$2b$10$04IjoVNZLz9I4S0/.uLq.OF5Y7SWZQlpdmJGkquf30ApCf769hKVa,admin,"""2026-03-06T14:42:45.848Z""",,,,,,,,false,false,,
+7,s12219287@stu.najah.edu,,student,"""2026-03-10T13:56:13.752Z""",محمد,مازن ناجح,سنونو,s12219287,Engineering & IT,Management Information Systems,+970 597597815,false,false,,

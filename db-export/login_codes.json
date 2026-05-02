@@ -1,0 +1,23 @@
+[
+  {
+    "id": 8,
+    "email": "s12115813@stu.najah.edu",
+    "code": "879909",
+    "expires_at": "2026-03-09T19:57:18.898Z",
+    "created_at": "2026-03-09T19:47:18.712Z"
+  },
+  {
+    "id": 10,
+    "email": "s12115813@stu.najah.edu",
+    "code": "297201",
+    "expires_at": "2026-03-09T21:05:22.980Z",
+    "created_at": "2026-03-09T20:55:22.827Z"
+  },
+  {
+    "id": 26,
+    "email": "ieee@najah.edu",
+    "code": "386013",
+    "expires_at": "2026-03-28T12:29:59.179Z",
+    "created_at": "2026-03-28T12:19:58.238Z"
+  }
+]

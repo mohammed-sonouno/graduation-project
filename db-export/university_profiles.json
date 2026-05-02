@@ -1,0 +1,26 @@
+[
+  {
+    "id": 1,
+    "slug": "an-najah",
+    "official_name": "An-Najah National University",
+    "short_name": "An-Najah",
+    "aliases": [
+      "An Najah",
+      "ANU",
+      "جامعة النجاح الوطنية",
+      "النجاح"
+    ],
+    "city": "Nablus",
+    "country": "Palestine",
+    "institution_type": "Public university",
+    "overview": "An-Najah National University is a hub of learning in Nablus, Palestine. Since it was chartered as a full-fledged university in 1977, it has promoted modern knowledge while preserving Palestinian history, heritage, and culture.",
+    "founded_year_school": 1918,
+    "became_university_year": 1977,
+    "mission_text": "An-Najah National University is a public institution whose mission is to advance learning, share knowledge and foster the skills needed in young men and women to succeed as people and professionals in all spheres of life. The University also aims to promote a culture of scientific excellence, equip students to compete in work markets, advance scientific research, meet community needs through sustainable development, and preserve Palestinian cultural and religious heritage.",
+    "mission_summary": "Advance learning and research, serve community needs through sustainable development, and preserve Palestinian heritage.",
+    "campuses_count": 5,
+    "campuses_note": "Five campuses: New Campus, Old Campus, Hisham Hijjawi College of Technology, Khadouri Campus (Tulkarm), An-Najah National Hospital.",
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T18:28:30.778Z"
+  }
+]

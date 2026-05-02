@@ -1,0 +1,767 @@
+[
+  {
+    "tablename": "app_module_data",
+    "indexname": "app_module_data_pkey",
+    "indexdef": "CREATE UNIQUE INDEX app_module_data_pkey ON public.app_module_data USING btree (id)"
+  },
+  {
+    "tablename": "app_module_data",
+    "indexname": "idx_module_data_module",
+    "indexdef": "CREATE INDEX idx_module_data_module ON public.app_module_data USING btree (module_name)"
+  },
+  {
+    "tablename": "app_module_data",
+    "indexname": "idx_module_data_unique_global",
+    "indexdef": "CREATE UNIQUE INDEX idx_module_data_unique_global ON public.app_module_data USING btree (module_name, key) WHERE (user_id IS NULL)"
+  },
+  {
+    "tablename": "app_module_data",
+    "indexname": "idx_module_data_unique_user",
+    "indexdef": "CREATE UNIQUE INDEX idx_module_data_unique_user ON public.app_module_data USING btree (module_name, user_id, key) WHERE (user_id IS NOT NULL)"
+  },
+  {
+    "tablename": "app_module_data",
+    "indexname": "idx_module_data_updated",
+    "indexdef": "CREATE INDEX idx_module_data_updated ON public.app_module_data USING btree (module_name, updated_at DESC)"
+  },
+  {
+    "tablename": "app_module_data",
+    "indexname": "idx_module_data_user",
+    "indexdef": "CREATE INDEX idx_module_data_user ON public.app_module_data USING btree (module_name, user_id)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "app_users_email_key",
+    "indexdef": "CREATE UNIQUE INDEX app_users_email_key ON public.app_users USING btree (email)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "app_users_pkey",
+    "indexdef": "CREATE UNIQUE INDEX app_users_pkey ON public.app_users USING btree (id)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "app_users_student_number_key",
+    "indexdef": "CREATE UNIQUE INDEX app_users_student_number_key ON public.app_users USING btree (student_number)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "idx_app_users_dean_college_unique",
+    "indexdef": "CREATE UNIQUE INDEX idx_app_users_dean_college_unique ON public.app_users USING btree (college_id) WHERE ((role)::text = 'dean'::text)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "idx_app_users_email",
+    "indexdef": "CREATE INDEX idx_app_users_email ON public.app_users USING btree (email)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "idx_app_users_role",
+    "indexdef": "CREATE INDEX idx_app_users_role ON public.app_users USING btree (role)"
+  },
+  {
+    "tablename": "app_users",
+    "indexname": "idx_app_users_student_number",
+    "indexdef": "CREATE INDEX idx_app_users_student_number ON public.app_users USING btree (student_number)"
+  },
+  {
+    "tablename": "chat_answer_logs",
+    "indexname": "chat_answer_logs_interaction_log_id_key",
+    "indexdef": "CREATE UNIQUE INDEX chat_answer_logs_interaction_log_id_key ON public.chat_answer_logs USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_answer_logs",
+    "indexname": "chat_answer_logs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_answer_logs_pkey ON public.chat_answer_logs USING btree (id)"
+  },
+  {
+    "tablename": "chat_answer_logs",
+    "indexname": "idx_chat_answer_logs_fallback",
+    "indexdef": "CREATE INDEX idx_chat_answer_logs_fallback ON public.chat_answer_logs USING btree (fallback_used) WHERE (fallback_used = true)"
+  },
+  {
+    "tablename": "chat_answer_logs",
+    "indexname": "idx_chat_answer_logs_weak",
+    "indexdef": "CREATE INDEX idx_chat_answer_logs_weak ON public.chat_answer_logs USING btree (weak_or_offtopic) WHERE (weak_or_offtopic = true)"
+  },
+  {
+    "tablename": "chat_conversations",
+    "indexname": "chat_conversations_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_conversations_pkey ON public.chat_conversations USING btree (id)"
+  },
+  {
+    "tablename": "chat_conversations",
+    "indexname": "idx_chat_conversations_user_id",
+    "indexdef": "CREATE INDEX idx_chat_conversations_user_id ON public.chat_conversations USING btree (user_id)"
+  },
+  {
+    "tablename": "chat_entity_logs",
+    "indexname": "chat_entity_logs_interaction_log_id_key",
+    "indexdef": "CREATE UNIQUE INDEX chat_entity_logs_interaction_log_id_key ON public.chat_entity_logs USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_entity_logs",
+    "indexname": "chat_entity_logs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_entity_logs_pkey ON public.chat_entity_logs USING btree (id)"
+  },
+  {
+    "tablename": "chat_knowledge_allowlist",
+    "indexname": "chat_knowledge_allowlist_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_knowledge_allowlist_pkey ON public.chat_knowledge_allowlist USING btree (id)"
+  },
+  {
+    "tablename": "chat_knowledge_allowlist",
+    "indexname": "idx_chat_knowledge_allowlist_col",
+    "indexdef": "CREATE UNIQUE INDEX idx_chat_knowledge_allowlist_col ON public.chat_knowledge_allowlist USING btree (table_schema, table_name, column_name)"
+  },
+  {
+    "tablename": "chat_messages",
+    "indexname": "chat_messages_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_messages_pkey ON public.chat_messages USING btree (id)"
+  },
+  {
+    "tablename": "chat_messages",
+    "indexname": "idx_chat_messages_conversation_id",
+    "indexdef": "CREATE INDEX idx_chat_messages_conversation_id ON public.chat_messages USING btree (conversation_id)"
+  },
+  {
+    "tablename": "chat_ml_feedback",
+    "indexname": "chat_ml_feedback_interaction_log_id_user_id_key",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_feedback_interaction_log_id_user_id_key ON public.chat_ml_feedback USING btree (interaction_log_id, user_id)"
+  },
+  {
+    "tablename": "chat_ml_feedback",
+    "indexname": "chat_ml_feedback_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_feedback_pkey ON public.chat_ml_feedback USING btree (id)"
+  },
+  {
+    "tablename": "chat_ml_feedback",
+    "indexname": "idx_chat_ml_feedback_log",
+    "indexdef": "CREATE INDEX idx_chat_ml_feedback_log ON public.chat_ml_feedback USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "chat_ml_interaction_logs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_interaction_logs_pkey ON public.chat_ml_interaction_logs USING btree (id)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_context_major",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_context_major ON public.chat_ml_interaction_logs USING btree (context_major_id)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_created_at",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_created_at ON public.chat_ml_interaction_logs USING btree (created_at DESC)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_mismatch",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_mismatch ON public.chat_ml_interaction_logs USING btree (mismatch_blocked) WHERE (mismatch_blocked = true)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_outcome",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_outcome ON public.chat_ml_interaction_logs USING btree (outcome)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_plan_type",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_plan_type ON public.chat_ml_interaction_logs USING btree (plan_type)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_reply_locale",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_reply_locale ON public.chat_ml_interaction_logs USING btree (reply_locale)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_user_id",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_user_id ON public.chat_ml_interaction_logs USING btree (user_id)"
+  },
+  {
+    "tablename": "chat_ml_interaction_logs",
+    "indexname": "idx_chat_ml_logs_weak_reason",
+    "indexdef": "CREATE INDEX idx_chat_ml_logs_weak_reason ON public.chat_ml_interaction_logs USING btree (weak_reason)"
+  },
+  {
+    "tablename": "chat_ml_labeled_examples",
+    "indexname": "chat_ml_labeled_examples_interaction_log_id_key",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_labeled_examples_interaction_log_id_key ON public.chat_ml_labeled_examples USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_ml_labeled_examples",
+    "indexname": "chat_ml_labeled_examples_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_labeled_examples_pkey ON public.chat_ml_labeled_examples USING btree (id)"
+  },
+  {
+    "tablename": "chat_ml_labeled_examples",
+    "indexname": "idx_chat_ml_labeled_intent",
+    "indexdef": "CREATE INDEX idx_chat_ml_labeled_intent ON public.chat_ml_labeled_examples USING btree (gold_intent)"
+  },
+  {
+    "tablename": "chat_ml_model_registry",
+    "indexname": "chat_ml_model_registry_model_version_unique",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_model_registry_model_version_unique ON public.chat_ml_model_registry USING btree (model_key, version)"
+  },
+  {
+    "tablename": "chat_ml_model_registry",
+    "indexname": "chat_ml_model_registry_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_model_registry_pkey ON public.chat_ml_model_registry USING btree (id)"
+  },
+  {
+    "tablename": "chat_ml_model_registry",
+    "indexname": "idx_chat_ml_model_registry_key_status",
+    "indexdef": "CREATE INDEX idx_chat_ml_model_registry_key_status ON public.chat_ml_model_registry USING btree (model_key, status)"
+  },
+  {
+    "tablename": "chat_ml_review_queue",
+    "indexname": "chat_ml_review_queue_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_ml_review_queue_pkey ON public.chat_ml_review_queue USING btree (id)"
+  },
+  {
+    "tablename": "chat_ml_review_queue",
+    "indexname": "idx_chat_ml_review_created",
+    "indexdef": "CREATE INDEX idx_chat_ml_review_created ON public.chat_ml_review_queue USING btree (created_at DESC)"
+  },
+  {
+    "tablename": "chat_ml_review_queue",
+    "indexname": "idx_chat_ml_review_status",
+    "indexdef": "CREATE INDEX idx_chat_ml_review_status ON public.chat_ml_review_queue USING btree (status)"
+  },
+  {
+    "tablename": "chat_question_logs",
+    "indexname": "chat_question_logs_interaction_log_id_key",
+    "indexdef": "CREATE UNIQUE INDEX chat_question_logs_interaction_log_id_key ON public.chat_question_logs USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_question_logs",
+    "indexname": "chat_question_logs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_question_logs_pkey ON public.chat_question_logs USING btree (id)"
+  },
+  {
+    "tablename": "chat_question_logs",
+    "indexname": "idx_chat_question_logs_conv",
+    "indexdef": "CREATE INDEX idx_chat_question_logs_conv ON public.chat_question_logs USING btree (conversation_id, created_at DESC)"
+  },
+  {
+    "tablename": "chat_question_logs",
+    "indexname": "idx_chat_question_logs_parent",
+    "indexdef": "CREATE INDEX idx_chat_question_logs_parent ON public.chat_question_logs USING btree (parent_interaction_log_id)"
+  },
+  {
+    "tablename": "chat_training_samples",
+    "indexname": "chat_training_samples_log_unique",
+    "indexdef": "CREATE UNIQUE INDEX chat_training_samples_log_unique ON public.chat_training_samples USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_training_samples",
+    "indexname": "chat_training_samples_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_training_samples_pkey ON public.chat_training_samples USING btree (id)"
+  },
+  {
+    "tablename": "chat_training_samples",
+    "indexname": "idx_chat_training_samples_export",
+    "indexdef": "CREATE INDEX idx_chat_training_samples_export ON public.chat_training_samples USING btree (export_batch_id)"
+  },
+  {
+    "tablename": "chat_training_samples",
+    "indexname": "idx_chat_training_samples_status",
+    "indexdef": "CREATE INDEX idx_chat_training_samples_status ON public.chat_training_samples USING btree (sample_status)"
+  },
+  {
+    "tablename": "chat_unanswered",
+    "indexname": "chat_unanswered_interaction_unique",
+    "indexdef": "CREATE UNIQUE INDEX chat_unanswered_interaction_unique ON public.chat_unanswered USING btree (interaction_log_id)"
+  },
+  {
+    "tablename": "chat_unanswered",
+    "indexname": "chat_unanswered_pkey",
+    "indexdef": "CREATE UNIQUE INDEX chat_unanswered_pkey ON public.chat_unanswered USING btree (id)"
+  },
+  {
+    "tablename": "chat_unanswered",
+    "indexname": "idx_chat_unanswered_category",
+    "indexdef": "CREATE INDEX idx_chat_unanswered_category ON public.chat_unanswered USING btree (category)"
+  },
+  {
+    "tablename": "colleges",
+    "indexname": "colleges_pkey",
+    "indexdef": "CREATE UNIQUE INDEX colleges_pkey ON public.colleges USING btree (id)"
+  },
+  {
+    "tablename": "communities",
+    "indexname": "communities_name_college_id_key",
+    "indexdef": "CREATE UNIQUE INDEX communities_name_college_id_key ON public.communities USING btree (name, college_id)"
+  },
+  {
+    "tablename": "communities",
+    "indexname": "communities_pkey",
+    "indexdef": "CREATE UNIQUE INDEX communities_pkey ON public.communities USING btree (id)"
+  },
+  {
+    "tablename": "communities",
+    "indexname": "idx_communities_college",
+    "indexdef": "CREATE INDEX idx_communities_college ON public.communities USING btree (college_id)"
+  },
+  {
+    "tablename": "engineering_program_sources",
+    "indexname": "engineering_program_sources_pkey",
+    "indexdef": "CREATE UNIQUE INDEX engineering_program_sources_pkey ON public.engineering_program_sources USING btree (id)"
+  },
+  {
+    "tablename": "engineering_program_sources",
+    "indexname": "engineering_program_sources_source_url_key",
+    "indexdef": "CREATE UNIQUE INDEX engineering_program_sources_source_url_key ON public.engineering_program_sources USING btree (source_url)"
+  },
+  {
+    "tablename": "engineering_programs",
+    "indexname": "engineering_programs_pkey",
+    "indexdef": "CREATE UNIQUE INDEX engineering_programs_pkey ON public.engineering_programs USING btree (id)"
+  },
+  {
+    "tablename": "engineering_programs",
+    "indexname": "engineering_programs_program_key_key",
+    "indexdef": "CREATE UNIQUE INDEX engineering_programs_program_key_key ON public.engineering_programs USING btree (program_key)"
+  },
+  {
+    "tablename": "engineering_programs",
+    "indexname": "idx_engineering_programs_faculty",
+    "indexdef": "CREATE INDEX idx_engineering_programs_faculty ON public.engineering_programs USING btree (faculty_slug)"
+  },
+  {
+    "tablename": "engineering_programs",
+    "indexname": "idx_engineering_programs_keywords_gin",
+    "indexdef": "CREATE INDEX idx_engineering_programs_keywords_gin ON public.engineering_programs USING gin (keywords)"
+  },
+  {
+    "tablename": "engineering_programs",
+    "indexname": "idx_engineering_programs_stream",
+    "indexdef": "CREATE INDEX idx_engineering_programs_stream ON public.engineering_programs USING btree (stream_type)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "event_registrations_pkey",
+    "indexdef": "CREATE UNIQUE INDEX event_registrations_pkey ON public.event_registrations USING btree (id)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "event_registrations_user_id_event_id_key",
+    "indexdef": "CREATE UNIQUE INDEX event_registrations_user_id_event_id_key ON public.event_registrations USING btree (user_id, event_id)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "idx_event_registrations_event",
+    "indexdef": "CREATE INDEX idx_event_registrations_event ON public.event_registrations USING btree (event_id)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "idx_event_registrations_status",
+    "indexdef": "CREATE INDEX idx_event_registrations_status ON public.event_registrations USING btree (status)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "idx_event_registrations_user",
+    "indexdef": "CREATE INDEX idx_event_registrations_user ON public.event_registrations USING btree (user_id)"
+  },
+  {
+    "tablename": "event_registrations",
+    "indexname": "idx_event_registrations_user_created",
+    "indexdef": "CREATE INDEX idx_event_registrations_user_created ON public.event_registrations USING btree (user_id, created_at DESC)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "event_reviews_pkey",
+    "indexdef": "CREATE UNIQUE INDEX event_reviews_pkey ON public.event_reviews USING btree (id)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_created_at",
+    "indexdef": "CREATE INDEX idx_event_reviews_created_at ON public.event_reviews USING btree (created_at)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_event_created_desc",
+    "indexdef": "CREATE INDEX idx_event_reviews_event_created_desc ON public.event_reviews USING btree (event_id, created_at DESC)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_event_id",
+    "indexdef": "CREATE INDEX idx_event_reviews_event_id ON public.event_reviews USING btree (event_id)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_event_sentiment",
+    "indexdef": "CREATE INDEX idx_event_reviews_event_sentiment ON public.event_reviews USING btree (event_id, sentiment)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_override_sentiment",
+    "indexdef": "CREATE INDEX idx_event_reviews_override_sentiment ON public.event_reviews USING btree (override_sentiment)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_registration_id",
+    "indexdef": "CREATE INDEX idx_event_reviews_registration_id ON public.event_reviews USING btree (registration_id)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_sentiment",
+    "indexdef": "CREATE INDEX idx_event_reviews_sentiment ON public.event_reviews USING btree (sentiment)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "idx_event_reviews_user_id",
+    "indexdef": "CREATE INDEX idx_event_reviews_user_id ON public.event_reviews USING btree (user_id)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "uq_event_reviews_event_user",
+    "indexdef": "CREATE UNIQUE INDEX uq_event_reviews_event_user ON public.event_reviews USING btree (event_id, user_id) WHERE (user_id IS NOT NULL)"
+  },
+  {
+    "tablename": "event_reviews",
+    "indexname": "uq_event_reviews_registration_id",
+    "indexdef": "CREATE UNIQUE INDEX uq_event_reviews_registration_id ON public.event_reviews USING btree (registration_id) WHERE (registration_id IS NOT NULL)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "events_pkey",
+    "indexdef": "CREATE UNIQUE INDEX events_pkey ON public.events USING btree (id)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "idx_events_community",
+    "indexdef": "CREATE INDEX idx_events_community ON public.events USING btree (community_id)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "idx_events_created_at",
+    "indexdef": "CREATE INDEX idx_events_created_at ON public.events USING btree (created_at DESC)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "idx_events_created_by",
+    "indexdef": "CREATE INDEX idx_events_created_by ON public.events USING btree (created_by)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "idx_events_start_date",
+    "indexdef": "CREATE INDEX idx_events_start_date ON public.events USING btree (start_date)"
+  },
+  {
+    "tablename": "events",
+    "indexname": "idx_events_status",
+    "indexdef": "CREATE INDEX idx_events_status ON public.events USING btree (status)"
+  },
+  {
+    "tablename": "faculty_departments",
+    "indexname": "faculty_departments_faculty_id_name_en_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_departments_faculty_id_name_en_key ON public.faculty_departments USING btree (faculty_id, name_en)"
+  },
+  {
+    "tablename": "faculty_departments",
+    "indexname": "faculty_departments_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_departments_pkey ON public.faculty_departments USING btree (id)"
+  },
+  {
+    "tablename": "faculty_departments",
+    "indexname": "idx_faculty_departments_faculty",
+    "indexdef": "CREATE INDEX idx_faculty_departments_faculty ON public.faculty_departments USING btree (faculty_id, sort_order)"
+  },
+  {
+    "tablename": "faculty_facilities",
+    "indexname": "faculty_facilities_faculty_id_facility_type_name_en_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_facilities_faculty_id_facility_type_name_en_key ON public.faculty_facilities USING btree (faculty_id, facility_type, name_en)"
+  },
+  {
+    "tablename": "faculty_facilities",
+    "indexname": "faculty_facilities_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_facilities_pkey ON public.faculty_facilities USING btree (id)"
+  },
+  {
+    "tablename": "faculty_facilities",
+    "indexname": "idx_faculty_facilities_faculty",
+    "indexdef": "CREATE INDEX idx_faculty_facilities_faculty ON public.faculty_facilities USING btree (faculty_id, facility_type)"
+  },
+  {
+    "tablename": "faculty_profiles",
+    "indexname": "faculty_profiles_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_profiles_pkey ON public.faculty_profiles USING btree (id)"
+  },
+  {
+    "tablename": "faculty_profiles",
+    "indexname": "faculty_profiles_slug_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_profiles_slug_key ON public.faculty_profiles USING btree (slug)"
+  },
+  {
+    "tablename": "faculty_profiles",
+    "indexname": "idx_faculty_profiles_slug",
+    "indexdef": "CREATE INDEX idx_faculty_profiles_slug ON public.faculty_profiles USING btree (slug)"
+  },
+  {
+    "tablename": "faculty_qa",
+    "indexname": "faculty_qa_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_qa_pkey ON public.faculty_qa USING btree (id)"
+  },
+  {
+    "tablename": "faculty_qa",
+    "indexname": "idx_faculty_qa_faculty",
+    "indexdef": "CREATE INDEX idx_faculty_qa_faculty ON public.faculty_qa USING btree (faculty_id)"
+  },
+  {
+    "tablename": "faculty_qa",
+    "indexname": "idx_faculty_qa_intent",
+    "indexdef": "CREATE INDEX idx_faculty_qa_intent ON public.faculty_qa USING btree (faculty_id, normalized_intent)"
+  },
+  {
+    "tablename": "faculty_qa",
+    "indexname": "idx_faculty_qa_keywords_gin",
+    "indexdef": "CREATE INDEX idx_faculty_qa_keywords_gin ON public.faculty_qa USING gin (keywords)"
+  },
+  {
+    "tablename": "faculty_sources",
+    "indexname": "faculty_sources_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_sources_pkey ON public.faculty_sources USING btree (id)"
+  },
+  {
+    "tablename": "faculty_sources",
+    "indexname": "faculty_sources_source_url_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_sources_source_url_key ON public.faculty_sources USING btree (source_url)"
+  },
+  {
+    "tablename": "faculty_statistics",
+    "indexname": "faculty_statistics_faculty_id_as_of_label_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_statistics_faculty_id_as_of_label_key ON public.faculty_statistics USING btree (faculty_id, as_of_label)"
+  },
+  {
+    "tablename": "faculty_statistics",
+    "indexname": "faculty_statistics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_statistics_pkey ON public.faculty_statistics USING btree (id)"
+  },
+  {
+    "tablename": "faculty_statistics",
+    "indexname": "idx_faculty_statistics_faculty",
+    "indexdef": "CREATE INDEX idx_faculty_statistics_faculty ON public.faculty_statistics USING btree (faculty_id, as_of_label)"
+  },
+  {
+    "tablename": "faculty_tags",
+    "indexname": "faculty_tags_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_tags_pkey ON public.faculty_tags USING btree (id)"
+  },
+  {
+    "tablename": "faculty_tags",
+    "indexname": "faculty_tags_tag_text_lang_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_tags_tag_text_lang_key ON public.faculty_tags USING btree (tag_text, lang)"
+  },
+  {
+    "tablename": "faculty_timeline",
+    "indexname": "faculty_timeline_faculty_id_title_en_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_timeline_faculty_id_title_en_key ON public.faculty_timeline USING btree (faculty_id, title_en)"
+  },
+  {
+    "tablename": "faculty_timeline",
+    "indexname": "faculty_timeline_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_timeline_pkey ON public.faculty_timeline USING btree (id)"
+  },
+  {
+    "tablename": "faculty_timeline",
+    "indexname": "idx_faculty_timeline_faculty",
+    "indexdef": "CREATE INDEX idx_faculty_timeline_faculty ON public.faculty_timeline USING btree (faculty_id, sort_order)"
+  },
+  {
+    "tablename": "faculty_topic_tags",
+    "indexname": "faculty_topic_tags_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_topic_tags_pkey ON public.faculty_topic_tags USING btree (topic_id, tag_id)"
+  },
+  {
+    "tablename": "faculty_topics",
+    "indexname": "faculty_topics_faculty_id_topic_key_key",
+    "indexdef": "CREATE UNIQUE INDEX faculty_topics_faculty_id_topic_key_key ON public.faculty_topics USING btree (faculty_id, topic_key)"
+  },
+  {
+    "tablename": "faculty_topics",
+    "indexname": "faculty_topics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX faculty_topics_pkey ON public.faculty_topics USING btree (id)"
+  },
+  {
+    "tablename": "faculty_topics",
+    "indexname": "idx_faculty_topics_key",
+    "indexdef": "CREATE INDEX idx_faculty_topics_key ON public.faculty_topics USING btree (faculty_id, topic_key)"
+  },
+  {
+    "tablename": "login_codes",
+    "indexname": "idx_login_codes_email",
+    "indexdef": "CREATE INDEX idx_login_codes_email ON public.login_codes USING btree (email)"
+  },
+  {
+    "tablename": "login_codes",
+    "indexname": "idx_login_codes_expires",
+    "indexdef": "CREATE INDEX idx_login_codes_expires ON public.login_codes USING btree (expires_at)"
+  },
+  {
+    "tablename": "login_codes",
+    "indexname": "login_codes_pkey",
+    "indexdef": "CREATE UNIQUE INDEX login_codes_pkey ON public.login_codes USING btree (id)"
+  },
+  {
+    "tablename": "major_chat_context",
+    "indexname": "idx_major_chat_context_category",
+    "indexdef": "CREATE INDEX idx_major_chat_context_category ON public.major_chat_context USING btree (category)"
+  },
+  {
+    "tablename": "major_chat_context",
+    "indexname": "major_chat_context_pkey",
+    "indexdef": "CREATE UNIQUE INDEX major_chat_context_pkey ON public.major_chat_context USING btree (major_id)"
+  },
+  {
+    "tablename": "majors",
+    "indexname": "idx_majors_college_id",
+    "indexdef": "CREATE INDEX idx_majors_college_id ON public.majors USING btree (college_id)"
+  },
+  {
+    "tablename": "majors",
+    "indexname": "majors_pkey",
+    "indexdef": "CREATE UNIQUE INDEX majors_pkey ON public.majors USING btree (id)"
+  },
+  {
+    "tablename": "notifications",
+    "indexname": "idx_notifications_read",
+    "indexdef": "CREATE INDEX idx_notifications_read ON public.notifications USING btree (user_id, read)"
+  },
+  {
+    "tablename": "notifications",
+    "indexname": "idx_notifications_user",
+    "indexdef": "CREATE INDEX idx_notifications_user ON public.notifications USING btree (user_id)"
+  },
+  {
+    "tablename": "notifications",
+    "indexname": "idx_notifications_user_unread",
+    "indexdef": "CREATE INDEX idx_notifications_user_unread ON public.notifications USING btree (user_id, read, created_at DESC) WHERE (read = false)"
+  },
+  {
+    "tablename": "notifications",
+    "indexname": "notifications_pkey",
+    "indexdef": "CREATE UNIQUE INDEX notifications_pkey ON public.notifications USING btree (id)"
+  },
+  {
+    "tablename": "pending_registrations",
+    "indexname": "idx_pending_registrations_expires",
+    "indexdef": "CREATE INDEX idx_pending_registrations_expires ON public.pending_registrations USING btree (expires_at)"
+  },
+  {
+    "tablename": "pending_registrations",
+    "indexname": "pending_registrations_pkey",
+    "indexdef": "CREATE UNIQUE INDEX pending_registrations_pkey ON public.pending_registrations USING btree (id)"
+  },
+  {
+    "tablename": "student_profiles",
+    "indexname": "student_profiles_pkey",
+    "indexdef": "CREATE UNIQUE INDEX student_profiles_pkey ON public.student_profiles USING btree (user_id)"
+  },
+  {
+    "tablename": "university_profiles",
+    "indexname": "idx_university_profiles_slug",
+    "indexdef": "CREATE INDEX idx_university_profiles_slug ON public.university_profiles USING btree (slug)"
+  },
+  {
+    "tablename": "university_profiles",
+    "indexname": "university_profiles_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_profiles_pkey ON public.university_profiles USING btree (id)"
+  },
+  {
+    "tablename": "university_profiles",
+    "indexname": "university_profiles_slug_key",
+    "indexdef": "CREATE UNIQUE INDEX university_profiles_slug_key ON public.university_profiles USING btree (slug)"
+  },
+  {
+    "tablename": "university_qa",
+    "indexname": "idx_university_qa_intent",
+    "indexdef": "CREATE INDEX idx_university_qa_intent ON public.university_qa USING btree (university_id, normalized_intent)"
+  },
+  {
+    "tablename": "university_qa",
+    "indexname": "idx_university_qa_keywords_gin",
+    "indexdef": "CREATE INDEX idx_university_qa_keywords_gin ON public.university_qa USING gin (keywords)"
+  },
+  {
+    "tablename": "university_qa",
+    "indexname": "idx_university_qa_university",
+    "indexdef": "CREATE INDEX idx_university_qa_university ON public.university_qa USING btree (university_id)"
+  },
+  {
+    "tablename": "university_qa",
+    "indexname": "university_qa_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_qa_pkey ON public.university_qa USING btree (id)"
+  },
+  {
+    "tablename": "university_sources",
+    "indexname": "university_sources_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_sources_pkey ON public.university_sources USING btree (id)"
+  },
+  {
+    "tablename": "university_sources",
+    "indexname": "university_sources_source_url_key",
+    "indexdef": "CREATE UNIQUE INDEX university_sources_source_url_key ON public.university_sources USING btree (source_url)"
+  },
+  {
+    "tablename": "university_statistics",
+    "indexname": "idx_university_statistics_university",
+    "indexdef": "CREATE INDEX idx_university_statistics_university ON public.university_statistics USING btree (university_id, as_of_label)"
+  },
+  {
+    "tablename": "university_statistics",
+    "indexname": "university_statistics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_statistics_pkey ON public.university_statistics USING btree (id)"
+  },
+  {
+    "tablename": "university_statistics",
+    "indexname": "university_statistics_university_id_as_of_label_key",
+    "indexdef": "CREATE UNIQUE INDEX university_statistics_university_id_as_of_label_key ON public.university_statistics USING btree (university_id, as_of_label)"
+  },
+  {
+    "tablename": "university_tags",
+    "indexname": "university_tags_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_tags_pkey ON public.university_tags USING btree (id)"
+  },
+  {
+    "tablename": "university_tags",
+    "indexname": "university_tags_tag_text_lang_key",
+    "indexdef": "CREATE UNIQUE INDEX university_tags_tag_text_lang_key ON public.university_tags USING btree (tag_text, lang)"
+  },
+  {
+    "tablename": "university_timeline",
+    "indexname": "idx_university_timeline_university_year",
+    "indexdef": "CREATE INDEX idx_university_timeline_university_year ON public.university_timeline USING btree (university_id, year)"
+  },
+  {
+    "tablename": "university_timeline",
+    "indexname": "university_timeline_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_timeline_pkey ON public.university_timeline USING btree (id)"
+  },
+  {
+    "tablename": "university_timeline",
+    "indexname": "university_timeline_university_id_year_title_key",
+    "indexdef": "CREATE UNIQUE INDEX university_timeline_university_id_year_title_key ON public.university_timeline USING btree (university_id, year, title)"
+  },
+  {
+    "tablename": "university_topic_tags",
+    "indexname": "university_topic_tags_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_topic_tags_pkey ON public.university_topic_tags USING btree (topic_id, tag_id)"
+  },
+  {
+    "tablename": "university_topics",
+    "indexname": "idx_university_topics_key",
+    "indexdef": "CREATE INDEX idx_university_topics_key ON public.university_topics USING btree (university_id, topic_key)"
+  },
+  {
+    "tablename": "university_topics",
+    "indexname": "university_topics_pkey",
+    "indexdef": "CREATE UNIQUE INDEX university_topics_pkey ON public.university_topics USING btree (id)"
+  },
+  {
+    "tablename": "university_topics",
+    "indexname": "university_topics_university_id_topic_key_key",
+    "indexdef": "CREATE UNIQUE INDEX university_topics_university_id_topic_key_key ON public.university_topics USING btree (university_id, topic_key)"
+  }
+]

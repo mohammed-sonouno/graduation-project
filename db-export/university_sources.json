@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "source_name": "An-Najah National University - Vision, Mission and Values",
+    "source_url": "http://najah.edu/en/about/vision-and-mission/",
+    "fetched_at": "2026-04-14T15:02:18.315Z",
+    "confidence": "0.95",
+    "notes": "Official mission/vision page (English)."
+  },
+  {
+    "id": 2,
+    "source_name": "An-Najah National University - History and Traditions",
+    "source_url": "http://najah.edu/en/about/history-and-traditions/",
+    "fetched_at": "2026-04-14T15:02:18.315Z",
+    "confidence": "0.95",
+    "notes": "Official history page with notable dates and overview."
+  },
+  {
+    "id": 3,
+    "source_name": "An-Najah National University - Facts and Figures (2022/2023)",
+    "source_url": "http://www2.najah.edu/en/about/history-and-traditions/",
+    "fetched_at": "2026-04-14T15:02:18.315Z",
+    "confidence": "0.90",
+    "notes": "Official site content showing 'Facts and Figures (2022/2023)' block."
+  },
+  {
+    "id": 4,
+    "source_name": "An-Najah - Facts and Figures (public page)",
+    "source_url": "https://www.najah.edu/en/about/annu-facts/",
+    "fetched_at": "2026-04-14T17:18:18.525Z",
+    "confidence": "0.95",
+    "notes": "Official facts page with campus, library, and program counts."
+  },
+  {
+    "id": 5,
+    "source_name": "An-Najah - Vision, Mission and Values (https)",
+    "source_url": "https://www.najah.edu/en/about/vision-and-mission/",
+    "fetched_at": "2026-04-14T17:18:18.525Z",
+    "confidence": "0.95",
+    "notes": "Official vision, mission, and values page (https variant)."
+  },
+  {
+    "id": 6,
+    "source_name": "An-Najah - Faculties listing",
+    "source_url": "https://www.najah.edu/en/academic/faculties/",
+    "fetched_at": "2026-04-14T17:18:18.525Z",
+    "confidence": "0.90",
+    "notes": "Official faculties list page."
+  }
+]

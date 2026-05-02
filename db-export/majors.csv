@@ -1,0 +1,136 @@
+id,name,college_id
+eng-mis,Management Information Systems,1
+eng-cs,Computer Science,1
+eng-ee,Electrical Engineering,1
+eng-ce,Civil Engineering,1
+eng-me,Mechanical Engineering,1
+eng-it,Information Technology,1
+eng-se,Software Engineering,1
+arts-econ,Economics,3
+arts-psych,Psychology,3
+arts-bio,Biology,3
+bus-mgmt,Business Administration,4
+med-nursing,Nursing,2
+law-legal,Law,5
+annajah-med-01,Anesthesia and Resuscitation,6
+annajah-med-02,Audiology and Speech Sciences,6
+annajah-med-03,Bachelor of Science in Clinical Nutrition,6
+annajah-med-04,Biomedical Sciences,6
+annajah-med-05,Cardiac Perfusion Technology Program,6
+annajah-med-06,Doctor of Medicine,6
+annajah-med-07,Health Information Management (HIM),6
+annajah-med-08,Medical imaging,6
+annajah-med-09,Medical Laboratory Sciences,6
+annajah-med-10,Optometry,6
+annajah-med-11,Physical Education -Training,6
+annajah-med-12,Physiotherapy,6
+annajah-med-13,Respiratory Care Program,6
+annajah-eng-01,Architectural Engineering,7
+annajah-eng-02,Building Engineering,7
+annajah-eng-03,Chemical Engineering,7
+annajah-eng-04,Civil Engineering,7
+annajah-eng-05,Computer Engineering,7
+annajah-eng-06,Electrical Engineering,7
+annajah-eng-07,Energy & Environmental Engineering,7
+annajah-eng-08,Geomatics Engineering,7
+annajah-eng-09,Industrial Engineering,7
+annajah-eng-10,Materials Science Engineering,7
+annajah-eng-11,Mechanical Engineering,7
+annajah-eng-12,Mechatronics Engineering,7
+annajah-eng-13,Planning Engineering and City Technology,7
+annajah-eng-14,Telecommunication Engineering,7
+annajah-den-01,Dental Hygiene BA Program,8
+annajah-den-02,Dental Laboratory Technology,8
+annajah-den-03,Doctor of Dental Surgery,8
+annajah-nur-01,Midwifery,9
+annajah-nur-02,Nursing,9
+annajah-pha-01,Cosmetics and Skin Care,10
+annajah-pha-02,Pharmacy,10
+annajah-pha-03,Pharmacy Doctor,10
+annajah-itai-01,Artificial Intelligence and Data Science,11
+annajah-itai-02,Computer Information Systems,11
+annajah-itai-03,Computer Science,11
+annajah-itai-04,Computer Science Apprenticeship Program,11
+annajah-itai-05,Cyber Security,11
+annajah-itai-06,Management Information Systems,11
+annajah-sci-01,Applied Chemistry,12
+annajah-sci-02,Biology Biotechnology,12
+annajah-sci-03,Chemistry,12
+annajah-sci-04,Life Sciences,12
+annajah-sci-05,Major Chemistry Minor Education,12
+annajah-sci-06,Major Mathematics -Minor Education,12
+annajah-sci-07,Major Mathematics -Minor Statistics,12
+annajah-sci-08,Major Physics Minor Education,12
+annajah-sci-09,Major Physics Minor Electronics,12
+annajah-sci-10,Mathematics,12
+annajah-sci-11,Mathematics and Data Science,12
+annajah-sci-12,Mathematics Minor Insurance,12
+annajah-sci-13,Physics,12
+annajah-sci-14,Technology of Applied Physics,12
+annajah-sha-01,Fiqih & Legistlation,13
+annajah-sha-02,Fundamentals of Religion (Usool Al-Deen) with Arabic Minor,13
+annajah-sha-03,Osoul Aldeen,13
+annajah-sha-04,Sharia & Islamic Banks,13
+annajah-hum-01,Arabic Language & Literature,14
+annajah-hum-02,Arabic Language and Literature with Arabic for Non-Native Speakers Teachers' Training Minor,14
+annajah-hum-03,Arabic Language and Literature with Education Minor,14
+annajah-hum-04,Arabic Language and Literature with Hebrew Minor,14
+annajah-hum-05,English Language & Literature,14
+annajah-hum-06,English Language and Literature with Arabic for Non-Native Speakers Teachers' Training Minor,14
+annajah-hum-07,English Language and Literature with Hebrew Minor,14
+annajah-hum-08,English Language Literature Minor Education,14
+annajah-hum-09,English Language Literature Minor Translation,14
+annajah-hum-10,French Language,14
+annajah-hum-11,French Language with Arabic for Non-Native Speakers Teachers' Training Minor,14
+annajah-hum-12,French Language with Hebrew Minor,14
+annajah-hum-13,Geography,14
+annajah-hum-14,Geomatics,14
+annajah-hum-15,History,14
+annajah-hum-16,History Minor Education,14
+annajah-hum-17,Inclusive and Special Education,14
+annajah-hum-18,Kindergartens,14
+annajah-hum-19,Lower Preparatory,14
+annajah-hum-20,Major Psychology minor Psychological Counseling,14
+annajah-hum-21,Major: English Language and Literature Minor: American Studies,14
+annajah-hum-22,Major: English Language and Literature Minor: French,14
+annajah-hum-23,"Major: French Language and Literature, Minor: English",14
+annajah-hum-24,"Major: French Language, Minor: Public Relations",14
+annajah-hum-25,Physical Education -Methods of Teaching,14
+annajah-hum-26,Social Work,14
+annajah-hum-27,Tourism & Archeology,14
+annajah-hum-28,Upper Preparatory - Teacher in Arabic Language,14
+annajah-hum-29,Upper Preparatory - Teacher in Social Studies,14
+annajah-hum-30,Upper Preparatory- Teacher in Mathematics,14
+annajah-hum-31,Upper Preparatory- Teacher in Sciences,14
+annajah-hum-32,Upper Preparatory- Teacher in Technology,14
+annajah-hum-33,Upper Prepartory -Teacher in English Language,14
+annajah-bus-01,Accounting,15
+annajah-bus-02,Accounting Minor Insurance,15
+annajah-bus-03,Business Administration,15
+annajah-bus-04,Business Administration Minor Insurance,15
+annajah-bus-05,Communication and Digital Marketing,15
+annajah-bus-06,Communication and Digital Media,15
+annajah-bus-07,Digital Economy and E-Commerce,15
+annajah-bus-08,Economics Minor Insurance,15
+annajah-bus-09,financial & Banking Sciences,15
+annajah-bus-10,Financial Banking Sciences Minor Insurance,15
+annajah-bus-11,Marketing Minor Insurance,15
+annajah-bus-12,Public Relations & Communication,15
+annajah-bus-13,Radio & Television,15
+annajah-bus-14,The Investment and Real Estate Development,15
+annajah-vet-01,Agricultural Engineering BA Program,16
+annajah-vet-02,Animal Production & Animal Health,16
+annajah-vet-03,Nutrition and Food Technology,16
+annajah-vet-04,Plant Production & Protection,16
+annajah-vet-05,Veterinary Medicine,16
+annajah-law-01,Law,17
+annajah-law-02,Major: Law/ Minor: International Relations,17
+annajah-law-03,Political Science and Government Administration,17
+annajah-art-01,Bachelor's Program in Game Design,18
+annajah-art-02,Ceramic Art,18
+annajah-art-03,Expressive Art Therapy,18
+annajah-art-04,Fashion Design BA Program,18
+annajah-art-05,Graphic Design,18
+annajah-art-06,Interior Design,18
+annajah-art-07,Music,18
+annajah-art-08,Painting,18

@@ -1,0 +1,115 @@
+id,user_id,conversation_id,user_message_id,bot_message_id,question_text,reply_text,detected_intent,raw_intent,plan_type,reply_locale,context_major_id,context_program_key,context_category,user_gpa_hint,user_profile_major,answer_kind,outcome,weak_reason,debug_sources,created_at,answer_validation_ok,mismatch_blocked
+1,1,7,29,30,hi,Welcome! I am your academic advisor for Business Administration. I can help you understand what this programme offers and how it might fit your career goals.,greet,greet,GREET,en,bus-mgmt,,business,,,greet,success,,"{""pipelineSources"":[""app_users"",""major_chat_context""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""business"",""programKey"":null,""pageMajorId"":""bus-mgmt"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:50:49.337Z""",true,false
+2,1,7,31,32,how are you,"Here is what I can tell you about Business Administration:
+
+Business Administration covers strategy, operations, and leadership skills. For course requirements, check the official faculty page.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,en,bus-mgmt,,business,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""business"",""programKey"":null,""pageMajorId"":""bus-mgmt"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:50:57.328Z""",true,false
+3,1,7,33,34,give me course requirements,"Here is what I can tell you about Business Administration:
+
+I do not have admission average details for Business Administration right now. I would recommend checking with the admissions office for the most up-to-date numbers.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,en,bus-mgmt,,business,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""business"",""programKey"":null,""pageMajorId"":""bus-mgmt"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:51:19.231Z""",true,false
+4,1,8,35,36,give me course requerments \,"Here is what I know about Computer Science:
+
+Hardware-software systems, embedded computing, and computer architecture.
+
+In terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.
+
+The admission average is typically between 80 and 90.
+
+This programme is ABET accredited.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,en,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:51:54.362Z""",true,false
+5,1,8,37,38,give me more,"Here is what I know about Computer Science:
+
+Hardware-software systems, embedded computing, and computer architecture.
+
+In terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.
+
+The admission average is typically between 80 and 90.
+
+This programme is ABET accredited.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,en,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:52:11.623Z""",true,false
+6,1,8,39,40,what grade needed to study this,"Here are the admission averages I have on file for this programme:
+
+• هندسة الحاسوب: you would typically need an average of 80–90 (approximate) (scientific stream).
+• هندسة علوم المواد: you would typically need an average of not available at the moment (approximate) (scientific stream).
+
+
+Please note: some of the figures above are approximate and may differ from the latest official numbers.",engineering_acceptance_query,engineering_acceptance_query,ENGINEERING_ACCEPTANCE_QUERY,en,eng-cs,computer_engineering,engineering,,,engineering_acceptance,success,,"{""pipelineSources"":[""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:52:29.977Z""",true,false
+7,1,8,41,42,هل هالتخصص صعب؟,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+للعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:52:50.936Z""",true,false
+8,1,8,43,44,فيه رياضيات كثير؟,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[""رياضيات""],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:54:42.007Z""",true,false
+9,1,9,45,46,Is it very math-heavy?,"Here is what I know about Computer Science:
+
+Computer Science is considered quite demanding — it requires strong dedication and consistent hard work.
+
+For context, the admission average is typically between 80 and 90, which can give you a sense of the academic expectations.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,en,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""en"",""interestTerms"":[""math"",""mathematics""],""pageReference"":true,""comparisonPair"":null}}","""2026-04-17T13:58:19.267Z""",true,false
+10,1,9,47,48,كيفك,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T13:59:36.449Z""",true,false
+11,1,10,49,50,كم المعدل,"ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.
+
+بما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.
+
+ممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",engineering_acceptance_query,engineering_acceptance_query,ENGINEERING_ACCEPTANCE_QUERY,ar,eng-cs,computer_engineering,engineering,,,not_in_database,failed,not_in_database,"{""pipelineSources"":[""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:01:39.345Z""",true,false
+12,1,11,51,52,hi,"Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.",greet,greet,GREET,en,eng-cs,computer_engineering,engineering,,,greet,success,,"{""pipelineSources"":[""app_users"",""major_chat_context""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:02:39.510Z""",true,false
+13,1,12,53,54,هاي,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:21.393Z""",true,false
+14,1,12,55,56,هاي,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:31.895Z""",true,false
+15,1,13,57,58,شو رأيك بالتخصص,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.",major_advisor_snapshot,unknown,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:46.146Z""",true,false
+16,1,13,59,60,شو مستوى التنافس؟,"هاي المعلومات اللي عندي عن Computer Science:
+
+من ناحية التنافس، Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+يعني عدد المتقدمين مقارنة بالمقاعد المتاحة ممكن يأثر على صعوبة القبول.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:48.803Z""",true,false
+17,1,13,61,62,فيه رياضيات كثير؟,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[""رياضيات""],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:53.275Z""",true,false
+18,1,13,63,64,هل هالتخصص صعب؟,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+للعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-cs,computer_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:54.840Z""",true,false
+19,1,13,65,66,شو معدل القبول؟,"ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.
+
+بما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.
+
+ممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».",engineering_acceptance_query,engineering_acceptance_query,ENGINEERING_ACCEPTANCE_QUERY,ar,eng-cs,computer_engineering,engineering,,,not_in_database,failed,not_in_database,"{""pipelineSources"":[""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""computer_engineering"",""pageMajorId"":""eng-cs"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T14:04:56.714Z""",true,false
+20,1,14,67,68,hi,"Welcome! I am your academic advisor for Civil Engineering. I can tell you about admission, difficulty, career directions, and how this programme compares with other engineering options.",greet,greet,GREET,en,eng-ce,civil_engineering,engineering,,,greet,success,,"{""pipelineSources"":[""app_users"",""major_chat_context""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""civil_engineering"",""pageMajorId"":""eng-ce"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T15:35:28.515Z""",true,false
+21,1,14,69,70,Is this programme difficult?,"Here is what I know about Civil Engineering:
+
+Civil Engineering is considered moderately challenging — it requires steady effort, especially in technical subjects.
+
+For context, the admission average is typically between 70 and 78, which can give you a sense of the academic expectations.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,en,eng-ce,civil_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""civil_engineering"",""pageMajorId"":""eng-ce"",""replyLocale"":""en"",""interestTerms"":[],""pageReference"":true,""comparisonPair"":null}}","""2026-04-17T15:35:30.996Z""",true,false
+22,1,14,71,72,في فرص عمل ؟,"هاي المعلومات اللي عندي عن Civil Engineering:
+
+ما عندي معلومات تفصيلية عن الوظائف لـ Civil Engineering حالياً. بشكل عام، مكتب الكلية أو خدمات التوظيف بيقدروا يعطوك صورة أوضح.",major_advisor_snapshot,major_advisor_snapshot,MAJOR_ADVISOR_SNAPSHOT,ar,eng-ce,civil_engineering,engineering,,,major_advisor_snapshot,success,,"{""pipelineSources"":[""majors"",""major_chat_context"",""engineering_programs""],""answerValidation"":{""ok"":true},""extractedEntities"":{""stream"":null,""average"":null,""category"":""engineering"",""programKey"":""civil_engineering"",""pageMajorId"":""eng-ce"",""replyLocale"":""ar"",""interestTerms"":[],""pageReference"":false,""comparisonPair"":null}}","""2026-04-17T15:35:45.362Z""",true,false

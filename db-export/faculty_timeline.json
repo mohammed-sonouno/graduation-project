@@ -1,0 +1,24 @@
+[
+  {
+    "id": 1,
+    "faculty_id": 1,
+    "year": 1979,
+    "title_en": "Faculty established",
+    "title_ar": "تأسيس الكلية",
+    "description_en": "Established in 1979, initially offering the Bachelor of Civil Engineering.",
+    "description_ar": "تأسست عام 1979 وكانت تقدم في البداية بكالوريوس الهندسة المدنية.",
+    "source_id": 3,
+    "sort_order": 1
+  },
+  {
+    "id": 2,
+    "faculty_id": 1,
+    "year": 2005,
+    "title_en": "Moved to the New Campus (Al-Junaid)",
+    "title_ar": "الانتقال إلى الحرم الجديد (الجنيد)",
+    "description_en": "The faculty moved to the New Campus starting the academic year 2005/2006.",
+    "description_ar": "انتقلت الكلية إلى الحرم الجديد ابتداءً من العام الأكاديمي 2005/2006.",
+    "source_id": 3,
+    "sort_order": 2
+  }
+]

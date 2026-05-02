@@ -1,0 +1,208 @@
+[
+  {
+    "id": 1,
+    "university_id": 1,
+    "topic_id": 1,
+    "question_en": "What is An-Najah National University?",
+    "question_ar": "ما هي جامعة النجاح الوطنية؟",
+    "answer_en": "An-Najah National University is a public university in Nablus, Palestine. It was chartered as a full-fledged university in 1977 and has grown into one of the largest universities in Palestine.",
+    "answer_ar": "جامعة النجاح الوطنية هي جامعة حكومية في نابلس، فلسطين. أصبحت جامعة متكاملة عام 1977 وتُعد من أكبر الجامعات في فلسطين.",
+    "normalized_intent": "UNIVERSITY_OVERVIEW",
+    "keywords": [
+      "an-najah",
+      "overview",
+      "nablus",
+      "palestine",
+      "public university"
+    ],
+    "source_id": 3,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 2,
+    "university_id": 1,
+    "topic_id": 2,
+    "question_en": "When was An-Najah founded?",
+    "question_ar": "متى تأسست جامعة النجاح؟",
+    "answer_en": "An-Najah traces its origins to 1918 when it was established as An-Najah Nabulsi School.",
+    "answer_ar": "ترجع جذور جامعة النجاح إلى عام 1918 عندما تأسست كمدرسة النجاح النابلسية.",
+    "normalized_intent": "UNIVERSITY_FOUNDED",
+    "keywords": [
+      "1918",
+      "founded",
+      "history",
+      "school"
+    ],
+    "source_id": 2,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 3,
+    "university_id": 1,
+    "topic_id": 2,
+    "question_en": "When did it become a university?",
+    "question_ar": "متى أصبحت جامعة؟",
+    "answer_en": "It was chartered as a full-fledged university in 1977 as “An-Najah National University.”",
+    "answer_ar": "أصبحت جامعة متكاملة عام 1977 باسم “جامعة النجاح الوطنية”.",
+    "normalized_intent": "UNIVERSITY_BECAME_UNIVERSITY",
+    "keywords": [
+      "1977",
+      "university",
+      "history"
+    ],
+    "source_id": 2,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 4,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "How many faculties does An-Najah have?",
+    "question_ar": "كم عدد الكليات في جامعة النجاح؟",
+    "answer_en": "According to the official site, An-Najah has 11 faculties.",
+    "answer_ar": "وفقاً للموقع الرسمي، لدى جامعة النجاح 11 كلية.",
+    "normalized_intent": "UNIVERSITY_FACTS",
+    "keywords": [
+      "faculties",
+      "11",
+      "facts"
+    ],
+    "source_id": 3,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 5,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "How many programs does An-Najah offer?",
+    "question_ar": "كم عدد البرامج التي تقدمها جامعة النجاح؟",
+    "answer_en": "The official Facts and Figures block lists 219 programs (2022/2023).",
+    "answer_ar": "يذكر قسم الحقائق والأرقام 219 برنامجاً (2022/2023).",
+    "normalized_intent": "UNIVERSITY_PROGRAMS",
+    "keywords": [
+      "programs",
+      "219",
+      "facts"
+    ],
+    "source_id": 3,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 6,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "How many students are enrolled?",
+    "question_ar": "كم عدد الطلبة؟",
+    "answer_en": "The official Facts and Figures block lists about 25,000 students (2022/2023).",
+    "answer_ar": "يذكر قسم الحقائق والأرقام حوالي 25,000 طالب/ة (2022/2023).",
+    "normalized_intent": "UNIVERSITY_STUDENTS",
+    "keywords": [
+      "students",
+      "25000",
+      "facts"
+    ],
+    "source_id": 3,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 7,
+    "university_id": 1,
+    "topic_id": 4,
+    "question_en": "What is the mission of An-Najah National University?",
+    "question_ar": "ما هي رسالة جامعة النجاح الوطنية؟",
+    "answer_en": "Its mission is to advance learning, share knowledge, foster skills for student success, promote scientific excellence, advance research, serve community needs through sustainable development, and preserve Palestinian cultural and religious heritage.",
+    "answer_ar": "تتمثل رسالتها في تطوير التعليم ونشر المعرفة وتنمية مهارات الطلبة، وتعزيز التميز العلمي والبحث العلمي، وخدمة المجتمع عبر التنمية المستدامة، والحفاظ على التراث الثقافي والديني الفلسطيني.",
+    "normalized_intent": "UNIVERSITY_MISSION",
+    "keywords": [
+      "mission",
+      "learning",
+      "research",
+      "community",
+      "heritage"
+    ],
+    "source_id": 1,
+    "created_at": "2026-04-14T15:02:18.315Z",
+    "updated_at": "2026-04-14T15:02:18.315Z"
+  },
+  {
+    "id": 8,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "How many campuses does An-Najah have?",
+    "question_ar": "كم حرم جامعي في جامعة النجاح؟",
+    "answer_en": "An-Najah has five campuses: the New Campus, the Old Campus, Hisham Hijjawi College of Technology, Khadouri Campus in Tulkarm, and An-Najah National Hospital.",
+    "answer_ar": "لدى جامعة النجاح خمسة أحرم جامعية: الحرم الجديد، الحرم القديم، كلية هشام حجاوي التقنية، حرم خضوري في طولكرم، ومستشفى النجاح الوطني.",
+    "normalized_intent": "UNIVERSITY_CAMPUSES",
+    "keywords": [
+      "campuses",
+      "campus",
+      "new campus",
+      "old campus",
+      "hijjawi",
+      "khadouri",
+      "hospital"
+    ],
+    "source_id": 4,
+    "created_at": "2026-04-14T17:18:18.525Z",
+    "updated_at": "2026-04-14T17:18:18.525Z"
+  },
+  {
+    "id": 9,
+    "university_id": 1,
+    "topic_id": 1,
+    "question_en": "What is the vision of An-Najah?",
+    "question_ar": "ما هي رؤية جامعة النجاح؟",
+    "answer_en": "An-Najah is dedicated to promoting understanding, providing the highest quality education, and serving as a leader in scientific research. It acts as a base for sustainable development by encouraging leadership and community service.",
+    "answer_ar": "تلتزم جامعة النجاح بتعزيز الفهم وتقديم أعلى جودة في التعليم والريادة في البحث العلمي، وتعمل كقاعدة للتنمية المستدامة من خلال تشجيع القيادة وخدمة المجتمع.",
+    "normalized_intent": "UNIVERSITY_VISION",
+    "keywords": [
+      "vision"
+    ],
+    "source_id": 5,
+    "created_at": "2026-04-14T17:18:18.525Z",
+    "updated_at": "2026-04-14T17:18:18.525Z"
+  },
+  {
+    "id": 10,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "How big is the An-Najah library?",
+    "question_ar": "كم حجم مكتبة جامعة النجاح؟",
+    "answer_en": "The university libraries contain more than 250,071 books, 308,568 electronic books, and 81,735 electronic journals.",
+    "answer_ar": "تحتوي مكتبات الجامعة على أكثر من 250,071 كتاب، و308,568 كتاب إلكتروني، و81,735 مجلة إلكترونية.",
+    "normalized_intent": "UNIVERSITY_LIBRARY",
+    "keywords": [
+      "library",
+      "books",
+      "ebooks",
+      "journals"
+    ],
+    "source_id": 4,
+    "created_at": "2026-04-14T17:18:18.525Z",
+    "updated_at": "2026-04-14T17:18:18.525Z"
+  },
+  {
+    "id": 11,
+    "university_id": 1,
+    "topic_id": 3,
+    "question_en": "What faculties does An-Najah have?",
+    "question_ar": "ما هي كليات جامعة النجاح؟",
+    "answer_en": "An-Najah has 11 faculties including: Medicine and Allied Medical Sciences, Business and Communication, Dentistry, Fine Arts, Graduate Studies, Humanities and Educational Sciences, IT and AI, Law and Political Sciences, Veterinary Medicine and Agricultural Engineering, and Engineering and IT.",
+    "answer_ar": "تضم جامعة النجاح 11 كلية منها: الطب، الأعمال والاتصال، طب الأسنان، الفنون الجميلة، الدراسات العليا، العلوم الإنسانية والتربوية، تكنولوجيا المعلومات والذكاء الاصطناعي، القانون والعلوم السياسية، الطب البيطري والهندسة الزراعية، والهندسة وتكنولوجيا المعلومات.",
+    "normalized_intent": "UNIVERSITY_FACULTIES_LIST",
+    "keywords": [
+      "faculties",
+      "colleges",
+      "faculty list"
+    ],
+    "source_id": 6,
+    "created_at": "2026-04-14T17:18:18.525Z",
+    "updated_at": "2026-04-14T17:18:18.525Z"
+  }
+]

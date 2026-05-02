@@ -1,0 +1,5 @@
+id,user_id,event_id,student_id,college,major,association_member,name,email,created_at,status,decided_by,decided_at,paid_at
+1,7,ev-1773154531046,s12219287,Engineering & IT,Management Information Systems,member,محمد مازن ناجح سنونو,s12219287@stu.najah.edu,"""2026-03-10T15:09:13.336Z""",approved,4,"""2026-03-10T15:27:24.375Z""","""2026-03-10T15:27:18.143Z"""
+2,7,ev-1773180060746,s12219287,Engineering & IT,Management Information Systems,member,محمد مازن ناجح سنونو,s12219287@stu.najah.edu,"""2026-03-10T22:22:00.277Z""",approved,4,"""2026-03-10T22:22:29.539Z""",
+3,7,ev-1773505731681,s12219287,Engineering & IT,Management Information Systems,non-member,محمد مازن ناجح سنونو,s12219287@stu.najah.edu,"""2026-03-14T16:31:08.390Z""",rejected,4,"""2026-03-14T17:13:01.618Z""",
+4,7,ev-1773582181778,s12219287,Engineering & IT,Management Information Systems,non-member,محمد مازن ناجح سنونو,s12219287@stu.najah.edu,"""2026-03-15T14:35:36.461Z""",approved,1,"""2026-03-15T14:41:38.821Z""",

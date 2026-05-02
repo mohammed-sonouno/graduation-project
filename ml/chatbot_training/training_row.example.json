@@ -1,0 +1,30 @@
+{
+  "id": 1,
+  "text": "What is the acceptance average for Civil Engineering?",
+  "intent": "engineering_acceptance_query",
+  "rawIntent": "engineering_acceptance_query",
+  "planType": "ENGINEERING_ACCEPTANCE_QUERY",
+  "locale": "en",
+  "majorId": null,
+  "programKey": null,
+  "category": null,
+  "gpa": 85.5,
+  "profileMajor": "Science",
+  "answerKind": "engineering_acceptance",
+  "outcome": "success",
+  "weakReason": null,
+  "replyText": "…",
+  "answerValidationOk": true,
+  "mismatchBlocked": false,
+  "debugSources": {
+    "pipelineSources": ["engineering_programs"],
+    "extractedEntities": {
+      "average": null,
+      "stream": null,
+      "replyLocale": "en",
+      "pageReference": false
+    },
+    "answerValidation": { "ok": true }
+  },
+  "createdAt": "2026-04-14T12:00:00.000Z"
+}

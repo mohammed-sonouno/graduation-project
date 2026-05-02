@@ -1,0 +1,114 @@
+[
+  {
+    "id": 1,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T17:49:12.951Z",
+    "updated_at": "2026-04-14T17:49:12.965Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 2,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T17:54:18.824Z",
+    "updated_at": "2026-04-14T17:54:42.155Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 14,
+    "user_id": 1,
+    "title": "Civil Engineering",
+    "created_at": "2026-04-17T15:35:28.494Z",
+    "updated_at": "2026-04-17T15:35:45.359Z",
+    "context_major_id": "eng-ce"
+  },
+  {
+    "id": 3,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T18:22:08.412Z",
+    "updated_at": "2026-04-14T18:22:42.628Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 4,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T18:29:27.652Z",
+    "updated_at": "2026-04-14T18:33:05.170Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 5,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T18:48:59.526Z",
+    "updated_at": "2026-04-14T18:48:59.540Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 6,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-14T18:49:24.214Z",
+    "updated_at": "2026-04-14T18:49:36.129Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 7,
+    "user_id": 1,
+    "title": "Business Administration",
+    "created_at": "2026-04-17T13:50:49.245Z",
+    "updated_at": "2026-04-17T13:51:19.224Z",
+    "context_major_id": "bus-mgmt"
+  },
+  {
+    "id": 8,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T13:51:54.333Z",
+    "updated_at": "2026-04-17T13:54:42.004Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 9,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T13:58:19.246Z",
+    "updated_at": "2026-04-17T13:59:36.445Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 10,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T14:01:39.322Z",
+    "updated_at": "2026-04-17T14:01:39.341Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 11,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T14:02:39.489Z",
+    "updated_at": "2026-04-17T14:02:39.505Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 12,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T14:04:21.378Z",
+    "updated_at": "2026-04-17T14:04:31.892Z",
+    "context_major_id": "eng-cs"
+  },
+  {
+    "id": 13,
+    "user_id": 1,
+    "title": "Computer Science",
+    "created_at": "2026-04-17T14:04:46.126Z",
+    "updated_at": "2026-04-17T14:04:56.710Z",
+    "context_major_id": "eng-cs"
+  }
+]

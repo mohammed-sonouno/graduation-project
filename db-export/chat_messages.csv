@@ -1,0 +1,221 @@
+id,conversation_id,sender,content,created_at
+1,1,user,شو يعني علم حاسوب,"""2026-04-14T17:49:12.956Z"""
+2,1,bot,"قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):
+
+• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.
+• مؤشر التنافس في السجل: مرتفع.
+• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+• نطاق القبول المخزن: من 80 إلى 90.","""2026-04-14T17:49:12.963Z"""
+3,2,user,how are you,"""2026-04-14T17:54:18.827Z"""
+4,2,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T17:54:18.833Z"""
+5,2,user,What competition level is flagged in the database?,"""2026-04-14T17:54:29.140Z"""
+6,2,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T17:54:29.146Z"""
+7,2,user,What workload signal does the catalogue store for this programme?,"""2026-04-14T17:54:42.148Z"""
+8,2,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.","""2026-04-14T17:54:42.153Z"""
+9,3,user,what is computer science,"""2026-04-14T18:22:08.415Z"""
+10,3,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T18:22:08.422Z"""
+11,3,user,منيح ولا لا التخصص ؟,"""2026-04-14T18:22:42.618Z"""
+12,3,bot,"قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):
+
+• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.
+• مؤشر التنافس في السجل: مرتفع.
+• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+• نطاق القبول المخزن: من 80 إلى 90.","""2026-04-14T18:22:42.626Z"""
+13,4,user,hi,"""2026-04-14T18:29:27.659Z"""
+14,4,bot,"Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.","""2026-04-14T18:29:27.670Z"""
+15,4,user,شو نطاق القبول المخزن؟,"""2026-04-14T18:29:34.926Z"""
+16,4,bot,"قراءة منظمة من الكتالوج لـ **Computer Science** — كل نقطة مربوطة بحقل مخزن (نطاق قبول، فرع، صعوبة، ملاحظات، أو وصف):
+
+• مؤشر الصعوبة في السجل لـ Computer Science: مرتفع.
+• مؤشر التنافس في السجل: مرتفع.
+• وصف من الكتالوج: أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+• نطاق القبول المخزن: من 80 إلى 90.","""2026-04-14T18:29:34.931Z"""
+17,4,user,شو معدل القبول؟,"""2026-04-14T18:33:05.163Z"""
+18,4,bot,"حالياً ما عندي بيانات كافية في القاعدة عشان أجاوبك على هالسؤال بثقة. جرّب تعيد الصياغة، أو اسأل عن شيء مسجل عنا صراحة (فعاليات، مجتمعات، أو برامج هندسة موجودة بالسجل).
+
+إنت على صفحة **Computer Science**، فبقدر لسا ألخّص اللي بالقاعدة لهالبرنامج (الاقتراحات فوق من السجل).
+
+أمثلة مربوطة بالصفحة: «هل هالتخصص صعب؟»؛ «فيه رياضيات كثير؟»؛ «شو مستوى التنافس؟».","""2026-04-14T18:33:05.168Z"""
+19,5,user,What is the competition level?,"""2026-04-14T18:48:59.530Z"""
+20,5,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T18:48:59.538Z"""
+21,6,user,Is this programme difficult?,"""2026-04-14T18:49:24.220Z"""
+22,6,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.","""2026-04-14T18:49:24.229Z"""
+23,6,user,Is it very math-heavy?,"""2026-04-14T18:49:26.622Z"""
+24,6,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Keyword tags on file: computer, embedded, hardware, software.","""2026-04-14T18:49:26.630Z"""
+25,6,user,What is the competition level?,"""2026-04-14T18:49:29.728Z"""
+26,6,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T18:49:29.735Z"""
+27,6,user,grade ?,"""2026-04-14T18:49:36.120Z"""
+28,6,bot,"Structured catalogue read-out for **Computer Science** — each bullet is tied to a stored field (band, stream flag, difficulty, notes, or description):
+
+• Stored difficulty flag for Computer Science: high.
+• Stored competition flag: high.
+• Catalogue description (excerpt): Hardware-software systems, embedded computing, and computer architecture.
+• Stored admission band: 80–90.","""2026-04-14T18:49:36.126Z"""
+29,7,user,hi,"""2026-04-17T13:50:49.298Z"""
+30,7,bot,Welcome! I am your academic advisor for Business Administration. I can help you understand what this programme offers and how it might fit your career goals.,"""2026-04-17T13:50:49.325Z"""
+31,7,user,how are you,"""2026-04-17T13:50:57.317Z"""
+32,7,bot,"Here is what I can tell you about Business Administration:
+
+Business Administration covers strategy, operations, and leadership skills. For course requirements, check the official faculty page.","""2026-04-17T13:50:57.323Z"""
+33,7,user,give me course requirements,"""2026-04-17T13:51:19.212Z"""
+34,7,bot,"Here is what I can tell you about Business Administration:
+
+I do not have admission average details for Business Administration right now. I would recommend checking with the admissions office for the most up-to-date numbers.","""2026-04-17T13:51:19.221Z"""
+35,8,user,give me course requerments \,"""2026-04-17T13:51:54.337Z"""
+36,8,bot,"Here is what I know about Computer Science:
+
+Hardware-software systems, embedded computing, and computer architecture.
+
+In terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.
+
+The admission average is typically between 80 and 90.
+
+This programme is ABET accredited.","""2026-04-17T13:51:54.354Z"""
+37,8,user,give me more,"""2026-04-17T13:52:11.611Z"""
+38,8,bot,"Here is what I know about Computer Science:
+
+Hardware-software systems, embedded computing, and computer architecture.
+
+In terms of difficulty, this programme is quite demanding — it requires strong dedication and consistent hard work.
+
+The admission average is typically between 80 and 90.
+
+This programme is ABET accredited.","""2026-04-17T13:52:11.618Z"""
+39,8,user,what grade needed to study this,"""2026-04-17T13:52:29.965Z"""
+40,8,bot,"Here are the admission averages I have on file for this programme:
+
+• هندسة الحاسوب: you would typically need an average of 80–90 (approximate) (scientific stream).
+• هندسة علوم المواد: you would typically need an average of not available at the moment (approximate) (scientific stream).
+
+
+Please note: some of the figures above are approximate and may differ from the latest official numbers.","""2026-04-17T13:52:29.972Z"""
+41,8,user,هل هالتخصص صعب؟,"""2026-04-17T13:52:50.925Z"""
+42,8,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+للعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.","""2026-04-17T13:52:50.931Z"""
+43,8,user,فيه رياضيات كثير؟,"""2026-04-17T13:54:41.996Z"""
+44,8,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.","""2026-04-17T13:54:42.002Z"""
+45,9,user,Is it very math-heavy?,"""2026-04-17T13:58:19.250Z"""
+46,9,bot,"Here is what I know about Computer Science:
+
+Computer Science is considered quite demanding — it requires strong dedication and consistent hard work.
+
+For context, the admission average is typically between 80 and 90, which can give you a sense of the academic expectations.","""2026-04-17T13:58:19.261Z"""
+47,9,user,كيفك,"""2026-04-17T13:59:36.431Z"""
+48,9,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.","""2026-04-17T13:59:36.443Z"""
+49,10,user,كم المعدل,"""2026-04-17T14:01:39.326Z"""
+50,10,bot,"ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.
+
+بما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.
+
+ممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».","""2026-04-17T14:01:39.337Z"""
+51,11,user,hi,"""2026-04-17T14:02:39.495Z"""
+52,11,bot,"Welcome! I am your academic advisor for Computer Science. Ask me about anything related to this programme — admission requirements, difficulty, career opportunities, or how it compares with other options.","""2026-04-17T14:02:39.503Z"""
+53,12,user,هاي,"""2026-04-17T14:04:21.381Z"""
+54,12,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.","""2026-04-17T14:04:21.388Z"""
+55,12,user,هاي,"""2026-04-17T14:04:31.884Z"""
+56,12,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.","""2026-04-17T14:04:31.890Z"""
+57,13,user,شو رأيك بالتخصص,"""2026-04-17T14:04:46.130Z"""
+58,13,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+أنظمة العتاد والبرمجيات والحوسبة المضمنة ومعمارية الحاسوب.
+
+من ناحية الصعوبة، هالبرنامج صعب — بتطلب التزام قوي وجهد مستمر.
+
+معدل القبول عادةً بين 80 و 90.
+
+هالبرنامج حاصل على اعتماد ABET.","""2026-04-17T14:04:46.137Z"""
+59,13,user,شو مستوى التنافس؟,"""2026-04-17T14:04:48.792Z"""
+60,13,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+من ناحية التنافس، Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+يعني عدد المتقدمين مقارنة بالمقاعد المتاحة ممكن يأثر على صعوبة القبول.","""2026-04-17T14:04:48.798Z"""
+61,13,user,فيه رياضيات كثير؟,"""2026-04-17T14:04:53.262Z"""
+62,13,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science بغطي مواضيع مثل: computer, embedded, hardware, software. إذا بتحب هالمجالات، رح تستمتع بالمواد.","""2026-04-17T14:04:53.269Z"""
+63,13,user,هل هالتخصص صعب؟,"""2026-04-17T14:04:54.828Z"""
+64,13,bot,"هاي المعلومات اللي عندي عن Computer Science:
+
+Computer Science صعب — بتطلب التزام قوي وجهد مستمر.
+
+للعلم، معدل القبول عادةً بين 80 و 90، وهاد بيعطيك فكرة عن المستوى الأكاديمي المتوقع.","""2026-04-17T14:04:54.834Z"""
+65,13,user,شو معدل القبول؟,"""2026-04-17T14:04:56.700Z"""
+66,13,bot,"ما عندي معلومات كافية عشان أجاوبك على هالسؤال حالياً. جرّب تعيد صياغته، أو اسألني عن شي محدد مثل تخصص أو فعالية أو مجتمع. إذا كنت على صفحة برنامج، اسألني عن نفس البرنامج مباشرة.
+
+بما إنك على صفحة Computer Science، بقدر أجاوبك عن هالتخصص — اسألني أي شيء عنه.
+
+ممكن تجرّب: «هل هالتخصص صعب؟»، «فيه رياضيات كثير؟»، «شو مستوى التنافس؟».","""2026-04-17T14:04:56.708Z"""
+67,14,user,hi,"""2026-04-17T15:35:28.501Z"""
+68,14,bot,"Welcome! I am your academic advisor for Civil Engineering. I can tell you about admission, difficulty, career directions, and how this programme compares with other engineering options.","""2026-04-17T15:35:28.510Z"""
+69,14,user,Is this programme difficult?,"""2026-04-17T15:35:30.982Z"""
+70,14,bot,"Here is what I know about Civil Engineering:
+
+Civil Engineering is considered moderately challenging — it requires steady effort, especially in technical subjects.
+
+For context, the admission average is typically between 70 and 78, which can give you a sense of the academic expectations.","""2026-04-17T15:35:30.988Z"""
+71,14,user,في فرص عمل ؟,"""2026-04-17T15:35:45.352Z"""
+72,14,bot,"هاي المعلومات اللي عندي عن Civil Engineering:
+
+ما عندي معلومات تفصيلية عن الوظائف لـ Civil Engineering حالياً. بشكل عام، مكتب الكلية أو خدمات التوظيف بيقدروا يعطوك صورة أوضح.","""2026-04-17T15:35:45.357Z"""

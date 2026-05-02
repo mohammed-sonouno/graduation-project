@@ -1,0 +1,7 @@
+id,faculty_id,topic_key,title_en,title_ar,summary_en,summary_ar
+1,1,overview,Overview,نبذة عامة,,
+2,1,departments,Departments,الأقسام,,
+3,1,facilities,Facilities & Labs,المرافق والمختبرات,,
+4,1,history,History,التاريخ,,
+5,1,achievements,Achievements,الإنجازات,,
+6,1,accreditation,Accreditation (ABET),الاعتماد (ABET),,
