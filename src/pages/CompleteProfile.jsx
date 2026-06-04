@@ -28,12 +28,15 @@ function CompleteProfile() {
     phoneNumber: "",
     password: "",
     confirmPassword: "",
+    bio: "",
+    display_name: "",
   });
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
   const user = authUser;
   const isPendingRegistration = Boolean(pendingData || location.state?.pendingRegistration || searchParams.get("sessionId"));
+  const isInvitedUser = Boolean(user?.invited_by_admin) && !isPendingRegistration;
 
   // Load pending registration from DB when sessionId is in URL (no sessionStorage)
   useEffect(() => {
@@ -169,6 +172,54 @@ function CompleteProfile() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setError("");
+
+    if (isInvitedUser && user?.email) {
+      const bio = (form.bio || "").trim();
+      if (bio.length < 10) {
+        setError("Organization description is required (at least 10 characters).");
+        return;
+      }
+      if (form.password) {
+        const pwdCheck = validatePassword(form.password);
+        if (!pwdCheck.valid) {
+          setError(`Password: ${pwdCheck.errors.join(", ")}.`);
+          return;
+        }
+        if (form.password !== form.confirmPassword) {
+          setError("Passwords do not match.");
+          return;
+        }
+      }
+      setLoading(true);
+      try {
+        const res = await fetch(apiUrl("/api/auth/complete-profile"), {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          credentials: "include",
+          body: JSON.stringify({
+            email: user.email,
+            bio,
+            display_name: (form.display_name || "").trim() || undefined,
+            ...(form.password ? { password: form.password } : {}),
+          }),
+        });
+        const data = await res.json();
+        if (!res.ok) {
+          setError(data.error || "Could not save profile.");
+          return;
+        }
+        if (data.user) {
+          setUserAndToken(data.user);
+          navigate(getLoginRedirectPath(data.user), { replace: true });
+        }
+      } catch {
+        setError("Could not save profile. Please try again.");
+      } finally {
+        setLoading(false);
+      }
+      return;
+    }
+
     const fromPending = pendingData ? getAutoFieldsFromPending() : {};
     const fromUser = !pendingData && user ? getAutoFieldsFromUser() : {};
     let first_name = (form.first_name?.trim() || fromPending.first_name || fromUser.first_name || "").trim();
@@ -302,7 +353,9 @@ function CompleteProfile() {
             </div>
             <h1 className="text-xl font-bold text-white tracking-tight">Complete your profile</h1>
             <p className="mt-2 text-sm text-blue-100">
-              You signed in with Google. Fill in your university details to finish.
+              {isInvitedUser
+                ? "Tell us about your organization to finish setting up your account."
+                : "You signed in with Google. Fill in your university details to finish."}
             </p>
           </div>
 
@@ -314,6 +367,83 @@ function CompleteProfile() {
             )}
 
             <form onSubmit={handleSubmit} className="space-y-6">
+              {isInvitedUser ? (
+                <>
+                  <section className="rounded-xl bg-slate-50/80 border border-slate-200 p-5 space-y-4">
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+                      <p className="text-sm font-medium text-slate-900 break-all">{user?.email}</p>
+                    </div>
+                    <div>
+                      <label htmlFor="display_name" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Display name <span className="text-slate-400 font-normal">(optional)</span>
+                      </label>
+                      <input
+                        id="display_name"
+                        name="display_name"
+                        type="text"
+                        value={form.display_name}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                        placeholder="Your name or organization contact"
+                      />
+                    </div>
+                    <div>
+                      <label htmlFor="bio" className="block text-sm font-medium text-slate-700 mb-1.5">
+                        Organization description <span className="text-red-600">*</span>
+                      </label>
+                      <textarea
+                        id="bio"
+                        name="bio"
+                        required
+                        rows={4}
+                        value={form.bio}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] resize-y"
+                        placeholder="Briefly describe your organization and role on the platform…"
+                      />
+                      <p className="mt-1 text-xs text-slate-500">At least 10 characters. College and major are not required for invited users.</p>
+                    </div>
+                  </section>
+                  <div className="space-y-5">
+                    <h2 className="text-sm font-semibold text-slate-800 border-b border-slate-200 pb-2">
+                      Password <span className="text-slate-400 font-normal">(optional)</span>
+                    </h2>
+                    <p className="text-xs text-slate-500">You can sign in with email codes only, or set a password for legacy login.</p>
+                    <div>
+                      <label className="block text-sm font-medium text-slate-700 mb-1.5">Password</label>
+                      <input
+                        name="password"
+                        type="password"
+                        value={form.password}
+                        onChange={handleChange}
+                        className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                        placeholder="Optional"
+                      />
+                    </div>
+                    {form.password && (
+                      <div>
+                        <label className="block text-sm font-medium text-slate-700 mb-1.5">Confirm password</label>
+                        <input
+                          name="confirmPassword"
+                          type="password"
+                          value={form.confirmPassword}
+                          onChange={handleChange}
+                          className="w-full px-4 py-3 border border-slate-200 rounded-xl bg-white text-slate-900 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                        />
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    type="submit"
+                    disabled={loading}
+                    className="w-full py-3.5 bg-[#00356b] text-white font-semibold rounded-xl hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-60 transition shadow-sm"
+                  >
+                    {loading ? "Saving…" : "Save and continue"}
+                  </button>
+                </>
+              ) : (
+              <>
               {/* Read-only: from Google */}
               <section className="rounded-xl bg-slate-50/80 border border-slate-200 p-5">
                 <div className="flex items-center gap-2 mb-1">
@@ -464,6 +594,8 @@ function CompleteProfile() {
               >
                 {loading ? "Saving…" : "Save and continue"}
               </button>
+              </>
+              )}
             </form>
           </div>
         </div>

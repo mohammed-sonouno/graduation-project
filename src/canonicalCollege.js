@@ -46,12 +46,24 @@ const CANONICAL_SET = new Set(CANONICAL_FACULTY_NAMES);
  * Lowercase legacy strings → canonical DB-facing faculty name.
  * Engineering aliases MUST match 042_faculties_normalize_final.sql VALUES lists.
  */
+/** Majors that belong to IT & AI (not Faculty of Engineering). */
+export const IT_AI_MAJOR_NAMES_LOWER = new Set([
+  'computer science',
+  'management information systems',
+  'information technology',
+  'software engineering',
+  'cybersecurity',
+  'cyber security',
+  'ai and data science',
+  'artificial intelligence and data science',
+  'computer information systems',
+  'computer science apprenticeship program',
+]);
+
 const LEGACY_TO_CANONICAL = {
   engineering: FACULTY_ENGINEERING,
   'faculty of engineering': FACULTY_ENGINEERING,
-  'engineering & it': FACULTY_ENGINEERING,
-  'engineering and it': FACULTY_ENGINEERING,
-  'faculty of engineering and information technology': FACULTY_ENGINEERING,
+  // Legacy combined label — use resolveStudentFaculty(college, major) instead of mapping here.
 
   it: FACULTY_IT_AI,
   'information technology': FACULTY_IT_AI,
@@ -123,10 +135,62 @@ export function normalizeCollege(raw) {
   return t;
 }
 
+/**
+ * Faculty for a major name (catalogue truth: MIS/CS → IT, Civil/Mechanical → Engineering).
+ * @param {string|null|undefined} majorName
+ * @returns {string} Canonical faculty name or '' if unknown.
+ */
+export function facultyForMajorName(majorName) {
+  if (!majorName || typeof majorName !== 'string') return '';
+  const lower = majorName.trim().toLowerCase();
+  if (!lower) return '';
+  if (IT_AI_MAJOR_NAMES_LOWER.has(lower)) return FACULTY_IT_AI;
+  if (
+    lower.includes('engineering') ||
+    lower.includes('architect') ||
+    lower.includes('geomatic') ||
+    lower.includes('surveying')
+  ) {
+    if (lower === 'software engineering') return FACULTY_IT_AI;
+    return FACULTY_ENGINEERING;
+  }
+  return '';
+}
+
+/**
+ * Student's faculty: major wins over legacy combined college labels.
+ * @param {string|null|undefined} collegeName
+ * @param {string|null|undefined} majorName
+ * @returns {string} Canonical faculty for display, RBAC, and event audience.
+ */
+export function resolveStudentFaculty(collegeName, majorName) {
+  const fromMajor = facultyForMajorName(majorName);
+  if (fromMajor) return fromMajor;
+
+  const c = typeof collegeName === 'string' ? collegeName.trim() : '';
+  if (!c) return '';
+
+  const lower = c.toLowerCase();
+  if (
+    lower === 'engineering & it' ||
+    lower === 'engineering and it' ||
+    lower === 'faculty of engineering and information technology'
+  ) {
+    return '';
+  }
+
+  const canon = normalizeCollege(c);
+  if (canon === FACULTY_ENGINEERING || canon === FACULTY_IT_AI) return canon;
+  return canon || c;
+}
+
 /** @param {{ facultyName?: string, name?: string }} major */
 export function canonicalFacultyForMajor(major) {
-  const fn = major.facultyName || '';
   const n = major.name || '';
+  const fromName = facultyForMajorName(n);
+  if (fromName) return fromName;
+
+  const fn = major.facultyName || '';
 
   if (fn === 'Faculty of Engineering' || fn === 'Faculty of Engineering and Information Technology') {
     return FACULTY_ENGINEERING;

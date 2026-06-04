@@ -1,4 +1,4 @@
-import 'dotenv/config';
+﻿import 'dotenv/config';
 import express from 'express';
 import cors from 'cors';
 import multer from 'multer';
@@ -22,13 +22,16 @@ import {
 } from '../config/rules.js';
 import communitiesRouter from './routes/communities.js';
 import communityChatRouter from './routes/communityChat.js';
-import chatbotRouter from '../backend/src/routes/chatbot.js';
+import chatbotRouter from './routes/chatbot.js';
+import nlpTrainingRouter from './routes/nlp-training.js';
 import {
   createGetMineHandler,
   createPostDismissHandler,
   fetchMineRequestRows,
   mapCommunityRequestRow,
 } from './routes/communityRequestMineHandlers.js';
+import { canStudentJoinEvent } from './utils/eventAudience.js';
+import { resolveStudentFaculty, buildCanonicalCollegeOptions } from '../src/canonicalCollege.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const UPLOADS_DIR = path.join(__dirname, 'uploads');
@@ -96,6 +99,8 @@ const pool = new Pool({
 
 /** True when `communities.college_id` exists (legacy). False when only `communities.colleges` text[] (migration 004). */
 let communitiesHasCollegeIdColumn = true;
+/** True when `communities.colleges` text[] exists (may coexist with college_id). */
+let communitiesHasCollegesArrayColumn = false;
 /** True when `communities.kind` exists (migration 041): student community vs association for events. */
 let communitiesHasKindColumn = false;
 /** Join fragment: events e → communities c → colleges col (resolved id + display name). */
@@ -146,23 +151,24 @@ function rebuildCommunitiesDependentSelects() {
   LEFT JOIN communities c ON c.id = e.community_id
   ${j}`;
 
+  const kindColFrag = communitiesHasKindColumn ? ', c.kind AS "communityKind"' : '';
   ADMIN_EVENTS_LIST_SELECT = `SELECT e.id, e.title, e.status,
   COALESCE(e.approval_step, 0) AS "approvalStep",
   e.rejected_at_step AS "rejectedAtStep", e.requested_changes_at_step AS "requestedChangesAtStep",
-  e.start_date AS "startDate", e.start_time AS "startTime",
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
   (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
   e.feedback, e.community_id AS "communityId",
-  c.name AS "communityName", col.name AS "collegeName"
+  c.name AS "communityName"${kindColFrag}, col.name AS "collegeName"
   FROM events e
   LEFT JOIN communities c ON c.id = e.community_id
   ${j}`;
 
   ADMIN_EVENTS_LIST_SELECT_LEGACY = `SELECT e.id, e.title, e.status,
   COALESCE(e.approval_step, 0) AS "approvalStep",
-  e.start_date AS "startDate", e.start_time AS "startTime",
+  e.start_date AS "startDate", e.start_time AS "startTime", e.end_date AS "endDate", e.end_time AS "endTime",
   (CASE WHEN e.image IS NOT NULL AND (e.image::text LIKE 'data:%') THEN NULL ELSE e.image END) AS "image",
   e.feedback, e.community_id AS "communityId",
-  c.name AS "communityName", col.name AS "collegeName"
+  c.name AS "communityName"${kindColFrag}, col.name AS "collegeName"
   FROM events e
   LEFT JOIN communities c ON c.id = e.community_id
   ${j}`;
@@ -205,6 +211,7 @@ async function detectCommunitiesCollegeSchema() {
     const hasCollegeId = cols.has('college_id');
     const hasCollegesArr = cols.has('colleges');
     communitiesHasCollegeIdColumn = hasCollegeId;
+    communitiesHasCollegesArrayColumn = hasCollegesArr;
     communitiesHasKindColumn = cols.has('kind');
     if (hasCollegeId && hasCollegesArr) {
       COMMUNITIES_COLLEGE_JOIN_SQL = `
@@ -258,6 +265,7 @@ LEFT JOIN colleges cc ON cc.id = _admin_u_cc.id`;
   } catch (err) {
     console.warn('[schema] communities detection failed; using college_id join', err?.message || err);
     communitiesHasCollegeIdColumn = true;
+    communitiesHasCollegesArrayColumn = false;
     communitiesHasKindColumn = false;
     COMMUNITIES_COLLEGE_JOIN_SQL = 'LEFT JOIN colleges col ON col.id = c.college_id';
     ADMIN_USERS_COMMUNITY_COLLEGE_JOIN = 'LEFT JOIN colleges cc ON cc.id = co.college_id';
@@ -267,23 +275,51 @@ LEFT JOIN colleges cc ON cc.id = _admin_u_cc.id`;
 
 rebuildCommunitiesDependentSelects();
 
+/** SQL fragment: community row `c` belongs to dean/admin college id param (e.g. `$1`). */
+function sqlCommunityMatchesCollegeIdParam(paramRef) {
+  if (communitiesHasCollegeIdColumn && communitiesHasCollegesArrayColumn) {
+    return `(
+      c.college_id = ${paramRef}::int
+      OR EXISTS (
+        SELECT 1 FROM colleges col_match
+        WHERE col_match.id = ${paramRef}::int
+          AND col_match.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+      )
+    )`;
+  }
+  if (communitiesHasCollegeIdColumn) {
+    return `c.college_id = ${paramRef}::int`;
+  }
+  return `EXISTS (
+    SELECT 1 FROM colleges col_match
+    WHERE col_match.id = ${paramRef}::int
+      AND col_match.name = ANY (COALESCE(c.colleges, '{}'::text[]))
+  )`;
+}
+
 /** Whether this community is under the given college id (legacy: college_id column; new: college name in colleges[]). */
 async function communityBelongsToCollege(communityId, collegeId) {
   if (communityId == null || collegeId == null) return false;
-  if (communitiesHasCollegeIdColumn) {
-    const r = await pool.query('SELECT college_id FROM communities WHERE id = $1', [communityId]);
-    return r.rows.length > 0 && Number(r.rows[0].college_id) === Number(collegeId);
-  }
   const r = await pool.query(
     `SELECT 1 FROM communities c
      WHERE c.id = $1
-       AND EXISTS (
-         SELECT 1 FROM colleges col
-         WHERE col.id = $2 AND col.name = ANY (COALESCE(c.colleges, '{}'::text[]))
-       )`,
+       AND ${sqlCommunityMatchesCollegeIdParam('$2')}`,
     [communityId, collegeId]
   );
   return r.rows.length > 0;
+}
+
+/** Dean routing: resolve numeric college id from college_id or legacy college text. */
+async function resolveDeanCollegeId(user) {
+  if (!user || !isDeanRole(user.role)) return null;
+  if (user.college_id != null) return Number(user.college_id);
+  const text = String(user.college || '').trim();
+  if (!text) return null;
+  const r = await pool.query(
+    'SELECT id FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
+    [text]
+  );
+  return r.rows[0]?.id != null ? Number(r.rows[0].id) : null;
 }
 
 /** Load community row for linking an event; rejects student-only communities when `kind` exists. */
@@ -310,9 +346,18 @@ async function fetchCommunityRowForEvent(communityId) {
 
 /** In event+community queries, expose a numeric college id for dean approval checks (legacy column or resolved from colleges[]). */
 function sqlEventCommunityCollegeIdSelect() {
-  const collegeExpr = communitiesHasCollegeIdColumn
-    ? 'c.college_id AS college_id'
-    : '(SELECT MIN(cl.id) FROM colleges cl WHERE cl.name = ANY (COALESCE(c.colleges, \'{}\'::text[]))) AS college_id';
+  let collegeExpr;
+  if (communitiesHasCollegeIdColumn && communitiesHasCollegesArrayColumn) {
+    collegeExpr = `COALESCE(
+      c.college_id,
+      (SELECT MIN(cl.id) FROM colleges cl WHERE cl.name = ANY (COALESCE(c.colleges, '{}'::text[])))
+    ) AS college_id`;
+  } else if (communitiesHasCollegeIdColumn) {
+    collegeExpr = 'c.college_id AS college_id';
+  } else {
+    collegeExpr =
+      "(SELECT MIN(cl.id) FROM colleges cl WHERE cl.name = ANY (COALESCE(c.colleges, '{}'::text[]))) AS college_id";
+  }
   return `${collegeExpr}, c.name AS community_name`;
 }
 
@@ -577,6 +622,32 @@ function buildEventCreatePayload(body, user, options = {}) {
   };
 }
 
+function eventScheduleMs(dateVal, timeVal, defaultEndOfDay = false) {
+  if (!dateVal) return null;
+  let dateStr;
+  if (dateVal instanceof Date) dateStr = dateVal.toISOString().slice(0, 10);
+  else if (typeof dateVal === 'string') dateStr = dateVal.trim().split('T')[0];
+  else return null;
+  if (!dateStr) return null;
+  let t = (timeVal && String(timeVal).trim()) || (defaultEndOfDay ? '23:59:59' : '00:00:00');
+  if (t.length === 5) t += ':00';
+  const ms = new Date(`${dateStr}T${t}`).getTime();
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/** Admin may delete events that have not started yet or have already ended (not in progress). */
+function adminMayDeleteEventBySchedule(row) {
+  const now = Date.now();
+  const startMs = eventScheduleMs(row.start_date, row.start_time, false);
+  const endMs = eventScheduleMs(row.end_date || row.start_date, row.end_time, true);
+  if (endMs != null && endMs < now) return { ok: true };
+  if (startMs != null && startMs > now) return { ok: true };
+  if (startMs != null && endMs != null && startMs <= now && endMs >= now) {
+    return { ok: false, error: 'Cannot delete an event while it is in progress.' };
+  }
+  return { ok: true };
+}
+
 // Lightweight structured auth logging (without sensitive data)
 function logAuth(event, details) {
   try {
@@ -615,7 +686,21 @@ function toUser(row) {
     community_id: row.community_id != null ? Number(row.community_id) : undefined,
     must_change_password: Boolean(row.must_change_password),
     must_complete_profile: Boolean(row.must_complete_profile),
+    invited_by_admin: Boolean(row.invited_by_admin),
   };
+}
+
+/** Login code: Najah domain OR pre-invited account in app_users. */
+async function emailMayRequestLogin(emailNorm) {
+  if (isEmailAllowed(emailNorm)) return { ok: true };
+  const r = await pool.query(
+    'SELECT invited_by_admin FROM app_users WHERE email = $1 LIMIT 1',
+    [emailNorm]
+  );
+  if (r.rows.length > 0 && r.rows[0].invited_by_admin === true) {
+    return { ok: true, invited: true };
+  }
+  return { ok: false };
 }
 
 /** Optional auth: set req.user from JWT if present (cookie first, then Authorization header). */
@@ -633,6 +718,7 @@ async function optionalAuth(req, res, next) {
       `SELECT u.id, u.email, u.role, u.created_at, u.college_id, u.community_id,
               u.first_name, u.middle_name, u.last_name, u.college, u.major,
               u.student_number, u.must_change_password, u.must_complete_profile,
+              u.invited_by_admin,
               sp.picture AS picture
        FROM app_users u
        LEFT JOIN student_profiles sp ON sp.user_id = u.id
@@ -755,11 +841,12 @@ app.post('/api/auth/register', async (req, res) => {
   if (!pwdCheck.valid) {
     return res.status(400).json({ error: `Password: ${pwdCheck.errors.join(', ')}.` });
   }
-  const college = typeof req.body.college === 'string' ? req.body.college.trim() : '';
+  const collegeRaw = typeof req.body.college === 'string' ? req.body.college.trim() : '';
   const major = typeof req.body.major === 'string' ? req.body.major.trim() : '';
-  if (!college || !major) {
+  if (!collegeRaw || !major) {
     return res.status(400).json({ error: 'College and major are required. Please select your college and academic program.' });
   }
+  const college = resolveStudentFaculty(collegeRaw, major) || collegeRaw;
   try {
     const existing = await pool.query('SELECT 1 FROM app_users WHERE email = $1 LIMIT 1', [emailNorm]);
     if (existing.rows.length > 0) {
@@ -898,8 +985,11 @@ app.post('/api/auth/request-login-code', async (req, res) => {
     if (!email) return res.status(400).json({ error: 'Email is required.' });
     if (email.length > 255) return res.status(400).json({ error: 'Email is too long.' });
     const emailNorm = email.toLowerCase();
-    if (!isEmailAllowed(emailNorm)) {
-      return res.status(400).json({ error: 'Please use a university email (@stu.najah.edu or @najah.edu).' });
+    const loginAllowed = await emailMayRequestLogin(emailNorm);
+    if (!loginAllowed.ok) {
+      return res.status(400).json({
+        error: 'Please use a university email (@stu.najah.edu or @najah.edu), or contact an administrator if you were invited.',
+      });
     }
     console.info('[request-login-code] incoming', {
       email: emailNorm,
@@ -907,7 +997,11 @@ app.post('/api/auth/request-login-code', async (req, res) => {
     });
     const r = await pool.query('SELECT 1 FROM app_users WHERE email = $1 LIMIT 1', [emailNorm]);
     if (r.rows.length === 0) {
-      return res.status(404).json({ error: 'No account found with this email. Please register first.' });
+      return res.status(404).json({
+        error: loginAllowed.invited
+          ? 'No account found with this email.'
+          : 'No account found with this email. Najah students can register; invited guests must be added by an administrator first.',
+      });
     }
     const code = String(Math.floor(100000 + Math.random() * 900000));
     const expiresAt = new Date(Date.now() + LOGIN_CODE_EXPIRY_MINUTES * 60 * 1000);
@@ -1004,7 +1098,7 @@ app.post('/api/auth/verify-login-code', async (req, res) => {
     }
     await pool.query('DELETE FROM login_codes WHERE email = $1', [email]);
     const userRow = (await pool.query(
-      'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, college, major, student_number, must_change_password, must_complete_profile FROM app_users WHERE email = $1 LIMIT 1',
+      'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, college, major, student_number, must_change_password, must_complete_profile, invited_by_admin FROM app_users WHERE email = $1 LIMIT 1',
       [email]
     )).rows[0];
     if (!userRow) return res.status(401).json({ error: 'Account not found.' });
@@ -1103,17 +1197,19 @@ app.post('/api/auth/google', async (req, res) => {
       logAuth('google', { provider: 'google', email, success: false, reason: 'unverified_email' });
       return res.status(401).json({ error: 'Could not verify your Google account.' });
     }
-    if (!isEmailAllowed(email)) {
-      logAuth('google', { provider: 'google', email, success: false, reason: 'domain_not_allowed' });
-      return res.status(403).json({
-        error: 'Please use a Najah University Google account (@stu.najah.edu or @najah.edu).',
-      });
-    }
     const emailNorm = email.trim().toLowerCase();
     let row = (await pool.query(
-'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, college, major, student_number, must_complete_profile FROM app_users WHERE email = $1 LIMIT 1',
-    [emailNorm]
-  )).rows[0];
+      'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, college, major, student_number, must_complete_profile, invited_by_admin FROM app_users WHERE email = $1 LIMIT 1',
+      [emailNorm]
+    )).rows[0];
+    if (!isEmailAllowed(emailNorm)) {
+      if (!row?.invited_by_admin) {
+        logAuth('google', { provider: 'google', email, success: false, reason: 'domain_not_allowed' });
+        return res.status(403).json({
+          error: 'Please use a Najah University Google account (@stu.najah.edu or @najah.edu), or sign in with the email code sent to your invited address.',
+        });
+      }
+    }
 
     // Send 6-digit code for both existing and new users (same as email sign-in flow).
     const code = String(Math.floor(100000 + Math.random() * 900000));
@@ -1327,12 +1423,13 @@ app.post('/api/auth/complete-registration', async (req, res) => {
     passwordHash = await bcrypt.hash(password, 10);
   }
 
-  const college = typeof body.college === 'string' ? body.college.trim() : null;
+  const collegeRaw = typeof body.college === 'string' ? body.college.trim() : null;
   const major = typeof body.major === 'string' ? body.major.trim() : null;
   const phone = typeof body.phone === 'string' ? body.phone.trim() : null;
-  if (!college || !major) {
+  if (!collegeRaw || !major) {
     return res.status(400).json({ error: 'College and major are required for every student.' });
   }
+  const college = resolveStudentFaculty(collegeRaw, major) || collegeRaw;
 
   try {
     const r = await pool.query(
@@ -1355,12 +1452,16 @@ app.post('/api/auth/complete-registration', async (req, res) => {
     if (sessionId) {
       await pool.query('DELETE FROM pending_registrations WHERE id = $1', [sessionId]);
     }
-    if (pictureFromPayload && row?.id) {
+    if (row?.id) {
       await pool.query(
         `INSERT INTO student_profiles (user_id, college, major, gpa, credits_earned, credits_total, picture, updated_at)
-         VALUES ($1, NULL, NULL, NULL, NULL, NULL, $2, NOW())
-         ON CONFLICT (user_id) DO UPDATE SET picture = COALESCE(EXCLUDED.picture, student_profiles.picture), updated_at = NOW()`,
-        [row.id, pictureFromPayload]
+         VALUES ($1, $2, $3, NULL, NULL, NULL, $4, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET
+           college = COALESCE(EXCLUDED.college, student_profiles.college),
+           major = COALESCE(EXCLUDED.major, student_profiles.major),
+           picture = COALESCE(EXCLUDED.picture, student_profiles.picture),
+           updated_at = NOW()`,
+        [row.id, college, major, pictureFromPayload || null]
       );
     }
     const user = withPermissions(toUser({ ...row, name: [first_name, last_name_final].filter(Boolean).join(' ') || email }));
@@ -1383,6 +1484,53 @@ app.post('/api/auth/complete-profile', optionalAuth, requireAuth, async (req, re
   if (!email || email !== req.user.email) {
     return res.status(403).json({ error: 'Cannot update another user\'s profile.' });
   }
+
+  if (req.user.invited_by_admin) {
+    const bio = typeof body.bio === 'string' ? body.bio.trim() : '';
+    if (bio.length < 10) {
+      return res.status(400).json({ error: 'Organization description is required (at least 10 characters).' });
+    }
+    const password = typeof body.password === 'string' ? body.password.trim() : '';
+    let hash = null;
+    if (password) {
+      const pwdCheck = validatePasswordRules(password);
+      if (!pwdCheck.valid) {
+        return res.status(400).json({ error: `Password: ${pwdCheck.errors.join(', ')}.` });
+      }
+      hash = await bcrypt.hash(password, 10);
+    }
+    const displayName =
+      (typeof body.display_name === 'string' && body.display_name.trim()) ||
+      email.split('@')[0] ||
+      'Guest';
+    try {
+      if (hash != null) {
+        await pool.query(
+          `UPDATE app_users SET first_name = $1, last_name = $2, phone = $3, password_hash = $4, must_complete_profile = false WHERE id = $5`,
+          [displayName, displayName, body.phone ? String(body.phone).trim() : null, hash, req.user.id]
+        );
+      } else {
+        await pool.query(
+          `UPDATE app_users SET first_name = $1, last_name = $2, phone = $3, must_complete_profile = false WHERE id = $4`,
+          [displayName, displayName, body.phone ? String(body.phone).trim() : null, req.user.id]
+        );
+      }
+      await pool.query(
+        `INSERT INTO student_profiles (user_id, bio, updated_at) VALUES ($1, $2, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET bio = EXCLUDED.bio, updated_at = NOW()`,
+        [req.user.id, bio]
+      );
+      const r = await pool.query(
+        'SELECT id, email, role, created_at, college_id, community_id, first_name, middle_name, last_name, college, major, student_number, must_change_password, must_complete_profile, invited_by_admin FROM app_users WHERE id = $1',
+        [req.user.id]
+      );
+      return res.json({ user: withPermissions(toUser(r.rows[0])) });
+    } catch (err) {
+      console.error('Complete invited profile error:', err);
+      return res.status(500).json({ error: 'Could not save profile. Please try again.' });
+    }
+  }
+
   // Take name and student number from body (auto-filled section); fall back to current user from DB when missing
   let first_name = typeof body.first_name === 'string' ? body.first_name.trim() : '';
   let father_name = typeof body.father_name === 'string' ? body.father_name.trim() : null;
@@ -1414,11 +1562,14 @@ app.post('/api/auth/complete-profile', optionalAuth, requireAuth, async (req, re
   if (!collegeRaw || !majorVal) {
     return res.status(400).json({ error: 'College and major are required for every student.' });
   }
-  const collegeCanon = await pool.query(
-    'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
-    [collegeRaw]
-  );
-  const collegeVal = collegeCanon.rows[0]?.name ?? collegeRaw;
+  let collegeVal = resolveStudentFaculty(collegeRaw, majorVal);
+  if (!collegeVal) {
+    const collegeCanon = await pool.query(
+      'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
+      [collegeRaw]
+    );
+    collegeVal = collegeCanon.rows[0]?.name ?? collegeRaw;
+  }
   let hash = null;
   if (password) {
     const pwdCheck = validatePasswordRules(password);
@@ -1428,6 +1579,12 @@ app.post('/api/auth/complete-profile', optionalAuth, requireAuth, async (req, re
     hash = await bcrypt.hash(password, 10);
   }
   try {
+    await pool.query(
+      `INSERT INTO student_profiles (user_id, college, major, updated_at)
+       VALUES ($1, $2, $3, NOW())
+       ON CONFLICT (user_id) DO UPDATE SET college = EXCLUDED.college, major = EXCLUDED.major, updated_at = NOW()`,
+      [req.user.id, collegeVal, majorVal]
+    );
     if (hash != null) {
       await pool.query(
         `UPDATE app_users SET
@@ -1483,7 +1640,8 @@ app.post('/api/auth/complete-profile', optionalAuth, requireAuth, async (req, re
 app.get('/api/colleges', async (req, res) => {
   try {
     const r = await pool.query('SELECT id, name FROM colleges ORDER BY name');
-    res.json(r.rows);
+    const majorsR = await pool.query('SELECT college_id AS "collegeId" FROM majors');
+    res.json(buildCanonicalCollegeOptions(r.rows, majorsR.rows));
   } catch (err) {
     console.error('colleges list error:', err);
     res.status(500).json({ error: 'Failed to load colleges' });
@@ -2360,14 +2518,22 @@ app.delete('/api/events/:id', optionalAuth, requireAuth, async (req, res) => {
     const isAdmin = isAdminRole(user?.role);
     const isLeader = (isCommunityLeaderRole(user?.role) || isSupervisorRole(user?.role)) && user?.community_id != null;
     if (!isAdmin && !isLeader) return res.status(403).json({ error: 'Only admin or community leader can delete events' });
-    const existing = await pool.query('SELECT id, community_id, status FROM events WHERE id = $1', [req.params.id]);
+    const existing = await pool.query(
+      'SELECT id, community_id, status, start_date, end_date, start_time, end_time FROM events WHERE id = $1',
+      [req.params.id]
+    );
     if (existing.rows.length === 0) return res.status(404).json({ error: 'Event not found' });
     const eventRow = existing.rows[0];
-    if ((eventRow.status || '').trim() !== 'draft') {
-      return res.status(400).json({ error: 'Only draft events can be deleted. Pending or approved events cannot be deleted.' });
-    }
-    if (isLeader && !isAdmin) {
-      if (Number(eventRow.community_id) !== Number(user.community_id)) return res.status(403).json({ error: 'You can delete only events of your community' });
+    if (isAdmin) {
+      const sched = adminMayDeleteEventBySchedule(eventRow);
+      if (!sched.ok) return res.status(400).json({ error: sched.error });
+    } else if (isLeader) {
+      if ((eventRow.status || '').trim() !== 'draft') {
+        return res.status(400).json({ error: 'Only draft events can be deleted. Pending or approved events cannot be deleted.' });
+      }
+      if (Number(eventRow.community_id) !== Number(user.community_id)) {
+        return res.status(403).json({ error: 'You can delete only events of your community' });
+      }
     }
     await pool.query('DELETE FROM events WHERE id = $1', [req.params.id]);
     res.status(204).send();
@@ -2397,31 +2563,6 @@ app.get('/api/event-registrations', optionalAuth, requireAuth, async (req, res) 
     res.status(500).json({ error: 'Failed to load registrations' });
   }
 });
-
-/** Check if a student (by college and major names) can join an event based on event audience (colleges/majors). */
-async function canStudentJoinEvent(pool, eventRow, collegeName, majorName) {
-  const forAllColleges = eventRow.for_all_colleges !== false;
-  if (forAllColleges) return true;
-  const targetCollegeIds = Array.isArray(eventRow.target_college_ids) ? eventRow.target_college_ids : (eventRow.target_college_ids ? JSON.parse(JSON.stringify(eventRow.target_college_ids)) : []);
-  if (targetCollegeIds.length === 0) return true;
-  const collegeTrim = typeof collegeName === 'string' ? collegeName.trim() : '';
-  const majorTrim = typeof majorName === 'string' ? majorName.trim() : '';
-  if (!collegeTrim) return false;
-  const colRow = await pool.query('SELECT id FROM colleges WHERE TRIM(name) = $1 LIMIT 1', [collegeTrim]);
-  const collegeId = colRow.rows[0]?.id != null ? Number(colRow.rows[0].id) : null;
-  if (collegeId == null) return false;
-  const collegeAllowed = targetCollegeIds.some((id) => Number(id) === collegeId);
-  if (!collegeAllowed) return false;
-  const targetAllMajors = eventRow.target_all_majors !== false;
-  if (targetAllMajors) return true;
-  const targetMajorIds = Array.isArray(eventRow.target_major_ids) ? eventRow.target_major_ids : (eventRow.target_major_ids ? JSON.parse(JSON.stringify(eventRow.target_major_ids)) : []);
-  if (targetMajorIds.length === 0) return true;
-  if (!majorTrim) return false;
-  const majRow = await pool.query('SELECT id FROM majors WHERE TRIM(name) = $1 AND college_id = $2 LIMIT 1', [majorTrim, collegeId]);
-  const majorId = majRow.rows[0]?.id != null ? Number(majRow.rows[0].id) : null;
-  if (majorId == null) return false;
-  return targetMajorIds.some((id) => Number(id) === majorId);
-}
 
 /** POST /api/event-registrations — register for an event (status = pending; only community leader can approve/reject). */
 app.post('/api/event-registrations', optionalAuth, requireAuth, async (req, res) => {
@@ -3054,104 +3195,20 @@ app.get('/api/events/:eventId/analytics', optionalAuth, async (req, res) => {
       };
     });
 
-    // Keyword extraction (top positive/negative) from real textual feedback only.
-    const STOPWORDS_EN = new Set([
-      'the','a','an','and','or','but','if','then','else','for','to','of','in','on','at','by','from','with','as','is','are','was','were',
-      'be','been','being','it','this','that','these','those','i','we','you','they','he','she','them','his','her','our','your','their',
-      'my','me','us','do','did','does','done','not','no','yes','very','really','so','too','just','can','could','should','would','will',
-      'about','into','over','under','more','most','less','least','than','also','only','such','etc',
-      // domain-noise
-      'event','events','good','bad','great','nice','okay',
-    ]);
-    const STOPWORDS_AR = new Set([
-      'في','على','من','الى','إلى','عن','مع','و','او','أو','ثم','لكن','بل','كما','كان','كانت','يكون','تكون','هذا','هذه','ذلك','تلك',
-      'هناك','هنا','انا','أنا','نحن','انت','أنت','انتم','أنتم','هو','هي','هم','هن','لك','لكم','لي','لنا','ب','بسبب','حتى','اذا','إذا',
-      'لان','لأن','قد','جدا','جداً','جيد','سيئ','سيء','ممتاز',
-      // domain-noise
-      'فعاليه','فعالية','الفعاليه','الفعالية','حدث','الايفنت','ايفنت',
-    ]);
-    const NORMALIZE_ARABIC_MAP = [
-      [/[\u0622\u0623\u0625]/g, 'ا'], // آ أ إ -> ا
-      [/\u0649/g, 'ي'], // ى -> ي
-      [/\u0629/g, 'ه'], // ة -> ه
-    ];
-    const AR_DIACRITICS = /[\u064B-\u065F\u0670]/g;
-    const AR_TATWEEL = /\u0640/g;
-
-    function normalizeArabic(s) {
-      let out = s;
-      out = out.replace(AR_TATWEEL, '').replace(AR_DIACRITICS, '');
-      for (const [re, rep] of NORMALIZE_ARABIC_MAP) out = out.replace(re, rep);
-      return out;
-    }
-
-    function cleanText(s) {
-      // keep only letters/spaces; removes punctuation, emojis, symbols, etc.
-      return String(s)
-        .replace(/[0-9٠-٩]/g, ' ')
-        .replace(/[^\p{L}\s]/gu, ' ')
-        .replace(/\s+/g, ' ')
-        .trim();
-    }
-
-    function collapseExaggeratedRepeats(s, isArabic) {
-      // Conservative: collapse runs of 3+ repeated letters.
-      // - Arabic: cap to 1 (كووويس → كويس)
-      // - English/Latin: cap to 2 (goooood → good)
-      const str = String(s || '');
-      if (!str) return str;
-      if (isArabic) {
-        return str.replace(/([\u0600-\u06FF])\1{2,}/g, '$1');
-      }
-      return str.replace(/([A-Za-z])\1{2,}/g, '$1$1');
-    }
-
-    function tokenizeAndCount(text, langHint, counter) {
-      const cleaned = cleanText(text);
-      if (!cleaned) return;
-      const isArabic = langHint === 'ar' || /[\u0600-\u06FF]/.test(cleaned);
-      const repeatCollapsed = collapseExaggeratedRepeats(cleaned, isArabic);
-      const base = isArabic
-        ? normalizeArabic(repeatCollapsed)
-        : repeatCollapsed.toLowerCase();
-      const tokens = base.split(' ').map((t) => t.trim()).filter(Boolean);
-      for (const raw of tokens) {
-        const token = raw;
-        if (!token) continue;
-        // ignore very short tokens (<3) unless meaningful (basic allow-list)
-        if (token.length < 3 && !['ai','ui'].includes(token)) continue;
-        if (isArabic) {
-          if (STOPWORDS_AR.has(token)) continue;
-        } else {
-          if (STOPWORDS_EN.has(token)) continue;
-        }
-        counter.set(token, (counter.get(token) || 0) + 1);
-      }
-    }
-
-    const kwRows = await pool.query(
-      `SELECT comment,
-              COALESCE(override_sentiment, sentiment) AS s,
-              COALESCE(language, 'unknown') AS lang
+    // Aggregate NLP-extracted keywords, issues and aspects from stored DB columns.
+    // This avoids re-running the NLP model at query time.
+    const nlpAggRows = await pool.query(
+      `SELECT COALESCE(override_sentiment, sentiment) AS s,
+              nlp_keywords,
+              nlp_issues,
+              nlp_aspects,
+              nlp_flag_for_review
        FROM event_reviews
        WHERE event_id = $1
          AND (is_seeded IS NOT TRUE)
-         AND comment IS NOT NULL
-         AND LENGTH(TRIM(comment)) > 0
-         AND COALESCE(override_sentiment, sentiment) IN ('positive','negative')
-       ORDER BY created_at DESC`,
+         AND nlp_keywords IS NOT NULL`,
       [eventId]
     );
-
-    const posCounts = new Map();
-    const negCounts = new Map();
-    for (const row of kwRows.rows || []) {
-      const commentText = row.comment || '';
-      const sentimentClass = row.s;
-      const lang = (row.lang || '').toString().toLowerCase();
-      if (sentimentClass === 'positive') tokenizeAndCount(commentText, lang, posCounts);
-      else if (sentimentClass === 'negative') tokenizeAndCount(commentText, lang, negCounts);
-    }
 
     const topN = (m, n = 8) =>
       Array.from(m.entries())
@@ -3159,8 +3216,60 @@ app.get('/api/events/:eventId/analytics', optionalAuth, async (req, res) => {
         .slice(0, n)
         .map(([word, count]) => ({ word, count }));
 
+    const POSITIVE_WORDS = new Set([
+      'ممتاز','رائع','حلو','جيد','منيح','جميل','كويس','مفيد','رائعة','حلوه','جيده',
+      'مميز','مميزة','عظيم','عظيمة','مبدع','مبدعة','ناجح','ناجحة','مرتب','منظم','تمام',
+      'استمتعنا','استمتعت','نجح','نجحت','ممتازة','احترافي','احترافية',
+      'good','great','excellent','amazing','awesome','wonderful','fantastic','perfect',
+      'outstanding','brilliant','superb','nice','enjoyable','impressive','helpful',
+      'useful','clear','informative','well','best',
+    ]);
+
+    const posCounts = new Map();
+    const negCounts = new Map();
+    const issueCounts = new Map();
+    const aspectCounts = {};
+    let flaggedCount = 0;
+
+    for (const row of nlpAggRows.rows || []) {
+      const sentimentClass = (row.s || '').toLowerCase();
+      const kwMap = sentimentClass === 'positive' ? posCounts : sentimentClass === 'negative' ? negCounts : null;
+
+      const kws = Array.isArray(row.nlp_keywords) ? row.nlp_keywords : [];
+      if (kwMap) {
+        for (const kw of kws) {
+          if (kw && typeof kw === 'string') kwMap.set(kw, (kwMap.get(kw) || 0) + 1);
+        }
+      } else if (sentimentClass === 'neutral') {
+        for (const kw of kws) {
+          if (kw && typeof kw === 'string' && POSITIVE_WORDS.has(kw))
+            posCounts.set(kw, (posCounts.get(kw) || 0) + 1);
+        }
+      }
+
+      const issues = Array.isArray(row.nlp_issues) ? row.nlp_issues : [];
+      for (const issue of issues) {
+        if (issue && typeof issue === 'string') issueCounts.set(issue, (issueCounts.get(issue) || 0) + 1);
+      }
+
+      const aspects = row.nlp_aspects && typeof row.nlp_aspects === 'object' ? row.nlp_aspects : {};
+      for (const [aspect, asentiment] of Object.entries(aspects)) {
+        if (!aspectCounts[aspect]) aspectCounts[aspect] = { Positive: 0, Neutral: 0, Negative: 0 };
+        const key = String(asentiment);
+        if (aspectCounts[aspect][key] != null) aspectCounts[aspect][key]++;
+      }
+
+      if (row.nlp_flag_for_review) flaggedCount++;
+    }
+
     const topPositiveKeywords = topN(posCounts, 8);
     const topNegativeKeywords = topN(negCounts, 8);
+    const topIssues = topN(issueCounts, 10);
+
+    const aspectSummary = Object.entries(aspectCounts).map(([aspect, counts]) => {
+      const dominant = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      return { aspect, sentiment: dominant[0], counts };
+    });
 
     res.json({
       eventId: s.id,
@@ -3191,6 +3300,9 @@ app.get('/api/events/:eventId/analytics', optionalAuth, async (req, res) => {
       },
       topPositiveKeywords,
       topNegativeKeywords,
+      topIssues,
+      aspectSummary,
+      flaggedCount,
       trends,
     });
   } catch (err) {
@@ -3268,11 +3380,17 @@ app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, 
     let sentimentScore = 0;
     let language = 'unknown';
     let sentimentRaw = null;
+    let nlpConfidence = null;
+    let nlpKeywords = null;
+    let nlpIssues = null;
+    let nlpAspects = null;
+    let nlpFlagForReview = false;
 
     if (comment) {
       try {
         const url = `${NLP_SERVICE_URL.replace(/\/+$/, '')}/analyze-sentiment`;
-        const payload = { text: comment };
+        // Pass stars alongside text so the NLP service can use them for fallback / conflict resolution.
+        const payload = { text: comment, stars: typeof rating === 'number' ? rating : parseInt(rating, 10) || null };
         if (NLP_DEBUG) console.info('[nlp] request', JSON.stringify({ url, payload }));
         const controller = new AbortController();
         const t = setTimeout(() => controller.abort(), NLP_TIMEOUT_MS);
@@ -3288,6 +3406,7 @@ app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, 
           throw new Error(data?.detail || data?.error || `NLP service error: ${r.status}`);
         }
         const out = data || {};
+        // NLP service returns title-case ("Positive") — normalise to lowercase for DB.
         const s = String(out.sentiment || '').toLowerCase();
         if (!['positive', 'neutral', 'negative'].includes(s)) {
           throw new Error(`Invalid NLP sentiment: ${out.sentiment}`);
@@ -3296,6 +3415,11 @@ app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, 
         sentimentScore = typeof out.score === 'number' && Number.isFinite(out.score) ? out.score : 0;
         language = typeof out.language === 'string' && out.language.trim() ? out.language.trim() : 'unknown';
         sentimentRaw = out;
+        nlpConfidence = typeof out.confidence === 'number' && Number.isFinite(out.confidence) ? out.confidence : null;
+        nlpKeywords = Array.isArray(out.keywords) ? out.keywords : null;
+        nlpIssues = Array.isArray(out.issues) ? out.issues : null;
+        nlpAspects = out.aspects && typeof out.aspects === 'object' ? out.aspects : null;
+        nlpFlagForReview = out.flag_for_review === true;
         if (NLP_DEBUG) console.info('[nlp] response', JSON.stringify(out));
       } catch (e) {
         // Safe fallback: do not derive sentiment from rating when comment exists.
@@ -3315,9 +3439,21 @@ app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, 
     const id = `rv-${Date.now()}-${Math.random().toString(36).slice(2, 12)}`;
     const reviewUserId = isAdminUser ? null : userId;
     await pool.query(
-      `INSERT INTO event_reviews (id, event_id, rating, comment, sentiment, sentiment_score, sentiment_raw, language, user_id, registration_id)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)`,
-      [id, eventId, rating, comment, sentiment, sentimentScore, sentimentRaw, language, reviewUserId, registrationId]
+      `INSERT INTO event_reviews
+         (id, event_id, rating, comment, sentiment, sentiment_score, sentiment_raw, language,
+          user_id, registration_id,
+          nlp_confidence, nlp_keywords, nlp_issues, nlp_aspects, nlp_flag_for_review)
+       VALUES ($1,$2,$3,$4,$5,$6,$7,$8,$9,$10,$11,$12,$13,$14,$15)`,
+      [
+        id, eventId, rating, comment, sentiment, sentimentScore,
+        sentimentRaw ? JSON.stringify(sentimentRaw) : null,
+        language, reviewUserId, registrationId,
+        nlpConfidence,
+        nlpKeywords ? JSON.stringify(nlpKeywords) : null,
+        nlpIssues ? JSON.stringify(nlpIssues) : null,
+        nlpAspects ? JSON.stringify(nlpAspects) : null,
+        nlpFlagForReview,
+      ]
     );
     const r = await pool.query(
       `SELECT id, event_id AS "eventId", rating, comment, created_at AS "createdAt"
@@ -3344,7 +3480,7 @@ app.post('/api/events/:eventId/reviews', optionalAuth, requireAuth, async (req, 
 app.get('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
   try {
     const r = await pool.query(
-      'SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture FROM student_profiles WHERE user_id = $1',
+      'SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture, bio FROM student_profiles WHERE user_id = $1',
       [req.user.id]
     );
     if (r.rows.length === 0) return res.json({});
@@ -3371,18 +3507,42 @@ app.get('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
 app.put('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
   try {
     const b = req.body || {};
+    if (req.user.invited_by_admin && typeof b.bio === 'string') {
+      const bio = b.bio.trim();
+      await pool.query(
+        `INSERT INTO student_profiles (user_id, bio, updated_at) VALUES ($1, $2, NOW())
+         ON CONFLICT (user_id) DO UPDATE SET bio = EXCLUDED.bio, updated_at = NOW()`,
+        [req.user.id, bio || null]
+      );
+      const r = await pool.query(
+        'SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture, bio FROM student_profiles WHERE user_id = $1',
+        [req.user.id]
+      );
+      return res.json(r.rows[0] || {});
+    }
     let pictureVal = b.picture || null;
     if (pictureVal && typeof pictureVal === 'string' && pictureVal.startsWith('data:')) {
       const saved = saveBase64ImageToUploads(pictureVal, `avatar-${req.user.id}`);
       if (saved) pictureVal = saved;
     }
     let collegeToStore = b.college || null;
-    if (collegeToStore) {
-      const canon = await pool.query(
-        'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
-        [String(collegeToStore).trim()]
+    const majorToStore = b.major || null;
+    if (collegeToStore || majorToStore) {
+      const resolved = resolveStudentFaculty(collegeToStore, majorToStore);
+      if (resolved) collegeToStore = resolved;
+      else if (collegeToStore) {
+        const canon = await pool.query(
+          'SELECT name FROM colleges WHERE lower(trim(name)) = lower(trim($1)) LIMIT 1',
+          [String(collegeToStore).trim()]
+        );
+        if (canon.rows[0]?.name) collegeToStore = canon.rows[0].name;
+      }
+    }
+    if (collegeToStore && majorToStore) {
+      await pool.query(
+        'UPDATE app_users SET college = $1, major = $2 WHERE id = $3',
+        [collegeToStore, majorToStore, req.user.id]
       );
-      if (canon.rows[0]?.name) collegeToStore = canon.rows[0].name;
     }
     await pool.query(
       `INSERT INTO student_profiles (user_id, college, major, gpa, credits_earned, credits_total, picture, updated_at)
@@ -3397,7 +3557,10 @@ app.put('/api/student-profile', optionalAuth, requireAuth, async (req, res) => {
          updated_at=NOW()`,
       [req.user.id, collegeToStore, b.major || null, b.gpa ?? null, b.creditsEarned ?? null, b.creditsTotal ?? null, pictureVal || null]
     );
-    const r = await pool.query('SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture FROM student_profiles WHERE user_id = $1', [req.user.id]);
+    const r = await pool.query(
+      'SELECT college, major, gpa, credits_earned AS "creditsEarned", credits_total AS "creditsTotal", picture, bio FROM student_profiles WHERE user_id = $1',
+      [req.user.id]
+    );
     res.json(r.rows[0] || {});
   } catch (err) {
     console.error('profile put error:', err);
@@ -3455,7 +3618,8 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
   try {
     const user = req.user;
     const isAdmin = isAdminRole(user?.role);
-    const isDean = isDeanRole(user?.role) && user?.college_id != null;
+    const deanCollegeId = await resolveDeanCollegeId(user);
+    const isDean = isDeanRole(user?.role) && deanCollegeId != null;
     const isSupervisor = isSupervisorRole(user?.role);
     const isLeader = (isCommunityLeaderRole(user?.role) || isSupervisor) && user?.community_id != null;
     if (!isAdmin && !isDean && !isLeader) return res.status(403).json({ error: 'Only admin, dean, or community leader can list manageable events' });
@@ -3464,6 +3628,7 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
     const offset = Math.max(0, parseInt(req.query.offset, 10) || 0);
     const approvalQueue = req.query.approvalQueue === '1' || req.query.approvalQueue === 'true';
     const pastOnly = req.query.pastOnly === '1' || req.query.pastOnly === 'true';
+    const associationOnly = req.query.associationOnly === '1' || req.query.associationOnly === 'true';
     let listSelect = approvalQueue ? ADMIN_EVENTS_APPROVAL_SELECT : ADMIN_EVENTS_LIST_SELECT;
     const runQuery = async (select) => {
       let q = select + ' WHERE 1=1';
@@ -3472,16 +3637,13 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
         if (isSupervisor && !isAdmin && user?.community_id != null) {
           q += ` AND e.status = 'pending_supervisor' AND e.community_id = $1`;
           params.push(user.community_id);
-        } else if (isDean && !isAdmin && user?.college_id != null) {
-          params.push(user.college_id);
-          if (communitiesHasCollegeIdColumn) {
-            q += ` AND e.status IN ('pending_supervisor','pending_dean') AND c.college_id = $1`;
-          } else {
-            q += ` AND e.status IN ('pending_supervisor','pending_dean') AND EXISTS (
-              SELECT 1 FROM colleges col_dean
-              WHERE col_dean.id = $1::int AND col_dean.name = ANY (COALESCE(c.colleges, '{}'::text[]))
-            )`;
-          }
+        } else if (isDean && !isAdmin && deanCollegeId != null) {
+          params.push(deanCollegeId);
+          const ieeeDeanExtra =
+            (await userIsFacultyOfEngineeringDean({ role: user.role, college_id: deanCollegeId }))
+              ? ` OR (e.status = 'pending_dean' AND lower(trim(c.name)) = 'ieee')`
+              : '';
+          q += ` AND e.status IN ('pending_supervisor','pending_dean') AND (${sqlCommunityMatchesCollegeIdParam('$1')}${ieeeDeanExtra})`;
         } else if (isAdmin) {
           q += ` AND e.status IN ('pending_supervisor','pending_dean','pending_admin')`;
         } else if (isLeader) {
@@ -3493,21 +3655,14 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
         if (isLeader && !isAdmin) {
           params.push(user.community_id);
           q += ` AND e.community_id = $${params.length}`;
-        } else if (isDean && !isAdmin) {
-          params.push(user.college_id);
-          if (communitiesHasCollegeIdColumn) {
-            q += ` AND c.college_id = $${params.length}`;
-          } else {
-            q += ` AND EXISTS (
-              SELECT 1 FROM colleges col_dean
-              WHERE col_dean.id = $${params.length}::int AND col_dean.name = ANY (COALESCE(c.colleges, '{}'::text[]))
-            )`;
-          }
+        } else if (isDean && !isAdmin && deanCollegeId != null) {
+          params.push(deanCollegeId);
+          q += ` AND ${sqlCommunityMatchesCollegeIdParam(`$${params.length}`)}`;
+        }
+        if (associationOnly && communitiesHasKindColumn) {
+          q += ` AND c.kind = 'association'`;
         }
         if (pastOnly) {
-          // Only include completed events: end date/time strictly before now.
-          // If no end_date, fall back to start_date; if no end_time, treat as completed
-          // only when the event date is before today.
           q += ` AND (
             COALESCE(e.end_date, e.start_date) < CURRENT_DATE
             OR (
@@ -3549,6 +3704,62 @@ app.get('/api/admin/events', optionalAuth, requireAuth, async (req, res) => {
   }
 });
 
+/** POST /api/admin/users — admin only: pre-create an invited external user (role student, login via email code). */
+app.post('/api/admin/users', optionalAuth, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const raw = req.body || {};
+    const emailRaw = typeof raw.email === 'string' ? raw.email.trim() : '';
+    if (!emailRaw) return res.status(400).json({ error: 'Email is required.' });
+    if (emailRaw.length > 255) return res.status(400).json({ error: 'Email is too long.' });
+    const emailNorm = emailRaw.toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNorm)) {
+      return res.status(400).json({ error: 'Please enter a valid email address.' });
+    }
+    if (isEmailAllowed(emailNorm)) {
+      return res.status(400).json({
+        error: 'Najah university emails should register through the normal sign-up flow, not admin invite.',
+      });
+    }
+    const existing = await pool.query('SELECT id FROM app_users WHERE email = $1 LIMIT 1', [emailNorm]);
+    if (existing.rows.length > 0) {
+      return res.status(409).json({ error: 'An account with this email already exists.' });
+    }
+    const localPart = emailNorm.split('@')[0] || 'Guest';
+    const r = await pool.query(
+      `INSERT INTO app_users (email, role, invited_by_admin, must_complete_profile)
+       VALUES ($1, 'student', TRUE, TRUE)
+       RETURNING id, email, role, college_id AS "collegeId", community_id AS "communityId",
+                 invited_by_admin AS "invitedByAdmin", must_complete_profile AS "mustCompleteProfile"`,
+      [emailNorm]
+    );
+    const row = r.rows[0];
+    await pool.query(
+      `INSERT INTO student_profiles (user_id, updated_at) VALUES ($1, NOW())
+       ON CONFLICT (user_id) DO NOTHING`,
+      [row.id]
+    );
+    res.status(201).json({
+      id: Number(row.id),
+      email: row.email,
+      role: row.role,
+      collegeId: row.collegeId,
+      communityId: row.communityId,
+      invitedByAdmin: row.invitedByAdmin,
+      mustCompleteProfile: row.mustCompleteProfile,
+      collegeName: null,
+      communityName: null,
+      assignedCollegeName: null,
+    });
+  } catch (err) {
+    if (err?.code === '23505') return res.status(409).json({ error: 'An account with this email already exists.' });
+    if (err?.code === '42703') {
+      return res.status(503).json({ error: 'Database migration required. Run: npm run migrate' });
+    }
+    console.error('POST /api/admin/users error:', err);
+    res.status(500).json({ error: 'Failed to create user.' });
+  }
+});
+
 /** GET /api/admin/users — admin: all users; dean: only users in their college. Community leader cannot see any users. Optional ?role= filter. */
 app.get('/api/admin/users', optionalAuth, requireAuth, async (req, res) => {
   try {
@@ -3558,7 +3769,7 @@ app.get('/api/admin/users', optionalAuth, requireAuth, async (req, res) => {
     if (!isAdmin && !isDean) return res.status(403).json({ error: 'Only admin or dean can list users. Community leaders cannot view or edit user information.' });
 
     const roleFilter = req.query.role;
-    const baseSelect = `SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", u.college AS "collegeText", c.name AS "collegeName", co.name AS "communityName", cc.name AS "assignedCollegeName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id ${ADMIN_USERS_COMMUNITY_COLLEGE_JOIN}`;
+    const baseSelect = `SELECT u.id, u.email, u.role, u.college_id AS "collegeId", u.community_id AS "communityId", u.college AS "collegeText", u.invited_by_admin AS "invitedByAdmin", c.name AS "collegeName", co.name AS "communityName", cc.name AS "assignedCollegeName" FROM app_users u LEFT JOIN colleges c ON c.id = u.college_id LEFT JOIN communities co ON co.id = u.community_id ${ADMIN_USERS_COMMUNITY_COLLEGE_JOIN}`;
     let q = baseSelect + ' WHERE 1=1';
     const params = [];
 
@@ -3585,6 +3796,55 @@ app.get('/api/admin/users', optionalAuth, requireAuth, async (req, res) => {
   } catch (err) {
     console.error('admin users error:', err);
     res.status(500).json({ error: 'Failed to load users' });
+  }
+});
+
+/** DELETE /api/admin/users/:id — admin only: permanently remove user from the database. */
+app.delete('/api/admin/users/:id', optionalAuth, requireAuth, requireAdmin, async (req, res) => {
+  try {
+    const userId = Number(req.params.id);
+    if (Number.isNaN(userId)) return res.status(400).json({ error: 'Invalid user id' });
+    if (userId === req.user.id) {
+      return res.status(403).json({ error: 'You cannot delete your own account.' });
+    }
+
+    const target = await pool.query('SELECT id, email, role FROM app_users WHERE id = $1', [userId]);
+    if (target.rows.length === 0) return res.status(404).json({ error: 'User not found' });
+    const row = target.rows[0];
+
+    if (row.role === 'admin') {
+      const admins = await pool.query("SELECT COUNT(*)::int AS n FROM app_users WHERE role = 'admin'");
+      if ((admins.rows[0]?.n ?? 0) <= 1) {
+        return res.status(403).json({ error: 'Cannot delete the only admin account.' });
+      }
+    }
+
+    const client = await pool.connect();
+    try {
+      await client.query('BEGIN');
+      await client.query('DELETE FROM login_codes WHERE email = $1', [row.email]);
+      await client.query('DELETE FROM pending_registrations WHERE email = $1', [row.email]);
+      try {
+        await client.query('UPDATE communities SET owner_id = NULL WHERE owner_id = $1', [userId]);
+      } catch (e) {
+        if (e?.code !== '42703') throw e;
+      }
+      await client.query('UPDATE app_users SET community_id = NULL WHERE id = $1', [userId]);
+      const del = await client.query('DELETE FROM app_users WHERE id = $1 RETURNING id', [userId]);
+      await client.query('COMMIT');
+      res.json({ success: true, id: Number(del.rows[0].id) });
+    } catch (err) {
+      await client.query('ROLLBACK');
+      throw err;
+    } finally {
+      client.release();
+    }
+  } catch (err) {
+    console.error('DELETE /api/admin/users/:id error:', err);
+    if (err?.code === '23503') {
+      return res.status(409).json({ error: 'Cannot delete this user because they are still referenced by other records.' });
+    }
+    res.status(500).json({ error: 'Failed to delete user.' });
   }
 });
 
@@ -3776,6 +4036,7 @@ app.patch('/api/admin/users/:id/assign-community', optionalAuth, requireAuth, re
 app.use('/api', optionalAuth, communitiesRouter(pool));
 app.use('/api/communities/:id/messages', optionalAuth, communityChatRouter(pool));
 app.use('/api/chatbot', chatbotRouter);
+app.use('/api/admin/nlp', optionalAuth, nlpTrainingRouter);
 
 async function startServer() {
   try {

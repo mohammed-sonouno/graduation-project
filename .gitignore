@@ -166,3 +166,20 @@ node_modules/
 /chatbot-service/
 /chatbot-test-ui/
 /python-chatbot-service/
+
+# Database dumps
+*.dump
+
+# Root-level one-off dev/debug scripts
+check*.mjs
+backfill_*.mjs
+cleanup_*.mjs
+
+# Python bytecode cache
+__pycache__/
+*.pyc
+*.pyo
+
+# NLP result/output text files
+nlp_results*.txt
+nlp_final*.txt

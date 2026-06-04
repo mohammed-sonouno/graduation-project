@@ -1,7 +1,7 @@
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { isStudent } from "../utils/permissions";
+import { isStudent, isCommunityLeader, isSupervisor, isDean } from "../utils/permissions";
 import {
   getAdminEvents,
   getColleges,
@@ -40,6 +40,7 @@ function KpiCard({ label, value, sub, accent = "blue", badge, progress, stars })
     red:    { card: "bg-rose-50/60 border-rose-200", value: "text-rose-800", badge: "bg-rose-100 text-rose-700", progress: "bg-[#d33b42]" },
     amber:  { card: "bg-amber-50/60 border-amber-200", value: "text-amber-800", badge: "bg-amber-100 text-amber-700", progress: "bg-[#d9b44a]" },
     gray:   { card: "bg-white border-slate-200", value: "text-[#0b2d52]", badge: "bg-slate-100 text-slate-600", progress: "bg-slate-400" },
+    slate:  { card: "bg-slate-50 border-slate-200", value: "text-slate-500", badge: "bg-slate-100 text-slate-500", progress: "bg-slate-300" },
   };
   const cfg = accentMap[accent] || accentMap.gray;
   const normalizedValue = String(value ?? "—");
@@ -250,6 +251,11 @@ function Dashboard() {
   const navigate = useNavigate();
   const { user, loading } = useAuth();
 
+  /* true for community_leader / supervisor — they only ever see their own community */
+  const isScopedRole = !!(user && (isCommunityLeader(user) || isSupervisor(user)));
+  /* true for dean — they see only their own college's events */
+  const isDeanUser = !!(user && isDean(user));
+
   const [events, setEvents]                     = useState([]);
   const [colleges, setColleges]                 = useState([]);
   const [communities, setCommunities]           = useState([]);
@@ -283,6 +289,12 @@ function Dashboard() {
       .catch(() => setColleges([]));
   }, []);
 
+  /* for deans: lock the college filter to their assigned college once colleges list is ready */
+  useEffect(() => {
+    if (!isDeanUser || !user?.college_id || colleges.length === 0) return;
+    setSelectedCollegeId(String(user.college_id));
+  }, [isDeanUser, user?.college_id, colleges]);
+
   /* load associations only (event organizers), optionally filtered by college name */
   useEffect(() => {
     const params = { kind: 'association', limit: 100 };
@@ -295,17 +307,37 @@ function Dashboard() {
       .catch(() => setCommunities([]));
   }, [selectedCollegeId, colleges]);
 
-  /* load events */
+  const autoSelectedRef = useRef(false);
+
+  /* load events — approved and already ended (reviews only make sense after the event finishes) */
   useEffect(() => {
     if (loading || !user) return;
-    getAdminEvents(false, { pastOnly: true })
+    autoSelectedRef.current = false;
+    getAdminEvents(false, { limit: 200 })
       .then((l) => {
-        const approved = (Array.isArray(l) ? l : []).filter((e) => e.status === "approved");
-        setEvents(approved);
-        if (!selectedEventId && approved.length > 0) setSelectedEventId(approved[0].id);
+        const todayStr = new Date().toISOString().slice(0, 10);
+        const past = (Array.isArray(l) ? l : []).filter((e) => {
+          if (e.status !== "approved") return false;
+          const endStr = e.endDate
+            ? (typeof e.endDate === "string" ? e.endDate : new Date(e.endDate).toISOString()).slice(0, 10)
+            : e.startDate
+            ? (typeof e.startDate === "string" ? e.startDate : new Date(e.startDate).toISOString()).slice(0, 10)
+            : null;
+          return endStr !== null && endStr < todayStr;
+        });
+        past.sort((a, b) => {
+          const aEnd = a.endDate || a.startDate || "";
+          const bEnd = b.endDate || b.startDate || "";
+          return bEnd > aEnd ? 1 : bEnd < aEnd ? -1 : 0;
+        });
+        setEvents(past);
+        if (!autoSelectedRef.current && past.length > 0) {
+          setSelectedEventId(past[0].id);
+          autoSelectedRef.current = true;
+        }
       })
       .catch(() => setEvents([]));
-  }, [loading, user, selectedEventId]);
+  }, [loading, user]);
 
   /* derived */
   const selectedCollegeName = useMemo(() => {
@@ -395,14 +427,31 @@ function Dashboard() {
     if (!analytics?.ratingDistribution) return 1;
     return Math.max(...[5, 4, 3, 2, 1].map((s) => analytics.ratingDistribution[s] ?? 0), 1);
   }, [analytics]);
-  const hasActiveFilters = !!selectedCollegeId || !!selectedCommunityId || !!search.trim();
+  const isEventPast = (ev) => {
+    const d = ev?.endDate || ev?.startDate;
+    return d ? new Date(d).getTime() < Date.now() : false;
+  };
+
+  const hasActiveFilters = (isScopedRole || isDeanUser)
+    ? !!selectedCommunityId || !!search.trim()
+    : !!selectedCollegeId || !!selectedCommunityId || !!search.trim();
   const registrationsCount = Number(analytics?.registrationsCount) || 0;
   const totalReviews = Number(analytics?.reviewsCount) || 0;
   const responseRate =
-    registrationsCount > 0 ? Math.round((totalReviews / registrationsCount) * 100) : 0;
-  const sentimentScore = analytics?.sentiment?.positive?.percent ?? 0;
+    registrationsCount > 0 ? Math.round((totalReviews / registrationsCount) * 100) : null;
+  const positivePercent  = analytics?.sentiment?.positive?.percent  ?? 0;
+  const neutralPercent   = analytics?.sentiment?.neutral?.percent   ?? 0;
+  const negativePercent  = analytics?.sentiment?.negative?.percent  ?? 0;
+  const dominantSentKey  =
+    positivePercent >= neutralPercent && positivePercent >= negativePercent ? "positive" :
+    negativePercent > neutralPercent ? "negative" : "neutral";
+  const dominantSentPct  = Math.max(positivePercent, neutralPercent, negativePercent);
+  const dominantSentLabel = { positive: "Positive", neutral: "Neutral", negative: "Negative" }[dominantSentKey];
   const positiveKeywords = Array.isArray(analytics?.topPositiveKeywords) ? analytics.topPositiveKeywords : [];
   const negativeKeywords = Array.isArray(analytics?.topNegativeKeywords) ? analytics.topNegativeKeywords : [];
+  const topIssues      = Array.isArray(analytics?.topIssues)      ? analytics.topIssues      : [];
+  const aspectSummary  = Array.isArray(analytics?.aspectSummary)  ? analytics.aspectSummary  : [];
+  const flaggedCount   = typeof analytics?.flaggedCount === "number" ? analytics.flaggedCount : 0;
 
   if (loading || !user) {
     return (
@@ -452,8 +501,8 @@ function Dashboard() {
               <button
                 type="button"
                 onClick={() => {
-                  setSelectedCollegeId("");
-                  setSelectedCommunityId("");
+                  if (!isScopedRole && !isDeanUser) setSelectedCollegeId("");
+                  if (!isScopedRole) setSelectedCommunityId("");
                   setSearch("");
                 }}
                 disabled={!hasActiveFilters}
@@ -468,37 +517,59 @@ function Dashboard() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
-              <div>
-                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">College</label>
-                <select
-                  value={selectedCollegeId}
-                  onChange={(e) => setSelectedCollegeId(e.target.value)}
-                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-                >
-                  <option value="">All Colleges</option>
-                  {colleges.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* College filter — locked static label for dean/community_leader/supervisor; dropdown for admin */}
+              {isScopedRole ? null : isDeanUser ? (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">College</label>
+                  <div className="h-11 flex items-center gap-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700">
+                    <span className="h-2 w-2 rounded-full bg-blue-500 shrink-0" />
+                    {user?.collegeName || colleges.find((c) => String(c.id) === String(user?.college_id))?.name || "My College"}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">College</label>
+                  <select
+                    value={selectedCollegeId}
+                    onChange={(e) => setSelectedCollegeId(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                  >
+                    <option value="">All Colleges</option>
+                    {colleges.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
-              <div>
-                <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Community</label>
-                <select
-                  value={selectedCommunityId}
-                  onChange={(e) => setSelectedCommunityId(e.target.value)}
-                  className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
-                >
-                  <option value="">All Communities</option>
-                  {communityOptions.map((c) => (
-                    <option key={c.id} value={c.id}>
-                      {c.name}
-                    </option>
-                  ))}
-                </select>
-              </div>
+              {/* Community — locked static label for scoped roles, dropdown for admin/dean */}
+              {isScopedRole ? (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Community</label>
+                  <div className="h-11 flex items-center gap-2 px-3 rounded-xl border border-slate-200 bg-slate-50 text-sm text-slate-700">
+                    <span className="h-2 w-2 rounded-full bg-emerald-500 shrink-0" />
+                    {user?.communityName || communityOptions.find((c) => String(c.id) === String(user?.community_id))?.name || "My Community"}
+                  </div>
+                </div>
+              ) : (
+                <div>
+                  <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Community</label>
+                  <select
+                    value={selectedCommunityId}
+                    onChange={(e) => setSelectedCommunityId(e.target.value)}
+                    className="w-full h-11 rounded-xl border border-slate-200 bg-white px-3 text-sm text-slate-700 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+                  >
+                    <option value="">All Communities</option>
+                    {communityOptions.map((c) => (
+                      <option key={c.id} value={c.id}>
+                        {c.name}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
 
               <div>
                 <label className="text-[10px] font-semibold uppercase tracking-[0.16em] text-slate-400 mb-2 block">Search</label>
@@ -526,6 +597,7 @@ function Dashboard() {
                   >
                     {filteredEvents.map((ev) => (
                       <option key={ev.id} value={ev.id}>
+                        {isEventPast(ev) ? "✓ " : "→ "}
                         {ev.title}{ev.startDate ? ` — ${formatDate(ev.startDate)}` : ""}
                       </option>
                     ))}
@@ -615,16 +687,16 @@ function Dashboard() {
                 />
                 <KpiCard
                   label="Sentiment Score"
-                  value={`${sentimentScore}%`}
-                  sub="Positive sentiment from feedback text"
-                  progress={sentimentScore}
-                  accent="blue"
+                  value={`${dominantSentPct}%`}
+                  sub={`${dominantSentLabel} · from feedback text`}
+                  progress={dominantSentPct}
+                  accent={dominantSentKey === "positive" ? "green" : dominantSentKey === "negative" ? "red" : "amber"}
                 />
                 <KpiCard
                   label="Response Rate"
-                  value={`${responseRate}%`}
-                  sub={registrationsCount > 0 ? `Based on ${registrationsCount.toLocaleString()} registered attendees` : "No registrations available"}
-                  accent={responseRate >= 60 ? "green" : responseRate >= 35 ? "amber" : "red"}
+                  value={responseRate !== null ? `${responseRate}%` : "N/A"}
+                  sub={registrationsCount > 0 ? `Based on ${registrationsCount.toLocaleString()} registered attendees` : `${totalReviews} review${totalReviews !== 1 ? "s" : ""} · Enable registrations to track attendance`}
+                  accent={responseRate === null ? "slate" : responseRate >= 60 ? "green" : responseRate >= 35 ? "amber" : "red"}
                 />
               </div>
 
@@ -679,28 +751,99 @@ function Dashboard() {
                 </AnalyticsCard>
               </div>
 
-              {/* Keywords */}
-              {(positiveKeywords.length > 0 || negativeKeywords.length > 0) && (
+              {/* Keywords + Issues */}
+              {(positiveKeywords.length > 0 || topIssues.length > 0) && (
                 <div className="grid grid-cols-1 xl:grid-cols-2 gap-5">
                   <KeywordPanel
                     title="Common Positive Keywords"
                     tone="positive"
                     items={positiveKeywords}
-                    emptyText="No positive keywords available yet."
+                    emptyText="No positive keywords found yet."
                   />
-                  <KeywordPanel
-                    title="Areas for Improvement"
-                    tone="negative"
-                    items={negativeKeywords}
-                    emptyText="No improvement keywords available yet."
-                  />
+                  {/* Areas for Improvement — sourced from NLP issue extraction, not raw keyword counts */}
+                  <div className="rounded-2xl border border-rose-100 bg-rose-50/35 px-6 py-5 shadow-sm">
+                    <div className="flex items-center gap-3 mb-5">
+                      <span className="h-6 w-1.5 rounded-full bg-rose-400" />
+                      <h3
+                        className="text-2xl font-semibold leading-tight text-[#2a2d44]"
+                        style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}
+                      >
+                        Areas for Improvement
+                      </h3>
+                    </div>
+                    {topIssues.length > 0 ? (
+                      <div className="flex flex-wrap gap-3">
+                        {topIssues.map((issue) => (
+                          <span
+                            key={issue.word}
+                            className="inline-flex items-center gap-2 rounded-full border border-rose-200 bg-white px-3 py-2 text-xs font-semibold text-slate-700"
+                          >
+                            <span className="truncate max-w-[180px]">{issue.word}</span>
+                            <span className="rounded-full bg-rose-50 px-2 py-0.5 text-[10px] font-bold text-rose-600">
+                              {issue.count}×
+                            </span>
+                          </span>
+                        ))}
+                      </div>
+                    ) : (
+                      <p className="text-sm text-slate-400">No recurring issues detected.</p>
+                    )}
+                  </div>
                 </div>
+              )}
+
+              {/* Aspect Analysis */}
+              {aspectSummary.length > 0 && (
+                <AnalyticsCard
+                  title="Aspect Analysis"
+                  subtitle="Sentiment breakdown by topic area, extracted from review text."
+                >
+                  <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+                    {aspectSummary.map(({ aspect, sentiment, counts }) => {
+                      const sentKey = String(sentiment).toLowerCase();
+                      const cfg =
+                        sentKey === "positive"
+                          ? { pill: "bg-emerald-50 text-emerald-700 border-emerald-200", dot: "bg-emerald-500", bar: "bg-emerald-400" }
+                          : sentKey === "negative"
+                          ? { pill: "bg-rose-50 text-rose-700 border-rose-200",    dot: "bg-rose-500",    bar: "bg-rose-400"    }
+                          : { pill: "bg-slate-100 text-slate-600 border-slate-200", dot: "bg-slate-400",   bar: "bg-slate-300"   };
+                      const total = (counts?.Positive ?? 0) + (counts?.Neutral ?? 0) + (counts?.Negative ?? 0);
+                      return (
+                        <div key={aspect} className="rounded-xl border border-slate-100 bg-slate-50/60 px-4 py-3 flex flex-col gap-2">
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-sm font-semibold text-slate-700 truncate" dir="auto">{aspect}</span>
+                            <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-[11px] font-semibold shrink-0 ${cfg.pill}`}>
+                              <span className={`h-1.5 w-1.5 rounded-full ${cfg.dot}`} />
+                              {sentiment}
+                            </span>
+                          </div>
+                          {/* mini vote-count bar */}
+                          {total > 0 && (
+                            <div className="flex items-center gap-1 text-[10px] text-slate-400">
+                              {counts?.Positive > 0 && <span className="text-emerald-600 font-medium">+{counts.Positive}</span>}
+                              {counts?.Neutral  > 0 && <span className="text-slate-500 font-medium">~{counts.Neutral}</span>}
+                              {counts?.Negative > 0 && <span className="text-rose-600 font-medium">−{counts.Negative}</span>}
+                            </div>
+                          )}
+                        </div>
+                      );
+                    })}
+                  </div>
+                </AnalyticsCard>
               )}
 
               {/* Feedback list */}
               <div className="rounded-xl border border-slate-200 bg-white shadow-sm px-6 py-6">
-                <div className="mb-5">
+                <div className="mb-5 flex items-center justify-between gap-3">
                   <p className="text-sm font-semibold text-[#0b2d52]">Feedback</p>
+                  {flaggedCount > 0 && (
+                    <span className="inline-flex items-center gap-1.5 rounded-full border border-amber-200 bg-amber-50 px-3 py-1 text-xs font-semibold text-amber-700">
+                      <svg width="13" height="13" viewBox="0 0 16 16" fill="currentColor" aria-hidden>
+                        <path d="M8 1a7 7 0 1 0 0 14A7 7 0 0 0 8 1Zm.75 4a.75.75 0 0 0-1.5 0v3.5a.75.75 0 0 0 1.5 0V5Zm-.75 6a1 1 0 1 1 0-2 1 1 0 0 1 0 2Z"/>
+                      </svg>
+                      {flaggedCount} review{flaggedCount !== 1 ? "s" : ""} need{flaggedCount === 1 ? "s" : ""} attention
+                    </span>
+                  )}
                 </div>
 
                 {feedbackLoading && <p className="text-sm text-slate-500">Loading feedback…</p>}

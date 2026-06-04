@@ -57,6 +57,14 @@ const migrations = [
   '042_faculties_normalize_final.sql',
   '048_split_engineering_and_it_faculties.sql',
   '049_ieee_faculty_engineering_only.sql',
+  '049_normalize_user_college_fields.sql',
+  '050_fix_ieee_college_and_supervisor.sql',
+  '051_fix_community_kind_backfill.sql',
+  '052_event_reviews_nlp_fields.sql',
+  '053_nlp_training_feedback.sql',
+  '054_admin_invited_users.sql',
+  '055_clear_all_test_events.sql',
+  '056_split_engineering_it_user_colleges.sql',
 ];
 
 async function run() {

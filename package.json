@@ -24,6 +24,8 @@
     "seed:student": "node server/seed-student.js",
     "seed:ieee": "node server/seed-ieee.js",
     "link:ieee-engineering": "node server/scripts/link-ieee-to-engineering-it.mjs",
+    "restore:ieee-events": "node server/scripts/fix-ieee-events.mjs",
+    "fix:ieee-events": "node server/scripts/fix-ieee-events.mjs",
     "prisma:generate": "prisma generate",
     "postinstall": "prisma generate"
   },

@@ -3,23 +3,56 @@ import { fileURLToPath } from 'url';
 import dotenv from 'dotenv';
 import { manualKnowledgeBase } from '../chatbot/manualKnowledgeBase.js';
 import { getSessionMessages, appendSessionTurn } from '../chatbot/sessionStore.js';
-import prisma from '../lib/prisma.js';
+import { pool } from '../../../server/db/pool.js';
 
+// backend/src/services/ → up 3 levels → project root
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
-dotenv.config({ path: path.join(__dirname, '../../.env') });
+dotenv.config({ path: path.join(__dirname, '../../../.env'), override: false });
 
 export { clearSession } from '../chatbot/sessionStore.js';
 
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY || process.env.GOOGLE_API_KEY || '';
-const MODEL = process.env.GEMINI_MODEL || 'gemini-2.5-flash';
-const GEMINI_API_VERSION = (process.env.GEMINI_API_VERSION || 'v1beta').replace(/^\//, '');
-const GEMINI_TIMEOUT_MS = Math.max(1000, Number.parseInt(String(process.env.GEMINI_TIMEOUT_MS || '30000'), 10) || 30000);
+const GROQ_MODELS = [
+  process.env.GROQ_MODEL || 'llama-3.3-70b-versatile',
+  'llama-3.1-8b-instant',
+];
+const GROQ_TIMEOUT_MS = Math.max(1000, Number.parseInt(String(process.env.GROQ_TIMEOUT_MS || '30000'), 10) || 30000);
 
-const ARABIC_SCRIPT_RE = /[\u0600-\u06FF]/;
+// Read at call-time (not module load) to avoid ESM hoisting race with dotenv
+const getGroqKey = () => process.env.GROQ_API_KEY || '';
+
+// ---------------------------------------------------------------------------
+// IN-MEMORY CACHE
+// ---------------------------------------------------------------------------
+
+/** @type {Map<string, { data: any, expires: number }>} */
+const _cache = new Map();
+
+/**
+ * Returns a cached result or calls fn() and caches the result for ttlMs ms.
+ * @template T
+ * @param {string} key - Cache key
+ * @param {number} ttlMs - Time-to-live in milliseconds
+ * @param {() => Promise<T>} fn - Async producer called on cache miss
+ * @returns {Promise<T>}
+ */
+function cached(key, ttlMs, fn) {
+  const hit = _cache.get(key);
+  if (hit && Date.now() < hit.expires) return Promise.resolve(hit.data);
+  return fn().then(data => {
+    _cache.set(key, { data, expires: Date.now() + ttlMs });
+    return data;
+  });
+}
+
+// ---------------------------------------------------------------------------
+// CONSTANTS & GUARDS
+// ---------------------------------------------------------------------------
+
+const ARABIC_SCRIPT_RE = /[؀-ۿ]/;
 
 function ensureConfigured() {
-  if (!GEMINI_API_KEY) {
-    const error = new Error('Gemini chatbot is not configured. Add GEMINI_API_KEY to .env and restart the server.');
+  if (!getGroqKey()) {
+    const error = new Error('Groq chatbot is not configured. Add GROQ_API_KEY to .env and restart the server.');
     error.statusCode = 503;
     throw error;
   }
@@ -29,10 +62,23 @@ function hasArabic(text = '') {
   return ARABIC_SCRIPT_RE.test(String(text));
 }
 
+// ---------------------------------------------------------------------------
+// TEXT NORMALIZATION
+// ---------------------------------------------------------------------------
+
+/**
+ * Normalize Arabic text: strip diacritics, normalize letters, convert Arabizi digits.
+ * @param {string} text
+ * @returns {string}
+ */
 function normalizeArabicText(text = '') {
   return String(text)
     .normalize('NFKC')
-    .replace(/[\u064B-\u065F\u0670]/g, '')
+    // Arabizi digit → Arabic letter substitutions
+    .replace(/3/g, 'ع')
+    .replace(/7/g, 'ح')
+    .replace(/2/g, 'أ')
+    .replace(/[ً-ٰٟ]/g, '')
     .replace(/ـ/g, '')
     .replace(/[إأآ]/g, 'ا')
     .replace(/ى/g, 'ي')
@@ -48,6 +94,56 @@ function normalizeEnglishText(text = '') {
     .replace(/\s+/g, ' ')
     .trim();
 }
+
+/** Palestinian/Levantine dialect → MSA substitution map */
+const DIALECT_MAP = {
+  'بدي':  'أريد',
+  'بدك':  'تريد',
+  'بده':  'يريد',
+  'بدها': 'تريد',
+  'بدنا': 'نريد',
+  'بدهم': 'يريدون',
+  'وين':  'أين',
+  'منين': 'من أين',
+  'ليش':  'لماذا',
+  'شو':   'ماذا',
+  'شوو':  'ماذا',
+  'هلق':  'الآن',
+  'هلأ':  'الآن',
+  'كتير': 'كثير',
+  'كتيرة':'كثيرة',
+  'هون':  'هنا',
+  'منيح': 'جيد',
+  'مو':   'ليس',
+  'قديش': 'كم',
+  'اشي':  'شيء',
+  'يلا':  'هيا',
+  'خلص':  'انتهى',
+};
+
+// Pre-compile replacements once at module load
+const DIALECT_REPLACEMENTS = Object.entries(DIALECT_MAP).map(([from, to]) => ({
+  re: new RegExp(from, 'g'),
+  to,
+}));
+
+/**
+ * Converts Palestinian/Levantine dialect words to MSA equivalents
+ * for better topic detection and knowledge-base scoring.
+ * @param {string} text
+ * @returns {string}
+ */
+function normalizeDialect(text = '') {
+  let result = String(text);
+  for (const { re, to } of DIALECT_REPLACEMENTS) {
+    result = result.replace(re, to);
+  }
+  return result;
+}
+
+// ---------------------------------------------------------------------------
+// MAJOR CONTEXT PARSER (inline, no DB)
+// ---------------------------------------------------------------------------
 
 function parseMajorContextInline(majorName, majorFacultyRaw = '') {
   const raw = String(majorFacultyRaw || '');
@@ -89,6 +185,10 @@ function parseMajorContextInline(majorName, majorFacultyRaw = '') {
   }
   return parsed;
 }
+
+// ---------------------------------------------------------------------------
+// LOCAL RULE-BASED FALLBACK (no Groq required)
+// ---------------------------------------------------------------------------
 
 function buildLocalChatResponse({ userMessage, majorName, majorFaculty }) {
   const q = String(userMessage || '').trim();
@@ -274,145 +374,113 @@ function extractKeywords(text) {
     .filter((t, i, a) => a.findIndex((x) => x.toLowerCase() === t.toLowerCase()) === i);
 }
 
-/**
- * Prisma: all events (summary) for grounding.
- * @returns {Promise<string>}
- */
-export async function getEventContext() {
+// ---------------------------------------------------------------------------
+// DB CONTEXT BUILDERS (slow-changing ones wrapped with cache)
+// ---------------------------------------------------------------------------
+
+async function _getEventContext() {
   try {
-    const events = await prisma.event.findMany({
-      select: { id: true, title: true, date: true, location: true, createdAt: true },
-      orderBy: { createdAt: 'asc' },
+    const { rows } = await pool.query(
+      `SELECT id, title, start_date AS date, location, created_at
+       FROM events ORDER BY created_at ASC LIMIT 50`
+    );
+    if (rows.length === 0) return '[Database: no events found.]\n';
+    const lines = rows.map((e) => {
+      const d = e.date ? new Date(e.date).toISOString().slice(0, 10) : '—';
+      return `- ${e.title} | date: ${d} | location: ${e.location ?? '—'}`;
     });
-    if (events.length === 0) return '[Database: no events found.]\n';
-    const lines = events.map((e) => {
-      const when = e.date ?? e.createdAt;
-      const d = when ? new Date(when).toISOString().slice(0, 10) : '—';
-      return `- [${e.id}] ${e.title} | when: ${d} | location: ${e.location ?? '—'}`;
-    });
-    return `Official events (from PostgreSQL via Prisma):\n${lines.join('\n')}\n`;
+    return `University events:\n${lines.join('\n')}\n`;
   } catch (err) {
-    console.error('[getEventContext] Prisma error:', err?.message || err);
+    console.error('[getEventContext] error:', err?.message || err);
     return `[getEventContext failed: ${err?.message || err}]\n`;
   }
 }
 
-/**
- * Prisma: all events with reviews (ratings, comments, sentiments).
- * @returns {Promise<string>}
- */
+/** @returns {Promise<string>} */
+export const getEventContext = () => cached('events', 2 * 60_000, _getEventContext);
+
 export async function getEventDetailsContext() {
-  try {
-    const events = await prisma.event.findMany({
-      orderBy: { createdAt: 'asc' },
-      include: {
-        reviews: {
-          orderBy: { createdAt: 'desc' },
-          select: {
-            rating: true,
-            comment: true,
-            sentiment: true,
-            overrideSentiment: true,
-          },
-        },
-      },
-    });
-    if (events.length === 0) return '[Database: no events, no review details.]\n';
-    const blocks = events.map((ev) => {
-      const head = `Event: ${ev.title} (id: ${ev.id})`;
-      if (!ev.reviews.length) return `${head}\n  (no reviews yet.)\n`;
-      const body = ev.reviews
-        .map((r) => {
-          const c = r.comment && r.comment.trim() ? r.comment.replace(/\s+/g, ' ').trim() : '(no comment)';
-          return `  - ${r.rating}/5 | sentiment: ${r.sentiment} | override: ${r.overrideSentiment ?? '—'} | ${c}`;
-        })
-        .join('\n');
-      return `${head}\n${body}\n`;
-    });
-    return `Events with reviews (Prisma, live data):\n\n${blocks.join('\n')}\n`;
-  } catch (err) {
-    console.error('[getEventDetailsContext] Prisma error:', err?.message || err);
-    return `[getEventDetailsContext failed: ${err?.message || err}]\n`;
-  }
+  return '';
 }
 
-/**
- * Prisma: per-event review KPIs (effective sentiment prefers override over model).
- * @returns {Promise<string>}
- */
 export async function getEventAnalyticsContext() {
   try {
-    const events = await prisma.event.findMany({
-      orderBy: { title: 'asc' },
-      include: { reviews: true },
+    const { rows } = await pool.query(
+      `SELECT e.title,
+              COUNT(r.id)::int AS review_count,
+              ROUND(AVG(r.rating)::numeric, 2) AS avg_rating,
+              COUNT(CASE WHEN COALESCE(r.override_sentiment, r.sentiment) = 'positive' THEN 1 END)::int AS pos,
+              COUNT(CASE WHEN COALESCE(r.override_sentiment, r.sentiment) = 'neutral'  THEN 1 END)::int AS neu,
+              COUNT(CASE WHEN COALESCE(r.override_sentiment, r.sentiment) = 'negative' THEN 1 END)::int AS neg
+       FROM events e
+       LEFT JOIN event_reviews r ON r.event_id = e.id
+       GROUP BY e.id, e.title
+       ORDER BY e.title ASC`
+    );
+    if (rows.length === 0) return '[Database: no events for analytics.]\n';
+    const lines = rows.map((ev) => {
+      if (ev.review_count === 0) return `- ${ev.title}: no reviews yet`;
+      const pct = ev.review_count > 0 ? ((ev.pos / ev.review_count) * 100).toFixed(1) : 'n/a';
+      return `- ${ev.title}: ${ev.review_count} reviews | avg ${ev.avg_rating}/5 | +${ev.pos}/~${ev.neu}/-${ev.neg} | positive ${pct}%`;
     });
-    if (events.length === 0) return '[Database: no events for analytics.]\n';
-    const lines = events.map((ev) => {
-      const n = ev.reviews.length;
-      if (n === 0) {
-        return `- ${ev.title} (id: ${ev.id}): 0 reviews; avg: n/a; positive %: n/a.`;
-      }
-      let sum = 0;
-      let pos = 0;
-      let neu = 0;
-      let neg = 0;
-      for (const r of ev.reviews) {
-        sum += r.rating;
-        const es = effectiveSentimentForAnalytics(r);
-        if (es === 'positive') pos += 1;
-        else if (es === 'negative') neg += 1;
-        else neu += 1;
-      }
-      const avg = (sum / n).toFixed(2);
-      const posPct = ((pos / n) * 100).toFixed(1);
-      return (
-        `- ${ev.title} (id: ${ev.id}): reviews=${n} | avg rating=${avg}/5 | ` +
-        `sentiment: +${pos} / ~${neu} / -${neg} (effective) | positive share=${posPct}%`
-      );
-    });
-    return `Per-event analytics (Prisma, live reviews):\n${lines.join('\n')}\n`;
+    return `Event analytics:\n${lines.join('\n')}\n`;
   } catch (err) {
-    console.error('[getEventAnalyticsContext] Prisma error:', err?.message || err);
+    console.error('[getEventAnalyticsContext] error:', err?.message || err);
     return `[getEventAnalyticsContext failed: ${err?.message || err}]\n`;
   }
 }
 
-/**
- * Prisma: top reviews whose comments match any keyword from the user message.
- * @param {string} userMessage
- * @returns {Promise<string>}
- */
+async function _getCommunitiesContext() {
+  try {
+    const { rows } = await pool.query(
+      `SELECT c.name, c.description, c.colleges, c.chat_enabled,
+              COUNT(cm.user_id)::int AS member_count
+       FROM communities c
+       LEFT JOIN community_members cm ON cm.community_id = c.id
+       GROUP BY c.id, c.name, c.description, c.colleges, c.chat_enabled
+       ORDER BY c.name ASC LIMIT 60`
+    );
+    if (rows.length === 0) return '[Database: no communities found.]\n';
+    const lines = rows.map((c) => {
+      const colleges = Array.isArray(c.colleges) && c.colleges.length > 0
+        ? c.colleges.join(', ') : 'open to all';
+      const desc = c.description ? ` — ${String(c.description).slice(0, 100)}` : '';
+      return `- ${c.name} | members: ${c.member_count} | colleges: ${colleges}${desc}`;
+    });
+    return `Student communities:\n${lines.join('\n')}\n`;
+  } catch (err) {
+    console.error('[getCommunitiesContext] error:', err?.message || err);
+    return `[getCommunitiesContext failed: ${err?.message || err}]\n`;
+  }
+}
+
+/** @returns {Promise<string>} */
+export const getCommunitiesContext = () => cached('communities', 5 * 60_000, _getCommunitiesContext);
+
 export async function getReviewSearchContext(userMessage) {
   try {
-    const kws = extractKeywords(userMessage);
-    if (kws.length === 0) {
-      return (
-        '[Review search: no extractable keywords; skipping DB keyword search. ' +
-        'Other sections still list full reviews.]\n'
-      );
-    }
-    const ors = kws.map((k) => ({
-      comment: { contains: k, mode: 'insensitive' },
-    }));
-    const reviews = await prisma.review.findMany({
-      where: { OR: ors },
-      take: 50,
-      orderBy: { createdAt: 'desc' },
-      include: { event: { select: { title: true } } },
+    const kws = extractKeywords(userMessage).slice(0, 5);
+    if (kws.length === 0) return '';
+    const conditions = kws.map((k, i) => `r.comment ILIKE $${i + 1}`).join(' OR ');
+    const params = kws.map((k) => `%${k}%`);
+    const { rows } = await pool.query(
+      `SELECT e.title, r.rating, r.comment,
+              COALESCE(r.override_sentiment, r.sentiment) AS sentiment
+       FROM event_reviews r
+       JOIN events e ON e.id = r.event_id
+       WHERE ${conditions}
+       ORDER BY r.created_at DESC LIMIT 5`,
+      params
+    );
+    if (rows.length === 0) return '';
+    const lines = rows.map((r) => {
+      const c = (r.comment || '').slice(0, 200).replace(/\s+/g, ' ');
+      return `- "${r.title}" | ${r.rating}/5 | ${r.sentiment} | ${c}`;
     });
-    if (reviews.length === 0) {
-      return `[Review search: no comments matched keywords: ${kws.join(', ')}]\n`;
-    }
-    const top5 = reviews.slice(0, 5);
-    const lines = top5.map((r) => {
-      const title = r.event?.title ?? '(event)';
-      const c = (r.comment || '').replace(/\s+/g, ' ').trim() || '(empty)';
-      return `- “${title}” | ${r.rating}/5 | eff. ${effectiveSentimentForAnalytics(r)} | ${c.slice(0, 400)}`;
-    });
-    return `Top review matches for keywords [${kws.join(', ')}] (Prisma, max 5):\n${lines.join('\n')}\n`;
+    return `Related reviews:\n${lines.join('\n')}\n`;
   } catch (err) {
-    console.error('[getReviewSearchContext] Prisma error:', err?.message || err);
-    return `[getReviewSearchContext failed: ${err?.message || err}]\n`;
+    console.error('[getReviewSearchContext] error:', err?.message || err);
+    return '';
   }
 }
 
@@ -421,7 +489,7 @@ function getStaticCourseContext(majorName) {
   const name = majorName.toLowerCase();
 
   const courseMap = {
-    'management information systems': `MIS main course areas: Programming & databases, Systems analysis & design, Networking & security, E-commerce & ERP, Business administration, Accounting & finance, Statistics, IT project management. Total: 132 credit hours, 4 years.`,
+    'management information systems': `MIS main course areas: Programming & databases, Systems analysis & design, Networking & security, E-commerce & ERP, Business administration, Accounting & finance, Statistics, IT project management. Total: 124 credit hours, 4 years. Accepts scientific, literary, and business streams.`,
     'computer science': `CS main course areas: Programming (Java/Python/C++), Data structures & algorithms, Operating systems, AI & machine learning, Database systems, Software engineering, Computer networks. Total: 132 credit hours, 4 years.`,
     'civil engineering': `Civil Engineering main course areas: Structural engineering, Geotechnical engineering, Construction management, Surveying, Fluid mechanics, Transportation engineering. Total: 162 credit hours, 5 years.`,
     'business administration': `Business Admin main areas: Management principles, Marketing, Accounting, Finance, Business law, Economics, Statistics, HR management. Total: 132 credit hours, 4 years.`,
@@ -437,59 +505,55 @@ function getStaticCourseContext(majorName) {
 
 export async function getMajorContext(majorName) {
   try {
-    let major = null;
-    if (majorName && majorName.trim()) {
-      major = await prisma.major.findFirst({
-        where: { name: { contains: majorName.trim(), mode: 'insensitive' } },
-      });
-    }
-    if (!major) return '[Major context: not found in database.]\n';
+    if (!majorName || !majorName.trim()) return '';
+    const { rows } = await pool.query(
+      `SELECT name, faculty_name, major_type, credit_hours, duration, min_admission, notes
+       FROM majors WHERE name ILIKE $1 LIMIT 1`,
+      [`%${majorName.trim()}%`]
+    );
+    if (rows.length === 0) return '';
+    const m = rows[0];
     const staticCourses = getStaticCourseContext(majorName);
-    return `Major details from database:
-- Name: ${major.name}
-- Faculty: ${major.facultyName}
-- Major Type: ${major.majorType || '—'}
-- Credit Hours: ${major.creditHours}
-- Duration: ${major.duration}
-- Minimum Admission Average: ${major.minAdmission}
-- Notes: ${major.notes || '—'}
-- Course overview: ${staticCourses}
-`;
+    return `Major: ${m.name} | Faculty: ${m.faculty_name} | Type: ${m.major_type || '—'} | Credits: ${m.credit_hours} | Duration: ${m.duration} | Min admission: ${m.min_admission} | ${staticCourses}\n`;
   } catch (err) {
-    console.error('[getMajorContext] Prisma error:', err?.message || err);
-    return `[getMajorContext failed: ${err?.message || err}]\n`;
+    console.error('[getMajorContext] error:', err?.message || err);
+    return '';
   }
 }
 
-export async function getAllMajorsContext() {
+async function _getAllMajorsContext() {
   try {
-    const majors = await prisma.major.findMany({
-      orderBy: [{ facultyName: 'asc' }, { name: 'asc' }],
-      select: { name: true, facultyName: true, creditHours: true, duration: true, minAdmission: true, majorType: true },
-    });
-    if (majors.length === 0) return '[Database: no majors found.]\n';
+    const { rows } = await pool.query(
+      `SELECT name, faculty_name, credit_hours, duration, min_admission, major_type
+       FROM majors ORDER BY faculty_name ASC, name ASC`
+    );
+    if (rows.length === 0) return '[Database: no majors found.]\n';
     const grouped = {};
-    for (const m of majors) {
-      if (!grouped[m.facultyName]) grouped[m.facultyName] = [];
-      const typePart = m.majorType && String(m.majorType).trim() ? ` | type: ${m.majorType}` : '';
-      grouped[m.facultyName].push(`  - ${m.name} | ${m.duration} | ${m.creditHours} credits | min: ${m.minAdmission}${typePart}`);
+    for (const m of rows) {
+      if (!grouped[m.faculty_name]) grouped[m.faculty_name] = [];
+      const t = m.major_type ? ` | ${m.major_type}` : '';
+      grouped[m.faculty_name].push(`  - ${m.name} | ${m.duration} | ${m.credit_hours}cr | min: ${m.min_admission}${t}`);
     }
     const lines = Object.entries(grouped).map(([fac, items]) => `${fac}:\n${items.join('\n')}`);
-    return `All university majors (from database):\n\n${lines.join('\n\n')}\n`;
+    return `University majors:\n\n${lines.join('\n\n')}\n`;
   } catch (err) {
-    console.error('[getAllMajorsContext] Prisma error:', err?.message || err);
+    console.error('[getAllMajorsContext] error:', err?.message || err);
     return `[getAllMajorsContext failed: ${err?.message || err}]\n`;
   }
 }
 
+/** @returns {Promise<string>} */
+export const getAllMajorsContext = () => cached('allMajors', 10 * 60_000, _getAllMajorsContext);
+
+// ---------------------------------------------------------------------------
+// GROUNDING HELPERS
+// ---------------------------------------------------------------------------
+
 function sanitizeGrounding(text) {
   if (!text || typeof text !== 'string') return text;
-  // Remove lines that contain course codes (5+ digit numbers at start of line or after pipe)
   const lines = text.split('\n');
   const cleaned = lines.filter(line => {
-    // Remove lines with course codes like 10676414
     if (/\b1\d{7}\b/.test(line)) return false;
-    // Remove lines that are just numbers
     if (/^\s*\d+\s*$/.test(line)) return false;
     return true;
   });
@@ -497,14 +561,149 @@ function sanitizeGrounding(text) {
 }
 
 /**
+ * Trims grounding text to a character budget, keeping first 70% + last 30%.
+ * @param {string} text
+ * @param {number} [maxChars=6000]
+ * @returns {string}
+ */
+function trimToTokenBudget(text, maxChars = 6000) {
+  if (!text || text.length <= maxChars) return text;
+  const headLen = Math.floor(maxChars * 0.7);
+  const tailLen = maxChars - headLen;
+  return (
+    text.slice(0, headLen) +
+    '\n\n[...محتوى محذوف للحفاظ على حدود نافذة السياق...]\n\n' +
+    text.slice(-tailLen)
+  );
+}
+
+/**
+ * Tag-scored knowledge-base section: picks top-4 relevant entries for the query.
+ * Falls back to all entries when no tags match (general question).
+ * @param {string} [userMessage='']
+ * @returns {string}
+ */
+function buildKnowledgeBaseSection(userMessage = '') {
+  if (!userMessage) {
+    const lines = manualKnowledgeBase.map((e) => `### ${e.title}\n${e.body}`);
+    return `Platform knowledge base:\n\n${lines.join('\n\n')}\n`;
+  }
+  const normalized = normalizeDialect(userMessage);
+  const q = normalizeEnglishText(normalized) + ' ' + normalizeArabicText(normalized);
+  const en = normalizeEnglishText(normalized);
+  const ar = normalizeArabicText(normalized);
+
+  // Detect MIS-specific query to apply a score boost on the MIS KB entry
+  const isMISQuery =
+    en.includes('mis') ||
+    en.includes('management information') ||
+    en.includes('information systems') ||
+    ar.includes(normalizeArabicText('نظم المعلومات')) ||
+    /10676\d{3}/.test(userMessage);
+
+  const scored = manualKnowledgeBase
+    .map(entry => {
+      let score = entry.tags.filter(t => q.includes(t.toLowerCase())).length;
+      if (isMISQuery && entry.tags.includes('mis')) score += 5;
+      return { entry, score };
+    })
+    .sort((a, b) => b.score - a.score);
+  const topScore = scored[0]?.score ?? 0;
+  // Return top-5 for MIS queries (detailed entry needs full context), top-4 otherwise
+  const limit = isMISQuery ? 5 : 4;
+  const selected = topScore > 0 ? scored.slice(0, limit) : scored;
+  const lines = selected.map(({ entry }) => `### ${entry.title}\n${entry.body}`);
+  return `Platform knowledge base:\n\n${lines.join('\n\n')}\n`;
+}
+
+function detectTopics(msg) {
+  const ar = normalizeArabicText(msg);
+  const en = normalizeEnglishText(msg);
+  const hasAr = (...words) => words.some((w) => ar.includes(normalizeArabicText(w)));
+  const hasEn = (...words) => words.some((w) => en.includes(w));
+  return {
+    events: hasAr('فعالية', 'فعاليات', 'حدث', 'احداث', 'نشاط', 'نشاطات', 'ايفنت', 'تقييم', 'مراجعة', 'تقييمات') ||
+            hasEn('event', 'events', 'activity', 'activities', 'review', 'rating'),
+    communities: hasAr('مجتمع', 'مجتمعات', 'كلوب', 'نادي', 'مجموعة', 'انضم', 'عضوية') ||
+                 hasEn('community', 'communities', 'club', 'group', 'join', 'member'),
+    majors: hasAr('تخصص', 'تخصصات', 'كلية', 'كليات', 'مادة', 'مواد', 'ساعات', 'قبول', 'معدل', 'دراسة', 'برنامج',
+                  'نظم المعلومات', 'نظم المعلومات الإدارية') ||
+            hasEn('major', 'faculty', 'course', 'credit', 'admission', 'degree', 'program', 'study',
+                  'management information', 'mis major', 'mis courses', 'information systems',
+                  'mis credits', 'mis requirements') ||
+            en.includes('mis') ||
+            msg.includes('10676'),
+    platform: hasAr('موقع', 'منصة', 'نظام', 'حساب', 'تسجيل', 'دخول', 'دور', 'صلاحية') ||
+              hasEn('platform', 'website', 'account', 'login', 'role', 'system', 'how'),
+  };
+}
+
+async function buildFullGroundingString(userMessage, majorName) {
+  // Normalize dialect before topic detection so dialect keywords resolve correctly
+  const msgForDetection = normalizeDialect(userMessage);
+  const topics = detectTopics(msgForDetection);
+  const hasMajorCtx = Boolean(majorName && String(majorName).trim());
+
+  if (hasMajorCtx) topics.majors = true;
+
+  // fetchAll fires when no topic is detected, but never pulls getAllMajorsContext (expensive)
+  const fetchAll = !topics.events && !topics.communities && !topics.majors && !topics.platform;
+
+  const fetches = await Promise.all([
+    (topics.events || fetchAll) ? getEventContext() : null,
+    (topics.events || fetchAll) ? getEventAnalyticsContext() : null,
+    (topics.events || fetchAll) ? getReviewSearchContext(msgForDetection) : null,
+    (topics.majors || hasMajorCtx || fetchAll) ? getMajorContext(majorName) : null,
+    topics.majors ? getAllMajorsContext() : null,           // never in fetchAll
+    (topics.communities || fetchAll) ? getCommunitiesContext() : null,
+  ]);
+
+  const [evList, evAnalytics, reviewSearch, majorCtx, allMajors, communities] = fetches;
+
+  const parts = ['## Platform knowledge', buildKnowledgeBaseSection(userMessage)];
+
+  if (evList)       parts.push('## Events', sanitizeGrounding(evList));
+  if (evAnalytics)  parts.push('## Event analytics', sanitizeGrounding(evAnalytics));
+  if (reviewSearch) parts.push('## Review search', sanitizeGrounding(reviewSearch));
+  if (majorCtx)     parts.push('## Current major', sanitizeGrounding(majorCtx));
+  if (allMajors)    parts.push('## All majors', sanitizeGrounding(allMajors));
+  if (communities)  parts.push('## Communities', communities);
+
+  return trimToTokenBudget(parts.join('\n\n'));
+}
+
+// ---------------------------------------------------------------------------
+// SYSTEM PROMPT
+// ---------------------------------------------------------------------------
+
+/** Arabic descriptions per user role, injected before the scope block */
+const ROLE_DESCRIPTIONS = {
+  student:    'المستخدم طالب. ركّز على معلومات التخصصات والفعاليات للانضمام والمجتمعات. لا تُظهر إحصائيات أو أدوات الإدارة.',
+  professor:  'المستخدم أستاذ/محاضر. يمكنه الاطلاع على معلومات إنشاء الفعاليات والتفاصيل الأكاديمية وإدارة المجتمعات.',
+  admin:      'المستخدم مدير النظام. يمكنه الاطلاع على إحصائيات المشاعر ولوحة القيادة وتصحيح التسميات وإدارة الفعاليات الكاملة.',
+  supervisor: 'المستخدم مشرف/عميد. ركّز على تقارير مستوى الكلية وسير عمل الموافقة على المجتمعات والإحصائيات التفصيلية.',
+};
+
+/**
  * @param {string} groundingContext — full string from all context builders
- * @param {{ userMessage: string, majorName?: string, majorFaculty?: string }} opts
+ * @param {{ userMessage: string, majorName?: string, majorFaculty?: string, userRole?: string }} opts
  * @returns {string}
  */
 export function buildSystemPrompt(groundingContext, opts = {}) {
-  const { userMessage = '', majorName, majorFaculty } = opts;
+  const { userMessage = '', majorName, majorFaculty, userRole = 'student' } = opts;
   const u = String(userMessage);
   const languageIsArabic = ARABIC_SCRIPT_RE.test(u);
+
+  const roleBlock = `USER ROLE: ${ROLE_DESCRIPTIONS[userRole] ?? ROLE_DESCRIPTIONS.student}`;
+
+  const dialectBlock = `
+INPUT DIALECT — UNDERSTANDING RULES:
+Users may write in Palestinian/Levantine dialect, MSA, or mixed Arabic-English (Arabizi like "3" for ع, "7" for ح, "2" for أ).
+Accept ALL input forms without ever asking the user to rephrase or clarify their dialect.
+Understand equivalents: بدي=أريد، وين=أين، ليش=لماذا، شو=ماذا، هلق=الآن، كتير=كثير، مو=ليس، قديش=كم، هاد=هذا، هيك=هكذا.
+Never say "أعد صياغة سؤالك" or "I don't understand your dialect" — always answer directly.
+`;
+
   const behaviorRules = `
 BEHAVIOR RULES:
 - Be concise. Use short answers. Use bullet points only when listing 3+ items.
@@ -583,20 +782,44 @@ When the user asks about courses, subjects, or "شو المواد" for a major:
 - Always end with the total credit hours and duration from the database
 `;
 
+  const scopeBlock = `
+SCOPE — WHAT YOU CAN ANSWER:
+You are a helpful AI assistant for An-Najah National University's digital platform. You can answer about:
+1. Academic majors and faculties: courses, credit hours, duration, min admission average, career paths.
+2. University events: list, dates, locations, reviews, ratings, sentiment analytics.
+3. Student communities: name, description, which colleges can join, member count, chat status.
+4. Platform usage: how to join communities, how events work, what roles exist, how to apply for events.
+5. General university questions: colleges, academic structure, graduation project, student life.
+
+PRIVACY AND SECURITY — NEVER SHARE:
+- Passwords, password hashes, or any authentication credentials
+- User email addresses, phone numbers, or any personal contact info
+- Internal user IDs or admin account details
+- Any information from tables: app_users passwords, tokens, sessions
+- If asked for any of the above, say: "ما بقدر أشارك هاي المعلومات لأسباب أمنية" or "I can't share that for security reasons."
+
+OUT OF SCOPE:
+If the user asks something completely unrelated to the university platform (cooking, sports, general trivia, etc.), politely say you're specialized for An-Najah university services and offer to help with what you know.
+`;
+
   const languageBlock =
     'You must always reply in the exact same language the user used in their message. ' +
     'If the user writes in Arabic, respond fully in Arabic. ' +
     'If the user writes in English, respond fully in English. ' +
     'Never switch languages unless the user does first.';
 
-  const lineArabic = 'The user is writing in Arabic. You must respond in Arabic only.';
-  const lineEnglish = 'The user is writing in English. You must respond in English only.';
+  // Mixed Arabic-English input defaults to Arabic, per global language rule
+  const lineArabic = 'The user is writing in Arabic (or mixed Arabic-English). You MUST respond fully in Arabic only. Do NOT switch to English.';
+  const lineEnglish = 'The user is writing in English. You MUST respond fully in English only. Do NOT switch to Arabic.';
   const languageEnforcement = languageIsArabic ? lineArabic : lineEnglish;
 
   const head = [
-    'You are Najah AI Assistant for An-Najah National University’s digital platform.',
-    'Use ONLY the grounding context below for live database facts (events, reviews, analytics). ' +
-      'Do not invent statistics or events not present in the grounding. If a section shows an error, acknowledge that the data was unavailable.',
+    "You are Najah AI Assistant for An-Najah National University's digital platform.",
+    "Use ONLY the grounding context below for live database facts (events, reviews, analytics, communities). " +
+      "Do not invent statistics, events, or community names not present in the grounding. If a section shows an error, acknowledge that the data was unavailable.",
+    roleBlock,
+    dialectBlock,
+    scopeBlock,
     languageBlock,
     languageEnforcement,
     behaviorRules,
@@ -621,68 +844,48 @@ When the user asks about courses, subjects, or "شو المواد" for a major:
   ].join('\n');
 }
 
+// ---------------------------------------------------------------------------
+// GROQ API
+// ---------------------------------------------------------------------------
+
+function buildMessagesFromHistory(sessionId, systemPrompt, userMessage) {
+  const history = getSessionMessages(sessionId).slice(-8);
+  const messages = [{ role: 'system', content: systemPrompt }];
+  for (const entry of history) {
+    messages.push({ role: entry.role === 'assistant' ? 'assistant' : 'user', content: String(entry.content || '') });
+  }
+  messages.push({ role: 'user', content: String(userMessage) });
+  return messages;
+}
+
 /**
- * @param {string} userMessage
- * @param {string} majorName
+ * Single Groq API call with a specific model.
+ * @param {{ userMessage: string, systemPrompt: string, sessionId?: string | null, model: string }} p
  * @returns {Promise<string>}
  */
-async function buildFullGroundingString(userMessage, majorName) {
-  const [evList, evDetails, evAnalytics, reviewSearch, majorCtx, allMajors] = await Promise.all([
-    getEventContext(),
-    getEventDetailsContext(),
-    getEventAnalyticsContext(),
-    getReviewSearchContext(userMessage),
-    getMajorContext(majorName),
-    getAllMajorsContext(),
-  ]);
-  return [
-    '## 1) Event list', sanitizeGrounding(evList), '',
-    '## 2) Event details + reviews', sanitizeGrounding(evDetails), '',
-    '## 3) Event analytics', sanitizeGrounding(evAnalytics), '',
-    '## 4) Review keyword search', sanitizeGrounding(reviewSearch), '',
-    '## 5) Current major details', sanitizeGrounding(majorCtx), '',
-    '## 6) All majors overview', sanitizeGrounding(allMajors),
-  ].join('\n');
-}
-
-function developerContextFromHistory(sessionId) {
-  const history = getSessionMessages(sessionId).slice(-8);
-  return history.map((entry) => ({
-    role: entry.role === 'assistant' ? 'model' : 'user',
-    parts: [{ text: String(entry.content || '') }],
-  }));
-}
-
-function extractGeminiText(data) {
-  const parts = data?.candidates?.[0]?.content?.parts || [];
-  const text = parts.map((part) => part.text || '').filter(Boolean).join('\n').trim();
-  if (text) return text;
-  const finishReason = data?.candidates?.[0]?.finishReason;
-  if (finishReason) return `Gemini returned no text. Finish reason: ${finishReason}`;
-  return '';
-}
-
-/**
- * @param {{ userMessage: string, systemPrompt: string, sessionId?: string | null }} p
- */
-async function callGemini({ userMessage, systemPrompt, sessionId }) {
-  const modelPath = MODEL.startsWith('models/') ? MODEL : `models/${MODEL}`;
-  const url = `https://generativelanguage.googleapis.com/${GEMINI_API_VERSION}/${modelPath}:generateContent?key=${encodeURIComponent(GEMINI_API_KEY)}`;
-  const contents = [...developerContextFromHistory(sessionId), { role: 'user', parts: [{ text: String(userMessage) }] }];
+async function callGroq({ userMessage, systemPrompt, sessionId, model }) {
+  const url = 'https://api.groq.com/openai/v1/chat/completions';
+  const messages = buildMessagesFromHistory(sessionId, systemPrompt, userMessage);
 
   const body = {
-    system_instruction: { parts: [{ text: systemPrompt }] },
-    contents,
-    generation_config: { temperature: 0.35, top_p: 0.9, max_output_tokens: 1200 },
+    model,
+    messages,
+    temperature: 0.25,
+    max_tokens: 800,
+    top_p: 0.85,
+    frequency_penalty: 0.2,
   };
 
   const controller = new AbortController();
-  const timer = setTimeout(() => controller.abort(), GEMINI_TIMEOUT_MS);
+  const timer = setTimeout(() => controller.abort(), GROQ_TIMEOUT_MS);
   let res;
   try {
     res = await fetch(url, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${getGroqKey()}`,
+      },
       body: JSON.stringify(body),
       signal: controller.signal,
     });
@@ -691,35 +894,108 @@ async function callGemini({ userMessage, systemPrompt, sessionId }) {
   }
   if (!res.ok) {
     const t = await res.text().catch(() => '');
-    throw new Error(`Gemini HTTP ${res.status}: ${t.slice(0, 400)}`);
+    throw new Error(`Groq HTTP ${res.status}: ${t.slice(0, 400)}`);
   }
   const data = await res.json();
-  return extractGeminiText(data);
-}
-
-function buildSuggestions(question = '') {
-  const arabic = hasArabic(question);
-  return arabic
-    ? [
-        'شو مواد التخصص؟',
-        'قديش عدد الساعات المعتمدة؟',
-        'قديش مدة الدراسة؟',
-        'شو فرص العمل بعد التخرج؟',
-      ]
-    : [
-        'What courses are in this major?',
-        'How many credit hours are required?',
-        'How long does this major take?',
-        'What career paths can I follow?',
-      ];
+  return data?.choices?.[0]?.message?.content?.trim() || '';
 }
 
 /**
- * Main entry: loads DB grounding, builds system prompt (language + optional major), calls Gemini.
- * @param {{ sessionId?: string | null, userMessage: string, majorName?: string, majorFaculty?: string }} p
+ * Tries each model in GROQ_MODELS in order, falling back to the next on 429/503.
+ * @param {{ userMessage: string, systemPrompt: string, sessionId?: string | null }} p
+ * @returns {Promise<string>}
+ */
+async function callGroqWithFallback({ userMessage, systemPrompt, sessionId }) {
+  for (const model of GROQ_MODELS) {
+    try {
+      return await callGroq({ userMessage, systemPrompt, sessionId, model });
+    } catch (err) {
+      const msg = String(err?.message || '');
+      if (msg.includes('429') || msg.includes('503')) {
+        console.warn(`[callGroqWithFallback] ${model} rate-limited, trying next model`);
+        continue;
+      }
+      throw err;
+    }
+  }
+  return '';
+}
+
+// ---------------------------------------------------------------------------
+// SUGGESTIONS
+// ---------------------------------------------------------------------------
+
+function buildSuggestions(question = '', hasMajorContext = false) {
+  const arabic = hasArabic(question);
+  if (hasMajorContext) {
+    return arabic
+      ? [
+          'شو مواد التخصص؟',
+          'قديش عدد الساعات المعتمدة؟',
+          'شو فرص العمل بعد التخرج؟',
+          'صعب هاد التخصص؟',
+        ]
+      : [
+          'What courses are in this major?',
+          'How many credit hours are required?',
+          'What career paths does this major lead to?',
+          'Is this major difficult?',
+        ];
+  }
+  return arabic
+    ? [
+        'شو الفعاليات القادمة؟',
+        'شو المجتمعات الموجودة؟',
+        'شو التخصصات في كلية تكنولوجيا المعلومات؟',
+        'كيف أنضم لمجتمع؟',
+      ]
+    : [
+        'What upcoming events are there?',
+        'What communities are available?',
+        'What majors are in the IT faculty?',
+        'How do I join a community?',
+      ];
+}
+
+// ---------------------------------------------------------------------------
+// MAJOR INFERENCE
+// ---------------------------------------------------------------------------
+
+/**
+ * Infers MIS major context from message content when no explicit majorName is passed.
+ * Checks for Arabic MIS keywords, English MIS keywords, and 10676xxx course codes.
+ * @param {string} message - Raw user message
+ * @returns {{ majorName: string, majorFaculty: string } | null}
+ */
+function inferMajorFromMessage(message) {
+  const en = normalizeEnglishText(message);
+  const ar = normalizeArabicText(normalizeDialect(message));
+  const isMIS =
+    en.includes('mis') ||
+    en.includes('management information') ||
+    en.includes('information systems') ||
+    ar.includes(normalizeArabicText('نظم المعلومات')) ||
+    /10676\d{3}/.test(message);
+  if (isMIS) {
+    return {
+      majorName: 'نظم المعلومات الإدارية / Management Information Systems',
+      majorFaculty: 'كلية تكنولوجيا المعلومات والحاسوب / Faculty of IT & Computer Engineering',
+    };
+  }
+  return null;
+}
+
+// ---------------------------------------------------------------------------
+// PUBLIC API
+// ---------------------------------------------------------------------------
+
+/**
+ * Main entry point: builds grounding, constructs system prompt, calls Groq with fallback.
+ * Falls back to local rule-based engine if Groq is unavailable or returns empty.
+ * @param {{ sessionId?: string | null, userMessage: string, majorName?: string, majorFaculty?: string, userRole?: string }} p
  * @returns {Promise<{ answer: string, suggestions: string[], model: string, provider: string }>}
  */
-export async function askChatbot({ sessionId, userMessage, majorName, majorFaculty }) {
+export async function askChatbot({ sessionId, userMessage, majorName, majorFaculty, userRole = 'student' }) {
   const clean = String(userMessage || '').trim();
   if (!clean) {
     const err = new Error('question is required');
@@ -727,30 +1003,54 @@ export async function askChatbot({ sessionId, userMessage, majorName, majorFacul
     throw err;
   }
 
-  const answer = buildLocalChatResponse({
-    userMessage: clean,
-    majorName,
-    majorFaculty,
-  });
+  // Use explicitly passed major, or infer from message content (e.g. MIS keywords / 10676xxx codes)
+  let resolvedMajorName = majorName;
+  let resolvedMajorFaculty = majorFaculty;
+  if (!resolvedMajorName) {
+    const inferred = inferMajorFromMessage(clean);
+    if (inferred) {
+      resolvedMajorName = inferred.majorName;
+      resolvedMajorFaculty = inferred.majorFaculty;
+    }
+  }
 
+  const hasMajorContext = Boolean(resolvedMajorName && String(resolvedMajorName).trim());
+
+  const groqKey = getGroqKey();
+  console.log('[askChatbot] GROQ key present:', groqKey ? `YES (${groqKey.slice(0, 8)}...)` : 'NO');
+
+  if (groqKey) {
+    try {
+      const groundingContext = await buildFullGroundingString(clean, resolvedMajorName);
+      const systemPrompt = buildSystemPrompt(groundingContext, { userMessage: clean, majorName: resolvedMajorName, majorFaculty: resolvedMajorFaculty, userRole });
+      const answer = await callGroqWithFallback({ userMessage: clean, systemPrompt, sessionId });
+      if (answer) {
+        if (sessionId) appendSessionTurn(sessionId, clean, answer);
+        return {
+          answer,
+          suggestions: buildSuggestions(clean, hasMajorContext),
+          model: GROQ_MODELS[0],
+          provider: 'groq',
+        };
+      }
+    } catch (err) {
+      console.error('[askChatbot] Groq failed — full error:', err);
+    }
+  }
+
+  const answer = buildLocalChatResponse({ userMessage: clean, majorName: resolvedMajorName, majorFaculty: resolvedMajorFaculty });
   if (sessionId) appendSessionTurn(sessionId, clean, answer);
-
   return {
     answer,
-    suggestions: buildSuggestions(clean),
+    suggestions: buildSuggestions(clean, hasMajorContext),
     model: 'local-rule-based',
     provider: 'local',
   };
 }
 
 /**
- * @param {{ question: string, sessionId?: string | null, majorName?: string, majorFaculty?: string }} p
+ * @param {{ question: string, sessionId?: string | null, majorName?: string, majorFaculty?: string, userRole?: string }} p
  */
-export async function answerQuestion({ question, sessionId, majorName, majorFaculty }) {
-  return askChatbot({
-    userMessage: question,
-    sessionId,
-    majorName,
-    majorFaculty,
-  });
+export async function answerQuestion({ question, sessionId, majorName, majorFaculty, userRole }) {
+  return askChatbot({ userMessage: question, sessionId, majorName, majorFaculty, userRole });
 }

@@ -247,6 +247,19 @@ export async function getAdminUsers(role = null) {
   return apiRequest(`/api/admin/users${q}`);
 }
 
+export async function createAdminInvitedUser(email) {
+  return apiRequest('/api/admin/users', {
+    method: 'POST',
+    body: JSON.stringify({ email }),
+  });
+}
+
+export async function deleteAdminUser(userId) {
+  return apiRequest(`/api/admin/users/${encodeURIComponent(userId)}`, {
+    method: 'DELETE',
+  });
+}
+
 export async function assignDeanToCollege(userId, collegeId) {
   return apiRequest(`/api/admin/users/${userId}/assign-college`, {
     method: 'PATCH',
@@ -342,6 +355,7 @@ export async function getAdminEvents(approvalQueue = false, options = {}) {
   const limit = options.limit != null ? options.limit : 20;
   const offset = options.offset != null ? options.offset : 0;
   if (options.pastOnly) params.set('pastOnly', '1');
+  if (options.associationOnly) params.set('associationOnly', '1');
   params.set('limit', String(limit));
   params.set('offset', String(offset));
   return apiRequest(`/api/admin/events?${params.toString()}`);

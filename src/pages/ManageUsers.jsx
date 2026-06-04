@@ -37,6 +37,14 @@ const patchUserRole = (id, body)    =>
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
   });
+const createInvitedUser = (email) =>
+  apiFetch("/api/admin/users", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email }),
+  });
+const deleteUser = (id) =>
+  apiFetch(`/api/admin/users/${id}`, { method: "DELETE" });
 
 // ── Role Badge ────────────────────────────────────────────────────────────────
 function RoleBadge({ role }) {
@@ -44,6 +52,83 @@ function RoleBadge({ role }) {
     <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${roleColor(role)}`}>
       {roleLabel(role)}
     </span>
+  );
+}
+
+// ── Add invited user modal ────────────────────────────────────────────────────
+function AddUserModal({ onClose, onCreated }) {
+  const [email, setEmail] = useState("");
+  const [saving, setSaving] = useState(false);
+  const [error, setError] = useState("");
+
+  async function handleCreate(e) {
+    e.preventDefault();
+    setError("");
+    const trimmed = email.trim().toLowerCase();
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(trimmed)) {
+      setError("Please enter a valid email address.");
+      return;
+    }
+    setSaving(true);
+    try {
+      const created = await createInvitedUser(trimmed);
+      onCreated(created);
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/40 backdrop-blur-sm">
+      <div className="w-full max-w-md rounded-2xl bg-white shadow-2xl border border-slate-200 overflow-hidden">
+        <div className="px-6 py-5 border-b border-slate-100 flex items-start justify-between gap-4">
+          <div>
+            <h2 className="text-lg font-semibold text-[#0b2d52]" style={{ fontFamily: "'Libre Baskerville', Georgia, serif" }}>
+              Add Invited User
+            </h2>
+            <p className="mt-0.5 text-sm text-slate-500">
+              External email (non-Najah). Role is User; they sign in with a login code.
+            </p>
+          </div>
+          <button type="button" onClick={onClose} className="text-slate-400 hover:text-slate-600 p-1 rounded-full transition-colors" aria-label="Close">
+            <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        </div>
+        <form onSubmit={handleCreate} className="px-6 py-5 space-y-4">
+          {error && (
+            <div className="p-3 rounded-xl bg-red-50 border border-red-200 text-red-700 text-sm">{error}</div>
+          )}
+          <div>
+            <label htmlFor="invite-email" className="block text-sm font-medium text-slate-700 mb-1.5">Email</label>
+            <input
+              id="invite-email"
+              type="email"
+              required
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              placeholder="partner@company.com"
+              className="w-full px-4 py-3 border border-slate-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b]"
+            />
+          </div>
+          <div className="flex gap-3 pt-1">
+            <button type="button" onClick={onClose} className="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm text-slate-600 hover:bg-slate-50">
+              Cancel
+            </button>
+            <button
+              type="submit"
+              disabled={saving}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-[#00356b] text-white text-sm font-medium hover:bg-[#002a54] disabled:opacity-60"
+            >
+              {saving ? "Adding…" : "Add User"}
+            </button>
+          </div>
+        </form>
+      </div>
+    </div>
   );
 }
 
@@ -204,6 +289,8 @@ function ManageUsers() {
   const [search, setSearch]             = useState("");
   const [roleFilter, setRoleFilter]     = useState("all");
   const [editingUser, setEditingUser]   = useState(null);
+  const [showAddUser, setShowAddUser]   = useState(false);
+  const [deletingId, setDeletingId]     = useState(null);
   const [successMsg, setSuccessMsg]     = useState("");
 
   // Guard: admin only
@@ -256,6 +343,34 @@ function ManageUsers() {
     setTimeout(() => setSuccessMsg(""), 4000);
   }
 
+  function handleUserCreated(created) {
+    setUsers((prev) => [...prev, created].sort((a, b) => (a.email || "").localeCompare(b.email || "")));
+    setShowAddUser(false);
+    setSuccessMsg(`Invited user added: ${created.email}`);
+    setTimeout(() => setSuccessMsg(""), 4000);
+  }
+
+  async function handleDeleteUser(target) {
+    if (!target?.id || target.id === user.id) return;
+    const ok = window.confirm(
+      `Delete user ${target.email}?\n\nThis permanently removes their account and related data from the platform.`
+    );
+    if (!ok) return;
+    setDeletingId(target.id);
+    setFetchError("");
+    try {
+      await deleteUser(target.id);
+      setUsers((prev) => prev.filter((u) => u.id !== target.id));
+      setSuccessMsg(`User deleted: ${target.email}`);
+      setTimeout(() => setSuccessMsg(""), 4000);
+      if (editingUser?.id === target.id) setEditingUser(null);
+    } catch (err) {
+      setFetchError(err.message || "Failed to delete user.");
+    } finally {
+      setDeletingId(null);
+    }
+  }
+
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-[#f7f6f3]">
@@ -269,6 +384,9 @@ function ManageUsers() {
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
       {/* Modal */}
+      {showAddUser && (
+        <AddUserModal onClose={() => setShowAddUser(false)} onCreated={handleUserCreated} />
+      )}
       {editingUser && (
         <EditRoleModal
           user={editingUser}
@@ -378,6 +496,13 @@ function ManageUsers() {
             </svg>
             Refresh
           </button>
+          <button
+            type="button"
+            onClick={() => setShowAddUser(true)}
+            className="flex items-center gap-2 px-4 py-2.5 rounded-xl bg-[#00356b] text-white text-sm font-medium hover:bg-[#002a54] transition shadow-sm"
+          >
+            Add User
+          </button>
         </div>
 
         {/* Loading */}
@@ -419,7 +544,14 @@ function ManageUsers() {
                     {filtered.map((u, idx) => (
                       <tr key={u.id} className="hover:bg-slate-50/60 transition-colors">
                         <td className="px-5 py-3.5 text-slate-400">{idx + 1}</td>
-                        <td className="px-5 py-3.5 font-medium text-slate-800">{u.email}</td>
+                        <td className="px-5 py-3.5 font-medium text-slate-800">
+                          <span>{u.email}</span>
+                          {u.invitedByAdmin && (
+                            <span className="ml-2 inline-flex items-center px-2 py-0.5 rounded-full text-[10px] font-medium bg-sky-100 text-sky-800">
+                              Invited
+                            </span>
+                          )}
+                        </td>
                         <td className="px-5 py-3.5">
                           <RoleBadge role={u.role} />
                         </td>
@@ -462,17 +594,38 @@ function ManageUsers() {
                           })()}
                         </td>
                         <td className="px-5 py-3.5 text-right">
-                          {u.role !== "admin" && (
-                            <button
-                              onClick={() => setEditingUser(u)}
-                              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:border-[#00356b]/40 hover:text-[#00356b] hover:bg-[#00356b]/5 transition-all"
-                            >
-                              <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                              </svg>
-                              Change Role
-                            </button>
-                          )}
+                          <div className="inline-flex items-center justify-end gap-1.5">
+                            {u.role !== "admin" && (
+                              <button
+                                type="button"
+                                onClick={() => setEditingUser(u)}
+                                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium border border-slate-200 text-slate-600 hover:border-[#00356b]/40 hover:text-[#00356b] hover:bg-[#00356b]/5 transition-all"
+                              >
+                                <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                                </svg>
+                                Change Role
+                              </button>
+                            )}
+                            {u.id !== user.id && (
+                              <button
+                                type="button"
+                                onClick={() => handleDeleteUser(u)}
+                                disabled={deletingId === u.id}
+                                title="Delete user"
+                                aria-label={`Delete ${u.email}`}
+                                className="inline-flex items-center justify-center p-1.5 rounded-lg text-xs font-medium border border-red-200 text-red-600 hover:bg-red-50 hover:border-red-300 disabled:opacity-50 transition-all"
+                              >
+                                {deletingId === u.id ? (
+                                  <span className="w-3.5 h-3.5 border-2 border-red-400 border-t-transparent rounded-full animate-spin" />
+                                ) : (
+                                  <svg className="w-3.5 h-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                                  </svg>
+                                )}
+                              </button>
+                            )}
+                          </div>
                         </td>
                       </tr>
                     ))}

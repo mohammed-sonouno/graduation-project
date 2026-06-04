@@ -3,7 +3,7 @@ import { Link, useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
 import { isAdmin, isDean, isSupervisor, isCommunityLeader, DEAN_DISPLAY_NAME, SUPERVISOR_DISPLAY_NAME, COMMUNITY_LEADER_DISPLAY_NAME } from "../utils/permissions";
 import { getEventRegistrations, getStudentProfile, saveStudentProfile as saveProfileApi, eventImageUrl, getCommunities } from "../lib/api";
-import { normalizeCollege } from "../canonicalCollege";
+import { normalizeCollege, resolveStudentFaculty } from "../canonicalCollege";
 
 
 function IconId(props) {
@@ -180,8 +180,10 @@ function Profile() {
   const initial = (displayName[0] || "?").toUpperCase();
   const studentUniNumber = user.student_number ?? (user.email ? user.email.split("@")[0] : null) ?? "—";
   const collegeRaw = studentProfile.college || user.college || "";
-  const college = collegeRaw ? normalizeCollege(collegeRaw) || collegeRaw : "—";
   const major = studentProfile.major || user.major || "—";
+  const college = collegeRaw || major
+    ? resolveStudentFaculty(collegeRaw, major) || normalizeCollege(collegeRaw) || collegeRaw
+    : "—";
   return (
     <div className="min-h-screen bg-slate-50/80 text-slate-900">
       {/* Header — refined */}

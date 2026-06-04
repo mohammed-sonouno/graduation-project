@@ -76,29 +76,76 @@ function Majors() {
 
         <div className="flex flex-col lg:flex-row gap-8 lg:gap-12">
           {/* Sidebar filters */}
-          <aside className="lg:w-56 flex-shrink-0">
-            <div className="bg-white rounded-lg shadow-sm p-5 sticky top-24">
-              <h3 className="text-xs font-semibold text-slate-600 uppercase tracking-wider mb-3">
-                Filter by College
-              </h3>
-              <ul className="space-y-2">
-                {collegeFilters.map((c) => (
-                  <li key={c.id} className="flex items-center gap-2">
-                    <input
-                      type="checkbox"
-                      id={`college-${c.id}`}
-                      checked={collegeIds.includes(c.id)}
-                      onChange={() => toggleCollege(c.id)}
-                      className="w-4 h-4 rounded border-slate-300 text-[#00356b] focus:ring-[#00356b]/30"
-                    />
-                    <label htmlFor={`college-${c.id}`} className="text-sm text-slate-700 cursor-pointer">
-                      {c.label}
-                    </label>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </aside>
+         <aside className="lg:w-64 flex-shrink-0">
+  <div className="bg-white rounded-2xl shadow-md border border-slate-200 p-6 sticky top-24">
+
+    {/* Title */}
+    <div className="mb-5">
+      <h3 className="text-sm font-semibold text-[#0b2d52] tracking-wide uppercase">
+        Filter by Faculty
+      </h3>
+      <div className="w-10 h-[2px] bg-[#00356b] mt-2 rounded-full" />
+    </div>
+
+    {/* Selected count */}
+    {collegeIds.length > 0 && (
+      <p className="text-xs text-slate-500 mb-3">
+        {collegeIds.length} selected
+      </p>
+    )}
+
+    {/* Filters */}
+    <ul className="space-y-2 max-h-[400px] overflow-y-auto pr-1">
+      {collegeFilters.map((c) => {
+        const active = collegeIds.includes(c.id);
+
+        return (
+          <li key={c.id}>
+            <label
+              htmlFor={`college-${c.id}`}
+              className={`
+                flex items-center justify-between gap-2 px-3 py-2 rounded-lg cursor-pointer transition
+                ${active
+                  ? 'bg-[#00356b]/10 border border-[#00356b]/30'
+                  : 'hover:bg-slate-50 border border-transparent'}
+              `}
+            >
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id={`college-${c.id}`}
+                  checked={active}
+                  onChange={() => toggleCollege(c.id)}
+                  className="w-4 h-4 rounded border-slate-300 text-[#00356b] focus:ring-[#00356b]/30"
+                />
+
+                <span className="text-sm text-slate-700">
+                  {c.label}
+                </span>
+              </div>
+
+              {active && (
+                <span className="text-xs text-[#00356b] font-semibold">
+                  ✓
+                </span>
+              )}
+            </label>
+          </li>
+        );
+      })}
+    </ul>
+
+    {/* Clear filters */}
+    {collegeIds.length > 0 && (
+      <button
+        onClick={() => setCollegeIds([])}
+        className="mt-5 w-full text-xs font-semibold text-[#00356b] hover:underline"
+      >
+        Clear Filters
+      </button>
+    )}
+  </div>
+</aside>
 
           {/* Main content */}
           <div className="flex-1 min-w-0">

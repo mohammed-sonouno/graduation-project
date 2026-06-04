@@ -41,7 +41,7 @@ function EventCard({ event }) {
   const isPast = event.status === 'past';
   const title = event.title ?? '';
   const image = event.image ?? '/event1.jpg';
-  const organizerName = event.organizer ?? '';
+  const organizerName = event.communityName || event.clubName || event.organizer || '';
   const date = event.date ?? '';
   const endDate = event.endDate ?? '';
   const dateDisplay = endDate && endDate !== date ? `${date} – ${endDate}` : date;
@@ -49,7 +49,6 @@ function EventCard({ event }) {
   const endTime = event.endTime ?? '';
   const timeDisplay = endTime ? `${time} – ${endTime}` : time;
   const location = event.location ?? '';
-  const description = event.description ?? '';
 
   return (
     <article className="group h-full overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg">
@@ -92,10 +91,6 @@ function EventCard({ event }) {
             <span className="line-clamp-1">{location}</span>
           </div>
         </div>
-
-        <p className="mt-3 text-sm leading-relaxed text-slate-600 line-clamp-3">
-          {description}
-        </p>
 
         <div className="mt-5">
           <Link
@@ -174,7 +169,7 @@ function Events() {
     const names = allEvents
       .filter(Boolean)
       .filter((e) => college === 'All Colleges' || eventMatchesCollegeFilter(e, college))
-      .map((e) => (e.organizer || '').trim())
+      .map((e) => (e.communityName || e.clubName || e.organizer || '').trim())
       .filter(Boolean);
     const unique = Array.from(new Set(names)).sort((a, b) => a.localeCompare(b));
     return ['All Organizers', ...unique];
@@ -203,7 +198,7 @@ function Events() {
       if (!e || e.id == null) return false;
       const matchTab = tab === 'all' ? true : (e.status || 'upcoming') === tab;
       const matchCollege = college === 'All Colleges' ? true : eventMatchesCollegeFilter(e, college);
-      const matchOrganizer = community === 'All Organizers' ? true : (e.organizer || '') === community;
+      const matchOrganizer = community === 'All Organizers' ? true : (e.communityName || e.clubName || e.organizer || '') === community;
       return matchTab && matchCollege && matchOrganizer;
     });
   }, [allEvents, tab, college, community]);

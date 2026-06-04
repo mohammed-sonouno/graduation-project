@@ -156,6 +156,18 @@ export function isEmailAllowed(email) {
   return domains.some((d) => normalized.endsWith(d.toLowerCase()));
 }
 
+/** Najah student mailbox pattern, e.g. s12219287@stu.najah.edu */
+export function isNajahStudentEmail(email) {
+  if (!email || typeof email !== 'string') return false;
+  return /^s\d+@stu\.najah\.edu$/.test(email.trim().toLowerCase());
+}
+
+/** Basic RFC-like check for login / invite forms (domain rules are enforced server-side). */
+export function isValidEmailFormat(email) {
+  if (!email || typeof email !== 'string') return false;
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim());
+}
+
 /** Message for UI when email is not allowed (e.g. "Please use ... @stu.najah.edu or @najah.edu"). */
 export function getEmailRuleMessage() {
   const domains = getAllowedDomains();

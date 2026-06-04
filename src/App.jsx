@@ -25,6 +25,7 @@ import CommunityDetails from './pages/Communitydetails';
 import OwnerJoinRequestsPage from './pages/OwnerJoinRequestsPage';
 import CommunityChatPage from './pages/CommunityChatPage';
 import AdminCommunityRequests from './pages/AdminCommunityRequests';
+import NLPTraining from './pages/NLPTraining';
 import RequireAuth from './components/RequireAuth';
 
 function NotFound() {
@@ -69,6 +70,7 @@ function App() {
           <Route path="communities/:id/chat" element={<RequireAuth><CommunityChatPage /></RequireAuth>} />
           <Route path="communities/:id" element={<RequireAuth><CommunityDetails /></RequireAuth>} />
           <Route path="admin-community-requests" element={<AdminCommunityRequests />} />
+          <Route path="nlp-training" element={<NLPTraining />} />
 
           <Route path="*" element={<NotFound />} />
         </Route>

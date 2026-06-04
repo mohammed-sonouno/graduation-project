@@ -1,7 +1,7 @@
 /** In-memory session: last 10 user+assistant message pairs (max 20 entries with { role, content }). */
 
 const sessions = new Map();
-const MAX_TURNS = 10;
+const MAX_TURNS = 6;
 
 /**
  * @returns {Array<{ role: string, content: string }>}

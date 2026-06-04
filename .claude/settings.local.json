@@ -1,0 +1,14 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(node --input-type=module)",
+      "Bash(echo \"EXIT:$?\")",
+      "Bash(node --check \"C:\\\\Users\\\\pc\\\\Documents\\\\graduation-project\\\\backend\\\\src\\\\services\\\\chatbotService.js\")",
+      "Bash(node --check \"C:\\\\Users\\\\pc\\\\Documents\\\\graduation-project\\\\backend\\\\src\\\\chatbot\\\\sessionStore.js\")",
+      "Bash(node --check \"C:\\\\Users\\\\pc\\\\Documents\\\\graduation-project\\\\backend\\\\src\\\\routes\\\\chatbot.js\")",
+      "Bash(node --check \"C:\\\\Users\\\\pc\\\\Documents\\\\graduation-project\\\\backend\\\\src\\\\chatbot\\\\manualKnowledgeBase.js\")",
+      "Bash(node -e ' *)",
+      "PowerShell(Get-ChildItem -Path \"C:\\\\Users\\\\pc\\\\Documents\\\\graduation-project\" -File -Depth 0 | Select-Object Name, @{N='KB';E={[math]::Round\\($_.Length/1KB,1\\)}} | Sort-Object Name | Format-Table -AutoSize)"
+    ]
+  }
+}

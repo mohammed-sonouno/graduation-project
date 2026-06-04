@@ -173,6 +173,8 @@ export default function communitiesRouter(pool) {
       const offset = (page - 1) * limit;
       const search  = req.query.search  ? String(req.query.search).trim()  : null;
       const college = req.query.college ? String(req.query.college).trim() : null;
+      const kindFilter = req.query.kind && ['community', 'association'].includes(String(req.query.kind).trim())
+        ? String(req.query.kind).trim() : null;
 
       const params = [];
       let where = 'WHERE 1=1';
@@ -184,6 +186,10 @@ export default function communitiesRouter(pool) {
       if (college) {
         params.push(college);
         where += ` AND $${params.length} = ANY(c.colleges)`;
+      }
+      if (kindFilter) {
+        params.push(kindFilter);
+        where += ` AND c.kind = $${params.length}`;
       }
 
       const userId = req.user?.id || null;

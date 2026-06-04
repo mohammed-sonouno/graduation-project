@@ -3,7 +3,7 @@ import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useGoogleLogin } from "@react-oauth/google";
 import { apiUrl, requestLoginCode, verifyLoginCode, verifyGoogleNewCode } from "../lib/api";
 import { useAuth } from "../context/AuthContext";
-import { isEmailAllowed, getEmailRuleMessage, getAllowedDomains } from "../../config/rules.js";
+import { isValidEmailFormat, getAllowedDomains } from "../../config/rules.js";
 import { getLoginRedirectPath } from "../utils/permissions";
 
 function GoogleGIcon() {
@@ -78,14 +78,14 @@ function Login() {
       setEmailError("");
       return;
     }
-    setEmailError(isEmailAllowed(email) ? "" : getEmailRuleMessage());
+    setEmailError(isValidEmailFormat(email) ? "" : "Please enter a valid email address.");
   };
 
   const handleRequestCode = async (e) => {
     e.preventDefault();
     setLoginError("");
-    if (!isEmailAllowed(email)) {
-      setEmailError(getEmailRuleMessage());
+    if (!isValidEmailFormat(email)) {
+      setEmailError("Please enter a valid email address.");
       return;
     }
     setEmailError("");
@@ -264,7 +264,8 @@ rgb(240, 237, 237) 38%,
                   {emailError && <p className="mt-1.5 text-sm text-red-600">{emailError}</p>}
                   {!emailError && getAllowedDomains().length > 0 && (
                     <p className="mt-1.5 text-xs text-slate-500">
-                      Allowed: <span className="font-medium">{getAllowedDomains().join(", ")}</span>
+                      Najah students: <span className="font-medium">{getAllowedDomains().join(", ")}</span>.
+                      Invited guests: use the email your administrator added.
                     </p>
                   )}
                 </div>
@@ -275,7 +276,7 @@ rgb(240, 237, 237) 38%,
                 )}
                 <button
                   type="submit"
-                  disabled={formLoading || !email.trim() || !isEmailAllowed(email.trim().toLowerCase())}
+                  disabled={formLoading || !email.trim() || !isValidEmailFormat(email.trim())}
                   className="w-full inline-flex items-center justify-center rounded-xl bg-[#00356b] px-6 py-3 text-white font-semibold shadow-sm hover:bg-[#002a54] focus:outline-none focus:ring-2 focus:ring-[#00356b]/30 focus:ring-offset-2 disabled:opacity-70"
                 >
                   {formLoading ? "Sending code…" : "Send login code"}

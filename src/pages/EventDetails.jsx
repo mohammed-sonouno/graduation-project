@@ -1,13 +1,89 @@
 import React, { useState, useMemo, useEffect, useRef, useCallback } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { isAdmin } from '../utils/permissions';
 import { scrollToTop } from '../utils/scroll';
-import { getEvent, registerForEvent, setEventFeatured, eventImageUrl, getEventReviews, submitEventReview } from '../lib/api';
+import { getEvent, registerForEvent, setEventFeatured, deleteEvent, eventImageUrl, getEventReviews, submitEventReview } from '../lib/api';
 import { REVIEW_MAX_CHARS } from '../../config/rules.js';
+import RtlText from '../components/RtlText';
+import { getTextDir, hasArabicScript } from '../utils/textDirection';
 
 const REVIEWS_SECTION_ID = 'event-reviews';
 const FEEDBACK_DISPLAYED_ON_PAGE = 2;
+
+function eventScheduleMs(dateVal, timeVal, defaultEndOfDay = false) {
+  if (!dateVal) return null;
+  const dateStr = String(dateVal).trim().split('T')[0];
+  if (!dateStr) return null;
+  let t = (timeVal && String(timeVal).trim()) || (defaultEndOfDay ? '23:59:59' : '00:00:00');
+  if (t.length === 5) t += ':00';
+  const ms = new Date(`${dateStr}T${t}`).getTime();
+  return Number.isNaN(ms) ? null : ms;
+}
+
+/** Admin may delete before start or after end — not while in progress. */
+function eventAllowsAdminDelete(startDate, startTime, endDate, endTime) {
+  const now = Date.now();
+  const startMs = eventScheduleMs(startDate, startTime, false);
+  const endMs = eventScheduleMs(endDate || startDate, endTime, true);
+  if (endMs != null && endMs < now) return true;
+  if (startMs != null && startMs > now) return true;
+  if (startMs != null && endMs != null && startMs <= now && endMs >= now) return false;
+  return true;
+}
+
+function AdminEventActions({
+  event,
+  canDelete,
+  featuredLoading,
+  featuredMessage,
+  deleteLoading,
+  deleteError,
+  onSetFeatured,
+  onDelete,
+}) {
+  return (
+    <div className="mt-3 flex flex-wrap items-center gap-3">
+      {event?.featured ? (
+        <span className="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">
+          <IconStar className="h-5 w-5" />
+          Featured Event
+        </span>
+      ) : (
+        <button
+          type="button"
+          onClick={onSetFeatured}
+          disabled={featuredLoading || !event?.id}
+          className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <IconStar className="h-5 w-5" />
+          {featuredLoading ? 'Setting Featured...' : 'Set as Featured Event'}
+        </button>
+      )}
+      {canDelete && (
+        <button
+          type="button"
+          onClick={onDelete}
+          disabled={deleteLoading || !event?.id}
+          className="inline-flex items-center gap-2 rounded-lg border border-red-200 bg-white px-4 py-2 text-sm font-medium text-red-700 shadow-sm transition hover:bg-red-50 hover:border-red-300 focus:outline-none focus:ring-2 focus:ring-red-500/30 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden>
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+          </svg>
+          {deleteLoading ? 'Deleting…' : 'Delete Event'}
+        </button>
+      )}
+      {featuredMessage && (
+        <span className={`text-sm ${featuredMessage.startsWith('This event') ? 'text-emerald-600' : 'text-red-600'}`}>
+          {featuredMessage}
+        </span>
+      )}
+      {deleteError && (
+        <span className="text-sm text-red-600" role="alert">{deleteError}</span>
+      )}
+    </div>
+  );
+}
 
 function IconCalendar(props) {
   return (
@@ -103,7 +179,7 @@ const RatingStars = React.forwardRef(function RatingStars(
 
 function EventHero({ event, isPast, scrollToReviewsId }) {
   return (
-    <section className="relative overflow-hidden border-b border-slate-200 bg-[#0b2d52]">
+    <section className="relative overflow-hidden border-b border-slate-200 bg-[#0b2d52] min-h-[21rem] md:min-h-[27rem]">
       <div className="absolute inset-0">
         <img
           src={eventImageUrl(event.image)}
@@ -114,13 +190,16 @@ function EventHero({ event, isPast, scrollToReviewsId }) {
         />
         <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d52]/85 via-[#0b2d52]/50 to-[#0b2d52]/30" aria-hidden />
       </div>
-      <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pt-12 pb-10">
+      <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pt-12 pb-14 min-h-[21rem] md:min-h-[27rem] flex flex-col justify-end">
         {isPast && (
           <span className="inline-flex rounded-full bg-slate-800/90 px-4 py-1.5 text-xs font-semibold uppercase tracking-wider text-white backdrop-blur">
             Event concluded
           </span>
         )}
-        <h1 className="mt-6 font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-white leading-tight max-w-3xl">
+        <h1
+          className="mt-6 font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-white leading-tight max-w-3xl"
+          dir={getTextDir(event.title || '')}
+        >
           {event.title}
         </h1>
         <div className="mt-4 flex flex-wrap items-center gap-6 text-white/90 text-sm">
@@ -225,9 +304,11 @@ function ReviewForm({
           maxLength={REVIEW_MAX_CHARS}
           aria-describedby="review-char-count review-error"
           aria-invalid={!!errors.review}
+          dir={getTextDir(reviewText)}
+          lang={hasArabicScript(reviewText) ? 'ar' : undefined}
           className={`w-full rounded-xl border bg-white px-4 py-3 text-sm text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#00356b]/20 focus:border-[#00356b] transition-colors ${
-            errors.review ? 'border-red-400' : 'border-slate-200'
-          }`}
+            getTextDir(reviewText) === 'rtl' ? 'text-right' : 'text-start'
+          } ${errors.review ? 'border-red-400' : 'border-slate-200'}`}
         />
         <div className="mt-1 flex justify-between">
           <span id="review-char-count" className="text-xs text-slate-500">
@@ -267,7 +348,7 @@ function ReviewCard({ review }) {
           <div className="mt-1">
             <RatingStars value={review.rating} readonly aria-label={`Rated ${review.rating} out of 5`} />
           </div>
-          <p className="mt-2 text-sm text-slate-600 leading-relaxed">{review.comment}</p>
+          <RtlText className="mt-2 text-sm text-slate-600 leading-relaxed">{review.comment}</RtlText>
         </div>
       </div>
     </article>
@@ -393,6 +474,7 @@ function NotFound() {
 
 function EventDetails() {
   const { id } = useParams();
+  const navigate = useNavigate();
   const { user } = useAuth();
   const [loading, setLoading] = useState(true);
   const [reviews, setReviews] = useState([]);
@@ -406,6 +488,8 @@ function EventDetails() {
   const [regErrors, setRegErrors] = useState({});
   const [featuredLoading, setFeaturedLoading] = useState(false);
   const [featuredMessage, setFeaturedMessage] = useState(null);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deleteError, setDeleteError] = useState('');
   const textareaRef = useRef(null);
   const ratingRef = useRef(null);
 
@@ -438,6 +522,8 @@ function EventDetails() {
           endDate: endDateStr,
           time: e.startTime || '',
           endTime: e.endTime || '',
+          startDateRaw: e.startDate || null,
+          endDateRaw: e.endDate || null,
           location: e.location || '',
           image: e.image || '/event1.jpg',
           status: displayStatus,
@@ -483,6 +569,12 @@ function EventDetails() {
 
   const event = eventRaw;
   const isPast = event?.status === 'past';
+  const isAdminUser = isAdmin(user);
+  const canAdminDeleteEvent = Boolean(
+    event &&
+      isAdminUser &&
+      eventAllowsAdminDelete(event.startDateRaw, event.time, event.endDateRaw, event.endTime)
+  );
 
   /** Event description from database for Overview section. */
   const overviewDescription = useMemo(() => {
@@ -492,7 +584,6 @@ function EventDetails() {
 
   const myReg = event?.myRegistration;
   const regStatus = myReg?.status;
-  const isAdminUser = isAdmin(user);
   const hasApprovedRegistration = regStatus === 'approved';
   const canSubmitReview = !!user && isPast && (isAdminUser || hasApprovedRegistration);
 
@@ -572,6 +663,24 @@ function EventDetails() {
       .finally(() => setFeaturedLoading(false));
   };
 
+  const handleDeleteEvent = async () => {
+    if (!event?.id || !canAdminDeleteEvent) return;
+    const ok = window.confirm(
+      `Delete "${event.title}"?\n\nThis permanently removes the event and all registrations and reviews.`
+    );
+    if (!ok) return;
+    setDeleteError('');
+    setDeleteLoading(true);
+    try {
+      await deleteEvent(event.id);
+      navigate('/events', { replace: true });
+    } catch (err) {
+      setDeleteError(err?.message || 'Failed to delete event.');
+    } finally {
+      setDeleteLoading(false);
+    }
+  };
+
   if (loading) return <LoadingSkeleton />;
   if (!event) return <NotFound />;
 
@@ -588,28 +697,17 @@ function EventDetails() {
             <span className="mx-2 text-slate-300" aria-hidden>›</span>
             <span className="text-slate-800 font-medium">{event.title}</span>
           </nav>
-          {isAdmin(user) && (
-            <div className="mt-3 flex flex-wrap items-center gap-3">
-              {event?.featured ? (
-                <span className="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">
-                  <IconStar className="h-5 w-5" />
-                  Featured Event
-                </span>
-              ) : (
-                <button
-                  type="button"
-                  onClick={handleSetFeatured}
-                  disabled={featuredLoading || !event?.id}
-                  className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-                >
-                  <IconStar className="h-5 w-5" />
-                  {featuredLoading ? 'Setting Featured...' : 'Set as Featured Event'}
-                </button>
-              )}
-              {featuredMessage && (
-                <span className={`text-sm ${featuredMessage.startsWith('This event') ? 'text-emerald-600' : 'text-red-600'}`}>{featuredMessage}</span>
-              )}
-            </div>
+          {isAdminUser && (
+            <AdminEventActions
+              event={event}
+              canDelete={canAdminDeleteEvent}
+              featuredLoading={featuredLoading}
+              featuredMessage={featuredMessage}
+              deleteLoading={deleteLoading}
+              deleteError={deleteError}
+              onSetFeatured={handleSetFeatured}
+              onDelete={handleDeleteEvent}
+            />
           )}
         </div>
 
@@ -622,7 +720,7 @@ function EventDetails() {
                 </h2>
                 <div className="mt-4 space-y-4 text-slate-600 leading-relaxed">
                   {overviewDescription ? (
-                    <p className="text-slate-600 leading-relaxed whitespace-pre-wrap">{overviewDescription}</p>
+                    <RtlText className="text-slate-600 leading-relaxed whitespace-pre-wrap">{overviewDescription}</RtlText>
                   ) : null}
                 </div>
               </div>
@@ -706,7 +804,7 @@ function EventDetails() {
   return (
     <div className="min-h-screen bg-[#f7f6f3] text-slate-900">
       {/* Hero – same style as past event */}
-      <section className="relative overflow-hidden border-b border-slate-200 bg-[#0b2d52]">
+      <section className="relative overflow-hidden border-b border-slate-200 bg-[#0b2d52] min-h-[21rem] md:min-h-[27rem]">
         <div className="absolute inset-0">
           <img
             src={eventImageUrl(event.image)}
@@ -717,8 +815,11 @@ function EventDetails() {
           />
           <div className="absolute inset-0 bg-gradient-to-t from-[#0b2d52]/85 via-[#0b2d52]/50 to-[#0b2d52]/30" aria-hidden />
         </div>
-        <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pt-12 pb-10">
-          <h1 className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-white leading-tight max-w-3xl">
+        <div className="relative max-w-6xl mx-auto px-6 lg:px-10 pt-12 pb-14 min-h-[21rem] md:min-h-[27rem] flex flex-col justify-end">
+          <h1
+            className="font-serif text-3xl md:text-4xl lg:text-5xl font-semibold text-white leading-tight max-w-3xl"
+            dir={getTextDir(event.title || '')}
+          >
             {event.title}
           </h1>
           <div className="mt-4 flex flex-wrap items-center gap-6 text-white/90 text-sm">
@@ -749,28 +850,17 @@ function EventDetails() {
           <span className="mx-2 text-slate-300" aria-hidden>›</span>
           <span className="text-slate-800 font-medium">{event.title}</span>
         </nav>
-        {isAdmin(user) && (
-          <div className="mt-3 flex flex-wrap items-center gap-3">
-            {event?.featured ? (
-              <span className="inline-flex items-center gap-2 rounded-lg bg-amber-100 px-4 py-2 text-sm font-medium text-amber-800">
-                <IconStar className="h-5 w-5" />
-                Featured Event
-              </span>
-            ) : (
-              <button
-                type="button"
-                onClick={handleSetFeatured}
-                disabled={featuredLoading || !event?.id}
-                className="inline-flex items-center gap-2 rounded-lg bg-blue-600 px-4 py-2 text-sm font-medium text-white shadow-sm transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <IconStar className="h-5 w-5" />
-                {featuredLoading ? 'Setting Featured...' : 'Set as Featured Event'}
-              </button>
-            )}
-            {featuredMessage && (
-              <span className={`text-sm ${featuredMessage.startsWith('This event') ? 'text-emerald-600' : 'text-red-600'}`}>{featuredMessage}</span>
-            )}
-          </div>
+        {isAdminUser && (
+          <AdminEventActions
+            event={event}
+            canDelete={canAdminDeleteEvent}
+            featuredLoading={featuredLoading}
+            featuredMessage={featuredMessage}
+            deleteLoading={deleteLoading}
+            deleteError={deleteError}
+            onSetFeatured={handleSetFeatured}
+            onDelete={handleDeleteEvent}
+          />
         )}
       </div>
 
@@ -785,7 +875,7 @@ function EventDetails() {
               </h2>
               <div className="mt-4 space-y-4">
                 {overviewDescription ? (
-                  <p className="text-base text-slate-600 leading-relaxed whitespace-pre-wrap">{overviewDescription}</p>
+                  <RtlText className="text-base text-slate-600 leading-relaxed whitespace-pre-wrap">{overviewDescription}</RtlText>
                 ) : null}
               </div>
             </div>
@@ -845,7 +935,7 @@ function EventDetails() {
                 {Array.isArray(event.customSections) && event.customSections.map((sec) => (
                   <div key={sec.id || sec.sectionTitle}>
                     <dt className="text-xs font-semibold uppercase tracking-wider text-slate-500">{sec.sectionTitle || 'Section'}</dt>
-                    <dd className="mt-1 text-base text-slate-600 leading-relaxed whitespace-pre-wrap">{sec.content || ''}</dd>
+                    <RtlText as="dd" className="mt-1 text-base text-slate-600 leading-relaxed whitespace-pre-wrap">{sec.content || ''}</RtlText>
                   </div>
                 ))}
               </dl>

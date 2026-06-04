@@ -36,11 +36,14 @@ router.post('/ask', async (req, res) => {
     const majorName = body.majorName != null && String(body.majorName).trim() ? String(body.majorName).trim() : undefined;
     const majorFaculty = body.majorFaculty != null && String(body.majorFaculty).trim() ? String(body.majorFaculty).trim() : undefined;
 
+    const userRole = req.user?.role ?? 'student';
+
     const result = await askChatbot({
       sessionId,
       userMessage: question,
       majorName,
       majorFaculty,
+      userRole,
     });
     return res.json({ ...result, sessionId });
   } catch (error) {
